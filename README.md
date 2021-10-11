@@ -1,2 +1,2 @@
-# RP2040-morse-decoder
-A morse decoder created in ARM Assembly for the RP2040 microcontroller
+# ARM Emulator
+A university project to emulater ARM Chip instructions
