@@ -1,2 +1,2 @@
-# ARM Emulator
-A university project to emulater ARM Chip instructions
+# Pico-Game
+A university project to create a game to teach assembly language 
