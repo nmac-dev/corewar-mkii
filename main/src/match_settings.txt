@@ -1,13 +1,15 @@
 ## Match Setting Values
-#   | core_size       | number of memory addresses within the core
-#   | max_cycles      | max number of cycles beofre the round has been concluded
-#   | max_processes   | max number of processes a single warrior can create
-#   | max_warrior_len | max length of a warriors instructions (max lines)
-#   | min_separation  | min distance between warriors at the start of a round
+#   | core_size         | number of memory addresses within the core
+#   | max_rounds        | max number of rounds before the game is concluded
+#   | max_cycles        | max number of cycles before the round has been concluded
+#   | max_processes     | max number of processes a single warrior can create
+#   | max_warrior_inst  | max instructions a warrior can consist of
+#   | min_separation    | min distance between warriors at the start of a round
 ##
 
 ## Parameters
 core_size = 8000
+max_rounds = 3
 max_cycles = 8
 max_processes = 8
 max_warrior_len = 12
