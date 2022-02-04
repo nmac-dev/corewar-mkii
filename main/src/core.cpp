@@ -9,6 +9,3 @@
  *               [x] = current position
  *          (1 2 3 4 5 [6] 7 8), [6]+3 = ([1] 2 3 4 5 6 7 8)
  */
-
-static const int CORE_MIN = 0,
-                 CORE_MAX = 8000;
