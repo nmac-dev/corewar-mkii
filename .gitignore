@@ -44,6 +44,9 @@
 ## Visual Studio
 ###
 
+### Custom
+.vscode
+
 # User-specific files
 *.rsuser
 *.suo
