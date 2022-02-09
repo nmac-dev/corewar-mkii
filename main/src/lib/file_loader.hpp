@@ -1,0 +1,1 @@
+/// Handles loading files for corewar (match settings, warriors)
