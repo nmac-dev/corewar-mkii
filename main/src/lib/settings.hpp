@@ -1,6 +1,8 @@
 /// Handles match setting
 #pragma once
 
+// #define __SETTINGS_DEBUG__
+
 #include "file_loader.hpp"
 #include <unordered_map>
 
@@ -67,6 +69,17 @@ void Settings::loadSettings()
         }
         setting_values.insert(std::make_pair(name, value));
     }
+    
+    #ifdef __SETTINGS_DEBUG__
+        for (auto itr = setting_values.begin(); itr != setting_values.end(); itr++)
+        {
+            std::cout
+                << "Settings::loadSettings: \t" 
+                << "Key= \""    << itr->first
+                << "\" \tValue= " << itr->second
+                << std::endl;
+        }
+    #endif
 }
 
 /**
@@ -83,6 +96,12 @@ void Settings::removeWhiteSpace(std::string &str)
         str[i] = str[i + ws];
     }
     str.erase(str.length() - ws);
+
+    #ifdef __SETTINGS_DEBUG__
+            std::cout 
+                << "Settings::removeWhiteSpace: \t" << str.c_str()
+                << std::endl;
+    #endif
 }
 
 /// number of memory addresses within the core
