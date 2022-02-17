@@ -1,6 +1,8 @@
 /// Handles loading files for corewar (match settings, warriors)
 #pragma once
 
+// #define __FILE_LOADER_DEBUG__
+
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -27,6 +29,10 @@ std::vector<std::string> getFileData(const char *filename, const char comment = 
             if (sc == comment || sc == 0 || sc == ' ' || sc == '\n') 
                 continue;
             file_data.push_back(line);
+
+            #ifdef __FILE_LOADER_DEBUG__
+                std::cout << "file_loader::getFileData: \t" << line << std::endl;
+            #endif
         }
     else
         perror("Error: cannot open file");
