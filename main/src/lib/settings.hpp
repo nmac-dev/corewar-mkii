@@ -1,7 +1,7 @@
 /// Handles match setting
 #pragma once
 
-// #define __SETTINGS_DEBUG__
+#define __SETTINGS_DEBUG__
 
 #include "file_loader.hpp"
 #include <unordered_map>
@@ -54,7 +54,7 @@ void Settings::loadSettings()
     int value;
     setting_values.clear();
 
-    /// clean data, get setting name & value
+    // clean data, get setting name & value
     for (int i = 0; i < data.size(); i++)
     {
         removeWhiteSpace(data[i]);
@@ -75,8 +75,8 @@ void Settings::loadSettings()
         {
             std::cout
                 << "Settings::loadSettings: \t" 
-                << "Key= \""    << itr->first
-                << "\" \tValue= " << itr->second
+                << "Key= \""      << itr->first << "\""
+                << " \tValue= " << itr->second
                 << std::endl;
         }
     #endif
