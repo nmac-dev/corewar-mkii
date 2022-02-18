@@ -1,7 +1,7 @@
 /// Handles match setting
 #pragma once
 
-#define __SETTINGS_DEBUG__
+// #define __SETTINGS_DEBUG__
 
 #include "file_loader.hpp"
 #include <unordered_map>
@@ -9,25 +9,9 @@
 /// Defines: Singleton class to store & retrieve match settings
 class Settings
 {
-public:
-    Settings(const Settings&) = delete; // Blocks singleton copy creation
-
-    static Settings& Get()  // Singleton instance access method
-    {
-        return match_settings;
-    }
-
-    void loadSettings();
-    int core_size() const,
-        max_rounds() const,
-        max_cycles() const,
-        max_processes() const,
-        max_warrior_len() const,
-        min_separation() const;
-
 private:
     const char *filename = "match_settings.txt";
-    const char  comment = '#';
+    const char  comment  = '#';
     
     /**
      * @brief Stores the setting values using the parameter name as a key
@@ -39,6 +23,20 @@ private:
     Settings() {}
 
     void removeWhiteSpace(std::string &str);
+
+public:
+    Settings(const Settings&) = delete; // Blocks singleton copy creation
+
+    /// Singleton instance access method
+    static Settings& Get() {return match_settings;}
+
+    void loadSettings();
+    int core_size() const,
+        max_rounds() const,
+        max_cycles() const,
+        max_processes() const,
+        max_warrior_len() const,
+        min_separation() const;
 };
 
 /// Defines singleton class instance
