@@ -34,8 +34,8 @@ static std::vector<std::string> getFileData(const char *filename, const char com
                 std::cout << "file_loader::getFileData: \t" << line << std::endl;
             #endif
         }
-    else
-        perror("Error: cannot open file");
+    else perror("Error: cannot open file");
+
     fs.close();
     return file_data;
 }
@@ -56,7 +56,7 @@ static void removeWhiteSpace(std::string &str)
 
     #ifdef FILE_LOADER_DEBUG
             std::cout 
-                << "Settings::removeWhiteSpace: \t" << str.c_str()
+                << "file_loader::removeWhiteSpace: \t" << str.c_str()
                 << std::endl;
     #endif
 }
