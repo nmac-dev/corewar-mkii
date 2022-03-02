@@ -1,7 +1,7 @@
 /// Handles match setting
 #pragma once
 
-// #define __SETTINGS_DEBUG__
+// #define SETTINGS_DEBUG
 
 #include "file_loader.hpp"
 #include <unordered_map>
@@ -55,7 +55,7 @@ void Settings::loadSettings()
     // clean data, get setting name & value
     for (int i = 0; i < data.size(); i++)
     {
-        removeWhiteSpace(data[i]);
+        file_loader::removeWhiteSpace(data[i]);
         for (int j = 0; j < data[i].length(); j++)
         {
             if (data[i][j] == '=')
@@ -68,7 +68,7 @@ void Settings::loadSettings()
         setting_values.insert(std::make_pair(name, value));
     }
     
-    #ifdef __SETTINGS_DEBUG__
+    #ifdef SETTINGS_DEBUG
         for (auto itr = setting_values.begin(); itr != setting_values.end(); itr++)
         {
             std::cout
@@ -77,28 +77,6 @@ void Settings::loadSettings()
                 << " \tValue= " << itr->second
                 << std::endl;
         }
-    #endif
-}
-
-/**
- * @brief Shuffles all whitespace to the end of the string and erases the whitespace segment
- * @param str reference
- */
-void Settings::removeWhiteSpace(std::string &str)
-{
-    int ws = 0; // whitespace counter
-    for (int i = 0; i < str.length() - ws; i++)
-    {
-        while (str[i + ws] == ' ')
-            ws++;
-        str[i] = str[i + ws];
-    }
-    str.erase(str.length() - ws);
-
-    #ifdef __SETTINGS_DEBUG__
-            std::cout 
-                << "Settings::removeWhiteSpace: \t" << str.c_str()
-                << std::endl;
     #endif
 }
 
