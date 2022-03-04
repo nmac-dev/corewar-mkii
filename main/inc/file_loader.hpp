@@ -48,7 +48,7 @@ static void removeWhiteSpace(std::string &str)
     int ws = 0; // whitespace counter
     for (int i = 0; i < str.length() - ws; i++)
     {
-        while (str[i + ws] == ' ')
+        while (str[i + ws] == ' ' || str[i + ws] == '\t')
             ws++;
         str[i] = str[i + ws];
     }
