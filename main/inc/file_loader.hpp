@@ -7,16 +7,14 @@
 #include <fstream>
 #include <vector>
 
-namespace file_loader 
+namespace file_loader
 {
-/**
- * @brief Get the File Data object
- * 
+/** Get the File Data object
  * @param filename directory/filename location
  * @param comment  (optional) character considered a comment within the file
- * @return std::vector<std::string> 
+ * @return Vector containing each line of data from the file
  */
-static std::vector<std::string> getFileData(const char *filename, const char comment = 0)
+inline static std::vector<std::string> getFileData(const char *filename, const char comment = 0)
 {
     std::vector<std::string> file_data;
     std::ifstream fs (filename, std::ios::in);
@@ -25,8 +23,8 @@ static std::vector<std::string> getFileData(const char *filename, const char com
     if (fs.is_open())
         while(std::getline(fs, line))
         {
-            char sc = line[0]; // starting character
-            if (sc == comment || sc == 0 || sc == ' ' || sc == '\n') 
+            char first = line[0]; // first character of the line
+            if (first == comment || first == 0 || first == ' ' || first == '\n') 
                 continue;
             file_data.push_back(line);
 
@@ -34,16 +32,19 @@ static std::vector<std::string> getFileData(const char *filename, const char com
                 std::cout << "file_loader::getFileData: \t" << line << std::endl;
             #endif
         }
-    else perror("Error: cannot open file");
-
+    else 
+    {
+        std::cerr << "Error: cannot open file... |" << filename << "|" << std::endl;
+        throw std::exception(); // begin stack unwind to main()
+    }
     fs.close();
     return file_data;
 }
-/**
- * @brief Shuffles all whitespace to the end of the string and erases the whitespace segment
+
+/** Shuffles all whitespace to the end of the string and erases the whitespace segment
  * @param str reference
  */
-static void removeWhiteSpace(std::string &str)
+inline static void removeWhiteSpace(std::string &str)
 {
     int ws = 0; // whitespace counter
     for (int i = 0; i < str.length() - ws; i++)
@@ -60,4 +61,4 @@ static void removeWhiteSpace(std::string &str)
                 << std::endl;
     #endif
 }
-}
+} /// namespace file_loader
