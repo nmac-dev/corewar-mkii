@@ -3,9 +3,7 @@
 
 namespace ASM
 {
-/**
- * @brief Assembly Instruction Opcode (specifies operation to perform)
- */
+/// Assembly Instruction Opcode (specifies operation to perform)
 enum class _OP
 {
     DAT, // Data: illegal instruction, kills the executing process
@@ -24,12 +22,9 @@ enum class _OP
     SPL  // Split: creates a new process at the address of A (unless processes are at max)
 };
 
-/**
- * @brief Assembly Instruction Modifier (modifies opcode behaviour)
- */
+/// Assembly Instruction Modifier (modifies opcode behaviour)
 enum class _MOD
 {
-    NONE, // Default ".I"
     A,    // A -> A
     B,    // B -> B
     AB,   // A -> B
@@ -39,9 +34,7 @@ enum class _MOD
     I     // [default] Opcode is applied to both operands (MOV, CMP, SNE)
 };
 
-/**
- * @brief Assembly Instruction Addressing Mode (determines source and destination)
- */
+/// Assembly Instruction Addressing Mode (determines source and destination)
 enum class _AM
 {
     IMMEDIATE,  // "#" evaluated as of 0
@@ -54,29 +47,27 @@ enum class _AM
     B_PRE_INC   // ">" (indirect) B is incremented before use
 };
 
+/// Holds label information to be parsed
 struct Label
 {
-    /* data */
+    Instr &warrior;  // warrior label belongs too
+    const char &name;  // <label> name
+    int position;      // label position (relative to first warrior asm instruction)
 };
 
-
-/**
- * @brief Stores an assembly instruction [opcode].[modifier] [mode_a][op_a], [mode_b][op_b]
- */
+/// Stores an assembly instruction [opcode].[modifier] [mode_a][op_a], [mode_b][op_b]
 struct Instr
 {
-    _OP  opcode;     // Specifies operation
-    _MOD modifier;   // Modifies opcode behaviour
-    _AM  mode_a, mode_b; // Addressing mode for operands (A|B)
-    int  op_a, op_b;     // Operand (A|B) of the opcode argument
+    _OP  *opcode;     // Specifies operation
+    _MOD *modifier;   // Modifies opcode behaviour
+    _AM  *mode_a, *mode_b; // Addressing mode for operands (A|B)
+    int  op_a, op_b;       // Operand (A|B) of the opcode argument
     
     Instr();
     ~Instr();
 };
 
-/**
- * @brief Represents a warrior (player) containing assembly code instruction
- */
+/// Represents a warrior (player) containing assembly code instruction
 class Warrior
 {
  private:
@@ -92,9 +83,10 @@ class Warrior
     Warrior();
     ~Warrior();
 
-    // returns the start index of the warrior within the core
-    inline int begin() const; 
-    // returns the end index of the warrior within the core (core_index + length -1)
-    inline int end() const; 
+    /// returns the start index of the warrior within the core
+    inline int Warrior::begin() const {return core_index;}
+    /// returns the end index of the warrior within the core (core_index + length -1)
+    inline int Warrior::end() const {return core_index + len;}
+    
 };
-}
+} // namespace ASM

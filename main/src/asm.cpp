@@ -4,12 +4,17 @@
 
 namespace ASM
 {
-Instr::Instr()  {}
+Instr::Instr()  
+{
+    opcode   = nullptr;
+    modifier = nullptr;
+    mode_a   = nullptr;
+    mode_b   = nullptr;
+    op_a     = 0;
+    op_b     = 0;
+}
 Instr::~Instr() {}
 
 Warrior::Warrior()  {}
 Warrior::~Warrior() {}
-
-inline int Warrior::begin() const {return core_index;}
-inline int Warrior::end() const   {return core_index + len;}
-}
+} // namespace ASM
