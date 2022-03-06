@@ -1,99 +1,99 @@
-/// Handles match setting
+/// Handles match settings
 #pragma once
 
 // #define SETTINGS_DEBUG
 
-#include "file_loader.hpp"
 #include <unordered_map>
+#include "file_loader.hpp"
 
-/// Defines: Singleton class to store & retrieve match settings
+/// Singleton class to load & store match settings from a configuration file
 class Settings
 {
-private:
-    const char *filename = "match_settings.txt";
+ private:
+    const char *ini_section = "[Match Parameters]";
+    const char *filename = "corewar.ini";
     const char  comment  = '#';
     
-    /**
-     * @brief Stores the setting values using the parameter name as a key
-     */
+    /// Stores the setting values using the parameter name as a key
     std::unordered_map<std::string, int> setting_values;
 
-    // Singleton instance
-    static Settings match_settings;
+    /// Constructor is blocked
     Settings() {}
 
-    void removeWhiteSpace(std::string &str);
-
-public:
-    Settings(const Settings&) = delete; // Blocks singleton copy creation
-
-    /// Singleton instance access method
-    static Settings& Get() {return match_settings;}
-
-    void loadSettings();
-    int core_size() const,
-        max_rounds() const,
-        max_cycles() const,
-        max_processes() const,
-        max_warrior_len() const,
-        min_separation() const;
-};
-
-/// Defines singleton class instance
-Settings Settings::match_settings;
-
-/**
- * @brief Uses file_loader:: to read match_settings.txt, then processes the contents into the hash table
- */
-void Settings::loadSettings() 
-{
-    std::vector<std::string> data = file_loader::getFileData(filename, comment);
-    std::string name;
-    int value;
-    setting_values.clear();
-
-    // clean data, get setting name & value
-    for (int i = 0; i < data.size(); i++)
+ public:
+    /// Settings instance access method
+    static Settings& get()
     {
-        file_loader::removeWhiteSpace(data[i]);
-        for (int j = 0; j < data[i].length(); j++)
+        static Settings match_settings;
+        return match_settings;
+    }
+
+    /// Copy creation method deleted
+    Settings(Settings const &)       = delete;
+    /// Assignment operator method deleted
+    void operator= (Settings const &) = delete;
+
+    /// Uses file_loader:: to read match_settings.txt, then processes the contents into the hash table
+    inline void loadSettings()
+    {
+        std::vector<std::string> data = file_loader::getFileData(filename, comment);
+        std::string name;
+        int value;
+        setting_values.clear();
+
+        // validate data is from correct file
+        if (data[0] != ini_section)
         {
-            if (data[i][j] == '=')
-            {
-                name = data[i].substr(0, j);
-                value = std::stoi(data[i].substr(j +1, data[i].length()));
-                break;
-            }
+            std::cerr 
+                << "Error: expected.. " << ini_section << " ..but found.. " << data[0]
+                <<  " ..in config file.. |" << filename << '|' << std::endl;
+            throw std::exception(); // begin stack unwind to main()
         }
-        setting_values.insert(std::make_pair(name, value));
+
+        // process each parameter & value
+        for (int i = 1; i < data.size(); i++)
+        {
+            // clean data, get setting name & value
+            file_loader::removeWhiteSpace(data[i]);
+            for (int j = 0; j < data[i].length(); j++)
+            {
+                if (data[i][j] == '=')
+                {
+                    name = data[i].substr(0, j);
+                    value = std::stoi(data[i].substr(j +1, data[i].length()));
+                    break;
+                }
+            }
+            setting_values.insert(std::make_pair(name, value));
+        }
+        
+        #ifdef SETTINGS_DEBUG
+            for (auto itr = setting_values.begin(); itr != setting_values.end(); itr++)
+            {
+                std::cout
+                    << "Settings::loadSettings: \t" 
+                    << "Key= \""    << itr->first << "\""
+                    << " \tValue= " << itr->second
+                    << std::endl;
+            }
+        #endif
     }
     
-    #ifdef SETTINGS_DEBUG
-        for (auto itr = setting_values.begin(); itr != setting_values.end(); itr++)
-        {
-            std::cout
-                << "Settings::loadSettings: \t" 
-                << "Key= \""      << itr->first << "\""
-                << " \tValue= " << itr->second
-                << std::endl;
-        }
-    #endif
-}
+    /// Total number of memory addresses within the core
+    inline int core_size() const {return setting_values.at("core_size");}
 
-/// number of memory addresses within the core
-int Settings::core_size() const       {return setting_values.find("core_size")->second;}
+    /// Max number of rounds before the game is concluded
+    inline int max_rounds() const {return setting_values.at("max_rounds");}
 
-/// max number of rounds before the game is concluded
-int Settings::max_rounds() const      {return setting_values.find("max_rounds")->second;}
+    /// Max number of cycles before the round has been concluded
+    inline int max_cycles() const {return setting_values.at("max_cycles");}
 
-/// max number of cycles before the round has been concluded
-int Settings::max_cycles() const      {return setting_values.find("max_cycles")->second;}
+    /// Max number of processes a single warrior can create
+    inline int max_processes() const {return setting_values.at("max_processes");}
 
-/// max number of processes a single warrior can create
-int Settings::max_processes() const   {return setting_values.find("max_processes")->second;}
+    /// Max instructions a warrior can consist of
+    inline int max_warrior_len() const {return setting_values.at("max_warrior_len");}
 
-/// max instructions a warrior can consist of
-int Settings::max_warrior_len() const {return setting_values.find("max_warrior_len")->second;}
-
-/// min distance between warriors at the start of a round
-int Settings::min_separation() const  {return setting_values.find("min_separation")->second;}
+    /// Min distance between warriors at the start of a round
+    inline int min_separation() const {return setting_values.at("min_separation");}
+};
