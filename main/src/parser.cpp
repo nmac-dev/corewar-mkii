@@ -3,161 +3,259 @@
 
 namespace parser
 {
-inline static bool isNumber(char& val)
-{
-    bool is_number = false;
-    if (val >= '0' && val<= '9') is_number = true;
 
-    return is_number;
+
+namespace /**** Anonymous Namespace ****/
+{
+
+    /**** Parser Utility Functions ****/
+
+inline void invalidAssemblyError(std::string full_inst, std::string asm_arg)
+{
+    std::cerr
+        << "Error: " << asm_arg << " is not a valid [operand] . . .\n"
+        << "Full Instruction: |" << full_inst << "|"
+        << std::endl;
+    throw std::exception(); // begin stack unwind to main()
 }
 
-inline static bool isAsmSeperator(char& val)
+inline bool isAsmSeperator(char val)
 {
-    bool is_space = false;
-    if (val == ' ' || val == '\t' || val == '.' || val == ',') is_space = true;
-
-    return is_space;
+    return val == ' ' || val == '\t' || val == '.' || val == ',';
 }
 
-inline static void findAsmArgument(std::string &str, int &l, int &r)
+inline std::string findAsmArgument(std::string str, int &pos)
 {
-    /// find start & end of argument
-    for (l = r;  isAsmSeperator(str[l]) && l < str.length() -1; l++) {} // start
-    for (r = l; !isAsmSeperator(str[r]) && r < str.length() -1; r++) {}  // end
-} 
+    const int len = str.length() -1;
+    int l, r;
 
-static void cleanAsmStr(std::string &str)
+    // start of arg
+    for (l = pos; isAsmSeperator(str[l]) && l < len; l++) {}
+    // end of arg
+    for (r = l; !isAsmSeperator(str[r]) && r < len; r++) {}
+
+    pos = r; // retain index value for next argument
+    return str.substr(l, r - l);
+}
+
+inline std::string cleanAsmStr(std::string str)
 {
     /* Processing Example:
-     *   Input: " start   mov.ab   #4,  bmb    "
-     *  Output: "start mov.ab #4,bmb"
-     */
+    *   Input: " start   mov.ab   #4,  bmb    "
+    *  Output: "start mov.ab #4,bmb"
+    */
+    std::string clean_asm = "";
 
     const int len = str.length() -1; // fetch once
-    int l = 0, r = 0; // l : left index, r : right index
-    int logic_p  = 0; // seperator for logical partition, used to erase excess string length
+    int pos = 0;
     
-    while (l < len && r < len)
+    while (pos < len)
     {
-        findAsmArgument(str, l, r);
+        clean_asm.append( findAsmArgument(str, pos) );
+        std::cout << clean_asm << "|\n";
         
-        /// swaps the indexes from the left index to the end of the logical partition
-        while (l <= r)
-        {
-            // only swap index if necessary
-            if (logic_p != l)
-            {
-                str[logic_p] = str[l];
-                str[l]       = ' ';
-            }
-            l++; logic_p++; // inc both
-        }
-        // remove extra space after comma of [op_a] & [op_b]
-        if(str[r] == ',') r++;
+        // skip space after comma of [op_a] & [op_b]
+        if(str[pos] == ',') {
+            clean_asm.push_back(',');
+            continue;
+        } 
+        clean_asm.push_back(' ');
     }
     // erase end partition
-    while(isAsmSeperator(str[r--])) str.pop_back();
+    pos = clean_asm.length() -1;
+    while(isAsmSeperator(clean_asm[pos--])) clean_asm.pop_back();
+    
+    return clean_asm;
 }
 
-static Instr *strToInstr(std::string &str, std::unordered_map<std::string, int> &label_linker)
+inline _MOD &getDefaultModifier(_OP opcode, _AM mode_a, _AM mode_b)
 {
-    Instr *asm_instr = new Instr();
-    std::string asm_arg; asm_arg.reserve(32);
+    switch (opcode)
+    {
+    // [dat, nop]
+    case _OP::DAT:
+        return modifier_tbl["f"];
+    // [mov, cmp, sne]
+    case _OP::MOV:
+    case _OP::CMP:
+    // [add, sub, mul, div, mod]
+    case _OP::ADD:
+    case _OP::SUB:
+    case _OP::MUL:
+    case _OP::DIV:
+    case _OP::MOD:
+        // A == '#'
+        if (mode_a == _AM::IMMEDIATE)
+        {
+            return modifier_tbl["ab"];
+        }
+        // A != ['#','*'] && B == '#' 
+        else if (mode_a != _AM::IMMEDIATE && mode_b == _AM::IMMEDIATE)
+        {
+            return modifier_tbl["b"];
+        }
+        // default: [mov, cmp]
+        else if (opcode == _OP::MOD, opcode == _OP::CMP)
+        {
+            return modifier_tbl["i"];
+        }
+        // default: [add, sub, mul, div, mod]
+        else
+        {
+            return modifier_tbl["f"];
+        }
+    // [slt]
+    case _OP::SLT:
+        // A == '#'
+        if (mode_a == _AM::IMMEDIATE)
+        {
+            return modifier_tbl["ab"];
+        }
+        // A != '#'
+        else
+        {
+            return modifier_tbl["b"];
+        }
+    // [jmp, jmz, jmn, djn, spl]
+    case _OP::JMP:
+    case _OP::JMZ:
+    case _OP::JMN:
+    case _OP::DJN:
+    case _OP::SPL:
+        return modifier_tbl["b"];
+    }
+}
+
+} /// Anonymous Namespace
+
+
+    /**** Parser Functions ****/
+
+LabelLinker *getAsmLabels(std::vector<std::string> &asm_data)
+{
+    LabelLinker *labels = new LabelLinker;
+    std::string first_arg; // first argument in asm code
+
+    // Search each line of asm code
+    for (int i = 0; i < asm_data.size(); i++)
+    {
+        int pos = 0;
+        first_arg = findAsmArgument(asm_data[i], pos);
+
+        // label found, as first_arg is not opcode
+        if (!opcode_tbl.count(first_arg))
+        {
+            // add label to linker w/ line position
+            (*labels)[first_arg] = i;
+        }
+    }
+    return labels;
+}
+
+Inst *asmStrToInst(std::string &str, std::unordered_map<std::string, int> &label_linker)
+{
+    Inst *asm_inst = new Inst();
+    std::string asm_arg;
 
     const int len = str.length() -1; // fetch once
     bool no_modifier = false;        // flag to notify function to create modifier
-    int l = 0, r = 0; // l : left index, r : right index
+    int pos = 0;
 
-    // clean instruction string
-    cleanAsmStr(str);
+    // set mode & value to operand a until b is found
+    _AM **addr_mode = &asm_inst->mode_a;
+    int *operand    = &asm_inst->op_a;
 
-    while (l < len && r < len)
+    // get assembly argument
+    asm_arg = findAsmArgument(str, pos);
+
+    /* identify argument */
+
+    // skip <label>
+    if (label_linker.count(asm_arg))
     {
-        // get assembly argument
-        findAsmArgument(str, l, r);
-        asm_arg = str.substr(l, r - l);
+        // get [opcode]
+        asm_arg = findAsmArgument(str, pos);
+    }
+    
 
-        /* identify argument */
+    // [opcode]
+    if (opcode_tbl.count(asm_arg))
+    {
+        // add [opcode]
+        asm_inst->opcode = (_OP *)opcode_tbl.at(asm_arg);
 
-        // <label>
-        if (l = 0 && !opcode_tbl.count(asm_arg))
+        // check [opcode] has <modifier>
+        if (str[pos] == '.')
         {
-            /// TODO: process label
-        }
+            // get <modifier> argument 
+            asm_arg = findAsmArgument(str, pos);
 
-        // [opcode]
-        if (opcode_tbl.count(asm_arg))
-        {
-            // add [opcode]
-            asm_instr->opcode = (_OP *)opcode_tbl.at(asm_arg);
-
-            // check [opcode] has <modifier>
-            if (str[r] == '.')
+            // add <modifier>
+            if (modifier_tbl.count(asm_arg))
             {
-                // get <modifier> argument 
-                findAsmArgument(str, l, r);
-                asm_arg = str.substr(l, r - l);
-
-                // add <modifier>
-                if (modifier_tbl.count(asm_arg))
-                {
-                    asm_instr->opcode = (_OP *)opcode_tbl.at(asm_arg);
-                }
-                // not valid
-                else 
-                {
-                    std::cerr
-                        << "Error: " << asm_arg << " is not a valid <modifier> . . .\n"
-                        << "Full Instruction: |" << str << "|"
-                        << std::endl;
-                    throw std::exception(); // begin stack unwind to main()
-                }
+                asm_inst->opcode = (_OP *)opcode_tbl.at(asm_arg);
             }
-            // set flag to create default <modifier> at the end (depends on all other arguments)
-            else
-            {
-                no_modifier = true;
-            }
-        }
-        // <mode_a|b> & [op_a|b]
-        if (str[r] == ',' || r == len)
-        {
-            // process <mode_a> on first run, then <mode_b> on second run
-            if (adr_mode_tbl.count(str[l]))
-            {
-                if (str[r] == ',')
-                {
-                    asm_instr->mode_a = (_AM *)adr_mode_tbl.at(str[l]);
-                }
-                else asm_instr->mode_b = (_AM *)adr_mode_tbl.at(str[l]);
-                
-                // l++; // inc left index to [op_a|b] argument
-            }
-            // no <mode_a|b>, add default
             else 
             {
-                if (str[r] == ',')
-                {
-                    asm_instr->mode_a = (_AM *)adr_mode_tbl.at('$');
-                }
-                else asm_instr->mode_b = (_AM *)adr_mode_tbl.at('$');
-            }
-
-            // process [op_a] on first run, then [op_b] on second run
-            if (isNumber(str[l]))
-            {
-                if (str[r] == ',')
-                {
-                    asm_instr->op_a  = stoi(str.substr(l, r - l));
-                }
-                else asm_instr->op_b = stoi(str.substr(l, r - l)); 
-            }
-            // options exhausted, assume [op_a|b] is <label> reference
-            else
-            {
-                /// FIX: process label_linker before 
+                invalidAssemblyError(str, "<modifier>");
             }
         }
-    } /// while (..)
+        // set flag to create default <modifier> at the end (depends on all other arguments)
+        else
+        {
+            no_modifier = true;
+        }
+
+        // loop over both [operand]
+        while (pos < len)
+        {
+            // get <mode>[operand]
+            asm_arg = findAsmArgument(str, pos);
+            
+            // process <mode>
+            if (adr_mode_tbl.count(asm_arg[0]))
+            {
+                *addr_mode = &adr_mode_tbl.at(str[0]);
+
+                // remove <mode> from argument
+                asm_arg = asm_arg.substr(1);
+            }
+            // no <mode>, add default
+            else 
+            {
+                *addr_mode= (_AM *)adr_mode_tbl.at('$');
+            }
+
+            // process [operand]
+            if (asm_arg[0] >= '0' && asm_arg[0]<= '9')
+            {
+                *operand = stoi(asm_arg);
+            }
+            // options exhausted, assume [operand] is <label> reference
+            else
+            {
+                // get label position from linker
+                if (label_linker.count(asm_arg))
+                {
+                    *operand = label_linker.at(asm_arg);
+                }
+                else 
+                {
+                    invalidAssemblyError(str, "[operand]");
+                }
+            }
+            // move from <mode>[operand] a -> b
+            addr_mode = &asm_inst->mode_b;
+            operand   = &asm_inst->op_b;
+        }
+
+        // get default <modifer>
+        asm_inst->modifier = &getDefaultModifier(*asm_inst->opcode, *asm_inst->mode_a, *asm_inst->mode_b);
+    }
+    else
+    {
+        invalidAssemblyError(str, "[opcode]");
+    }
 } /// strToInstr()
+
 } /// namespace parser

@@ -11,8 +11,19 @@ namespace parser
 {
 using namespace ASM;
 
-/// Hashes an opcode string to its enum
-static const std::unordered_map<std::string, _OP> opcode_tbl =
+    /**** Alias Declarations ****/
+    
+/// A hash table used as a label linker, storing the label position relative to the warrior
+using LabelLinker = std::unordered_map<std::string, int>;
+
+
+namespace /**** Anonymous Namespace ****/
+{
+
+    /**** Lookup HashTables ****/
+
+/// Hashes an opcode string to get the enum value
+std::unordered_map<std::string, _OP> opcode_tbl =
 {
     {"dat", _OP::DAT}, {"mov", _OP::MOV}, {"add", _OP::ADD}, {"sub", _OP::SUB}, 
     {"mul", _OP::MUL}, {"div", _OP::DIV}, {"mod", _OP::MOD}, {"jmp", _OP::JMP}, 
@@ -20,48 +31,77 @@ static const std::unordered_map<std::string, _OP> opcode_tbl =
     {"slt", _OP::SLT}, {"spl", _OP::SPL}
 };
 
-/// Hashes a modifier string to its enum
-static const std::unordered_map<std::string, _MOD> modifier_tbl =
+/// Hashes a modifier string to get the enum value
+std::unordered_map<std::string, _MOD> modifier_tbl =
 {
     {"a", _MOD::A}, {"b", _MOD::B}, {"ab", _MOD::AB}, {"ba", _MOD::BA}, 
     {"f", _MOD::F}, {"x", _MOD::X}, {"i",  _MOD::I}
 };
 
-/// Hashes a addressing mode string to its enum
-static const std::unordered_map<char, _AM> adr_mode_tbl =
+/// Hashes an addressing mode string to get the enum value
+std::unordered_map<char, _AM> adr_mode_tbl =
 {
     {'#', _AM::IMMEDIATE}, {'$', _AM::DIRECT},     {'*', _AM::A_INDIRECT}, {'@', _AM::B_INDIRECT}, 
     {'{', _AM::A_PRE_DEC}, {'}', _AM::A_POST_INC}, {'<', _AM::B_PRE_DEC},  {'>', _AM::B_PRE_INC}
 };
 
-/** Validates if: char is a number ('0'->'9')
- * @param val char value to check
- * @return true if char is a number
+
+    /**** Parser Utility Functions ****/
+
+/** Outputs an error for an invalid assembly argument with the full instruction, then triggers an Exception
+ * @param full_inst 
+ * @param asm_arg 
  */
-inline static bool isNumber(char& val);
+inline void invalidAssemblyError(std::string full_inst, std::string asm_arg);
 
 /** Validates if: char is an assembly instruction argument seperator [ ' ' | '\\t' | ' . ' | ' , ' ]
  * @param val char value to check
  * @return true if char is a number
  */
-inline static bool isAsmSeperator(char& alv);
+inline bool isAsmSeperator(char val);
+
+/** Takes an assembly instruction string and returns the next valid argument from the position given 
+ * @param str assembly instruction string
+ * @param pos start position to look for the next assembly argument
+ * @return string of the assembly argument
+ */
+inline std::string findAsmArgument(std::string str, int &pos);
 
 /** Cleans instruction string (removes extra inline spaces & resizes string)
  * @param str assembly instruction as a string
  */
-static void cleanAsmStr(std::string &str);
+inline std::string cleanAsmStr(std::string str);
+
+/** Gets the Default Modifier for the opcode & addressing modes
+ * @param opcode assembly enum opcode
+ * @param mode_a assembly enum addressing mode A
+ * @param mode_b assembly enum addressing mode B
+ * @return default addressing mode reference
+ */
+inline _MOD &getDefaultModifier(_OP opcode, _AM mode_a, _AM mode_b);
+
+} /// Anonymous Namespace
+
+
+    /**** Parser Functions ****/
 
 /*************************************
- * TODO: strToInstr(), loadWarrior()
+ * TODO: strToInst(), loadWarrior()
 **************************************/
+
+/** Creates a label linker to identify the posistions of all labels within an assembly file
+ * @param asm_data a vector containing each line of the assembly file data as a string
+ * @return LabelLinker as a hashtable
+ */
+LabelLinker *getAsmLabels(std::vector<std::string> &asm_data);
 
 /** Parses an assembly code string to an asm_instr object
  * @param str in the format of: <label> [opcode]<.modifier> <mode_a>[op_a],<mode_b>[op_b]
  * @param label_linker used to store and handle labels
  * @return Asm Instruction object
  */
-static Instr *strToInstr(std::string &str, std::unordered_map<std::string, Label> &label_linker);
+Inst *asmStrToInst(std::string &str, LabelLinker &linker);
 
 /// Loads a warrior from a .asm file
-static Warrior *loadWarrior(const char *filename);
+Warrior *asmFileToWarrior(std::string filename);
 } /// namespace parser
