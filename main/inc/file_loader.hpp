@@ -14,7 +14,7 @@ namespace file_loader
  * @param comment  (optional) character considered a comment within the file
  * @return Vector containing each line of data from the file
  */
-inline static std::vector<std::string> getFileData(const char *filename, const char comment = 0)
+inline std::vector<std::string> getFileData(const char *filename, const char comment = 0)
 {
     std::vector<std::string> file_data;
     std::ifstream fs (filename, std::ios::in);
@@ -44,7 +44,7 @@ inline static std::vector<std::string> getFileData(const char *filename, const c
 /** Shuffles all whitespace to the end of the string and erases the whitespace segment
  * @param str reference
  */
-inline static void removeWhiteSpace(std::string &str)
+inline void removeWhiteSpace(std::string &str)
 {
     int ws = 0; // whitespace counter
     for (int i = 0; i < str.length() - ws; i++)
