@@ -4,7 +4,7 @@
 
 namespace ASM
 {
-Instr::Instr()  
+Inst::Inst()  
 {
     opcode   = nullptr;
     modifier = nullptr;
@@ -13,7 +13,7 @@ Instr::Instr()
     op_a     = 0;
     op_b     = 0;
 }
-Instr::~Instr() {}
+Inst::~Inst() {}
 
 Warrior::Warrior()  {}
 Warrior::~Warrior() {}

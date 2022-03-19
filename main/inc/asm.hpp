@@ -47,24 +47,16 @@ enum class _AM
     B_PRE_INC   // ">" (indirect) B is incremented before use
 };
 
-/// Holds label information to be parsed
-struct Label
-{
-    Instr &warrior;  // warrior label belongs too
-    const char &name;  // <label> name
-    int position;      // label position (relative to first warrior asm instruction)
-};
-
 /// Stores an assembly instruction [opcode].[modifier] [mode_a][op_a], [mode_b][op_b]
-struct Instr
+struct Inst
 {
     _OP  *opcode;     // Specifies operation
     _MOD *modifier;   // Modifies opcode behaviour
     _AM  *mode_a, *mode_b; // Addressing mode for operands (A|B)
     int  op_a, op_b;       // Operand (A|B) of the opcode argument
     
-    Instr();
-    ~Instr();
+    Inst();
+    ~Inst();
 };
 
 /// Represents a warrior (player) containing assembly code instruction
@@ -73,7 +65,7 @@ class Warrior
  private:
     int len;        // length of the warrior (lines of asm instructions) 
     int core_index; // location of the first warrior instruction withing the core
-    Instr *instructions; // array containing all the warriors assembly instructions
+    Inst *instructions; // array containing all the warriors assembly instructions
     /// TODO:
     // std::string labels[];  // labels to be tracked
     // Store array of ints to indicate label posistion
