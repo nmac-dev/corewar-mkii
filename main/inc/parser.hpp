@@ -1,15 +1,18 @@
 /// Parses assembly instructions from a warrior file into a warrior class 
 #pragma once
 
+#define ASM_PARSER_DEBUG
+
 #include <string>
 #include <unordered_map>
 
 #include "file_loader.hpp"
+#include "settings.hpp"
 #include "asm.hpp"
 
 namespace parser
 {
-using namespace ASM;
+    using namespace ASM;
 
     /**** Alias Declarations ****/
     
@@ -39,7 +42,7 @@ std::unordered_map<std::string, _MOD> modifier_tbl =
 };
 
 /// Hashes an addressing mode string to get the enum value
-std::unordered_map<char, _AM> adr_mode_tbl =
+std::unordered_map<char, _AM> admo_tbl =
 {
     {'#', _AM::IMMEDIATE}, {'$', _AM::DIRECT},     {'*', _AM::A_INDIRECT}, {'@', _AM::B_INDIRECT}, 
     {'{', _AM::A_PRE_DEC}, {'}', _AM::A_POST_INC}, {'<', _AM::B_PRE_DEC},  {'>', _AM::B_PRE_INC}
@@ -74,34 +77,31 @@ inline std::string cleanAsmStr(std::string str);
 
 /** Gets the Default Modifier for the opcode & addressing modes
  * @param opcode assembly enum opcode
- * @param mode_a assembly enum addressing mode A
- * @param mode_b assembly enum addressing mode B
+ * @param admo_a assembly enum addressing mode A
+ * @param admo_b assembly enum addressing mode B
  * @return default addressing mode reference
  */
-inline _MOD &getDefaultModifier(_OP opcode, _AM mode_a, _AM mode_b);
+inline _MOD getDefaultModifier(_OP opcode, _AM admo_a, _AM admo_b);
 
 } /// Anonymous Namespace
 
 
     /**** Parser Functions ****/
 
-/*************************************
- * TODO: strToInst(), loadWarrior()
-**************************************/
-
 /** Creates a label linker to identify the posistions of all labels within an assembly file
  * @param asm_data a vector containing each line of the assembly file data as a string
  * @return LabelLinker as a hashtable
  */
-LabelLinker *getAsmLabels(std::vector<std::string> &asm_data);
+LabelLinker findAsmLabels(std::vector<std::string> &asm_data);
 
 /** Parses an assembly code string to an asm_instr object
  * @param str in the format of: <label> [opcode]<.modifier> <mode_a>[op_a],<mode_b>[op_b]
  * @param label_linker used to store and handle labels
  * @return Asm Instruction object
  */
-Inst *asmStrToInst(std::string &str, LabelLinker &linker);
+Inst asmStrToInst(std::string &str, LabelLinker &linker);
 
 /// Loads a warrior from a .asm file
-Warrior *asmFileToWarrior(std::string filename);
+Warrior asmFileToWarrior(std::string warrior_name);
+
 } /// namespace parser
