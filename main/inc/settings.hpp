@@ -4,18 +4,20 @@
 // #define SETTINGS_DEBUG
 
 #include <unordered_map>
+
 #include "file_loader.hpp"
 
 /// Singleton class to load & store match settings from a configuration file
 class Settings
 {
  private:
-    const char *ini_section = "[Match Parameters]";
-    const char *filename = "corewar.ini";
-    const char  comment  = '#';
+    inline static const std::string ini_section = "[Match Parameters]";
+    inline static const std::string filename    = "corewar.ini";
+    inline static const char        comment     = '#';
     
     /// Stores the setting values using the parameter name as a key
     std::unordered_map<std::string, int> setting_values;
+
 
     /// Constructor is blocked
     Settings() {}
@@ -25,6 +27,16 @@ class Settings
     static Settings& get()
     {
         static Settings match_settings;
+        
+        // flag to ensure the settings .ini file has been loaded before any values are used
+        static int flag_loaded;
+        // ensure .ini has been loaded before any value is accessed
+        if (!flag_loaded)
+        {
+            match_settings.loadSettings();
+            flag_loaded++;
+        }
+
         return match_settings;
     }
 
@@ -79,6 +91,9 @@ class Settings
         #endif
     }
     
+    /// Filename of the .ini configuration file containing the settings values
+    inline const std::string file_name() const {return filename;}
+
     /// Total number of memory addresses within the core
     inline int core_size() const {return setting_values.at("core_size");}
 
