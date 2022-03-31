@@ -1,8 +1,11 @@
 /// Defines elements and entities in relation to assembly instructions
 #pragma once
 
+#include <string>
+
 namespace ASM
 {
+
 /// Assembly Instruction Opcode (specifies operation to perform)
 enum class _OP
 {
@@ -31,7 +34,7 @@ enum class _MOD
     BA,   // B -> B
     F,    // A -> A & B -> B 
     X,    // A -> B & B -> A
-    I     // [default] Opcode is applied to both operands (MOV, CMP, SNE)
+    I     // [default] Opcode is applied to both operands
 };
 
 /// Assembly Instruction Addressing Mode (determines source and destination)
@@ -50,35 +53,64 @@ enum class _AM
 /// Stores an assembly instruction [opcode].[modifier] [mode_a][op_a], [mode_b][op_b]
 struct Inst
 {
-    _OP  *opcode;     // Specifies operation
-    _MOD *modifier;   // Modifies opcode behaviour
-    _AM  *mode_a, *mode_b; // Addressing mode for operands (A|B)
-    int  op_a, op_b;       // Operand (A|B) of the opcode argument
+    _OP  opcode;               // Specifies operation
+    _MOD modifier;             // Modifies opcode behaviour
+    _AM  admo_a, admo_b;       // Addressing mode for operands (A|B)
+    int  operand_a, operand_b; // Operand (A|B) of the opcode argument
     
+    /// Constructs a default Instuction: DAT.F $0, $0
     Inst();
-    ~Inst();
+    /// Constructs a custom Instuction: [op]<mod> <am_a>[o_a], <am_b>[o_b]
+    /// @param op    opcode
+    /// @param mod   modifier
+    /// @param am_a  addressing mode A
+    /// @param o_a   operand A
+    /// @param am_b  addressing mode B
+    /// @param o_b   operand B
+    Inst(_OP op, _MOD mod, _AM am_a, int o_a, _AM am_b, int o_b);
 };
 
 /// Represents a warrior (player) containing assembly code instruction
 class Warrior
 {
  private:
-    int len;        // length of the warrior (lines of asm instructions) 
-    int core_index; // location of the first warrior instruction withing the core
-    Inst *instructions; // array containing all the warriors assembly instructions
-    /// TODO:
-    // std::string labels[];  // labels to be tracked
-    // Store array of ints to indicate label posistion
+    std::string name;   // warrior's name (filename)
+    int  uuid;          // universally unique warrior identifier
+    int  length;        // length of the warrior (lines of asm instructions) 
+    int  core_index;    // location of the first warrior instruction in the core (late init) 
+    Inst *instructions; // array containing all the warriors asm instructions
 
-    void loadWarrior(const char *filename); // loads and processes the warrior file
+    // On each call a unique number is created as a new warrior ID
+    inline static int createUUID() 
+    {
+        static int unique_number;
+        return unique_number++;
+    }
+
  public:
-    Warrior();
+    /// Constructs a warrior
+    /// @param warrior_name warrior's name (filename)
+    /// @param inst_array   array of all the warriors asm instructions
+    /// @param n_inst       number (lines) of asm instructions 
+    Warrior(std::string warrior_name, Inst *inst_array, int n_inst);
     ~Warrior();
 
     /// returns the start index of the warrior within the core
-    inline int Warrior::begin() const {return core_index;}
+    inline int begin() const { return core_index; }
     /// returns the end index of the warrior within the core (core_index + length -1)
-    inline int Warrior::end() const {return core_index + len;}
-    
+    inline int end()   const { return core_index + length; }
+
+    /// Returns the name (file) of the warrior
+    inline std::string getName() const { return name; }
+    /// Returns length (number of instructions) of the warrior
+    inline int len()             const { return length; }
+    /// Returns the UUID to identify the warrior
+    inline int getUUID()         const { return uuid; }
+
+    /// access index of warrior's instruction array
+    Inst  operator[](int index) const;
+    /// modify index of warrior's instruction array
+    Inst &operator[](int index);
 };
+
 } // namespace ASM
