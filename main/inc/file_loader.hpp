@@ -4,6 +4,7 @@
 // #define FILE_LOADER_DEBUG
 
 #include <iostream>
+#include <string>
 #include <fstream>
 #include <vector>
 
@@ -14,7 +15,7 @@ namespace file_loader
  * @param comment  (optional) character considered a comment within the file
  * @return Vector containing each line of data from the file
  */
-inline std::vector<std::string> getFileData(const char *filename, const char comment = 0)
+inline std::vector<std::string> getFileData(std::string filename, const char comment = 0)
 {
     std::vector<std::string> file_data;
     std::ifstream fs (filename, std::ios::in);
@@ -24,7 +25,7 @@ inline std::vector<std::string> getFileData(const char *filename, const char com
         while(std::getline(fs, line))
         {
             char first = line[0]; // first character of the line
-            if (first == comment || first == 0 || first == ' ' || first == '\n') 
+            if (first == comment || first == 0 || first == '\n') 
                 continue;
             file_data.push_back(line);
 
