@@ -1,7 +1,7 @@
 /// Parses assembly instructions from a warrior file into a warrior class 
 #pragma once
 
-#define ASM_PARSER_DEBUG
+// #define ASM_PARSER_DEBUG
 
 #include <string>
 #include <unordered_map>
