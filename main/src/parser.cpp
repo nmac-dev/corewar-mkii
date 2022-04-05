@@ -1,7 +1,7 @@
 
 #include "parser.hpp"
 
-namespace parser
+namespace Parser
 {
 
 namespace /**** Anonymous Namespace ****/
@@ -13,7 +13,7 @@ inline void invalidAssemblyError(std::string full_inst, std::string asm_arg)
 {
     printf("Error: '%s' is not valid argument" "\nFull Instruction: |%s|",
             asm_arg.c_str(), full_inst.c_str());
-    throw std::exception(); // begin stack unwind to main()
+    throw std::exception(); // begin stack unwind
 }
 
 inline bool isAsmSeperator(char val)
@@ -23,16 +23,14 @@ inline bool isAsmSeperator(char val)
 
 inline std::string findAsmArgument(std::string str, int &pos)
 {
-    const int len = str.length();
-    int l, r;
+    int len = str.length();
+    int begin, end;
 
-    // start of arg
-    for (l = pos; isAsmSeperator(str[l]) && l < len; l++) {}
-    // end of arg
-    for (r = l; !isAsmSeperator(str[r]) && r < len; r++) {}
+    for (begin = pos;  isAsmSeperator(str[begin]) && begin < len; begin++) {} // start of arg
+    for (end = begin; !isAsmSeperator(str[end])   &&   end < len; end++  ) {} // end of arg
 
-    pos = r; // retain index value for next argument
-    return str.substr(l, r - l);
+    pos = end; // retain index value for next argument
+    return str.substr(begin, end - begin);
 }
 
 inline std::string cleanAsmStr(std::string str)
@@ -134,7 +132,7 @@ inline _MOD getDefaultModifier(_OP opcode, _AM admo_a, _AM admo_b)
         case _OP::SPL:
             default: return _MOD::B;
     }
-}
+} //// getDefaultModifier()
 
 } /// Anonymous Namespace
 
@@ -146,7 +144,7 @@ LabelLinker findAsmLabels(std::vector<std::string> &asm_data)
     LabelLinker labels;
     std::string first_arg; // first argument in asm code
 
-    // Search each line of asm code
+    // search each line of asm code
     for (int i = 0; i < asm_data.size(); i++)
     {
         int pos = 0;
@@ -155,8 +153,16 @@ LabelLinker findAsmLabels(std::vector<std::string> &asm_data)
         // label found, as first_arg is not opcode
         if (!opcode_tbl.count(first_arg))
         {
-            // add label to linker w/ line position
-            labels[first_arg] = i;
+            // true if label starts with ('a-z', '0-9' or '_')
+            bool is_alphanumeric = first_arg[0] >= 'a' && first_arg[0] <= 'z' ||
+                                   first_arg[0] >= '0' && first_arg[0] <= '9' ||
+                                   first_arg[0] == '_';
+
+            // add label to linker with line position
+            if (is_alphanumeric)
+            {
+                labels[first_arg] = i;
+            }
         }
     }
     return labels;
@@ -165,10 +171,10 @@ LabelLinker findAsmLabels(std::vector<std::string> &asm_data)
 Inst asmStrToInst(std::string &str, std::unordered_map<std::string, int> &linker)
 {    
         /* Inst members */
-    _OP  opcode;               // Specifies operation
-    _MOD modifier;             // Modifies opcode behaviour
-    _AM  admo_a = _AM::DIRECT, admo_b = _AM::DIRECT; // Addressing mode for operands (A|B)
-    int  operand_a = 0,        operand_b = 0;        // Operand (A|B) of the opcode argument
+    _OP  opcode;                                     // specifies operation
+    _MOD modifier;                                   // modifies opcode behaviour
+    _AM  admo_a = _AM::DIRECT, admo_b = _AM::DIRECT; // addressing mode for operands (A|B)
+    int  operand_a = 0,        operand_b = 0;        // operand (A|B) of the opcode argument
 
         /* Asm string */
     std::string asm_arg;      // stores assembly code arguments
@@ -208,10 +214,7 @@ Inst asmStrToInst(std::string &str, std::unordered_map<std::string, int> &linker
             {
                 modifier = modifier_tbl.at(asm_arg);
             }
-            else 
-            {
-                invalidAssemblyError(str, asm_arg);
-            }
+            else invalidAssemblyError(str, asm_arg); // invalid <modifier>
         }
         // set flag to create default <modifier> at the end (depends on all other arguments)
         else
@@ -252,10 +255,7 @@ Inst asmStrToInst(std::string &str, std::unordered_map<std::string, int> &linker
                 {
                     *operand_ptr = linker.at(asm_arg);
                 }
-                else 
-                {
-                    invalidAssemblyError(str, asm_arg);
-                }
+                else invalidAssemblyError(str, asm_arg); // invalid [operand]
             }
             // move from <mode>[operand] A -> B
             admo_ptr    = &admo_b;
@@ -267,17 +267,14 @@ Inst asmStrToInst(std::string &str, std::unordered_map<std::string, int> &linker
             modifier = getDefaultModifier(opcode, admo_a, admo_b);
         }
     }
-    else
-    {
-        invalidAssemblyError(str, str.substr(0, pos));
-    }
+    else invalidAssemblyError(str, str.substr(0, pos)); // invalid [opcode]
+
     return Inst(opcode, modifier, admo_a, operand_a, admo_b, operand_b);
 } //// asmStrToInst()
 
-Warrior asmFileToWarrior(std::string warrior_name)
+Warrior asmFileToWarrior(std::string warrior_name, int max_warrior_len)
 {
     std::vector<std::string> asm_code = file_loader::getFileData(warrior_name, ';');
-    const int max_warrior_len = Settings::get().max_warrior_len(); // .ini warrior max length
     int n_inst = asm_code.size();  // number of warrior instruction
     LabelLinker linker;            // stores label positions
 
@@ -285,16 +282,15 @@ Warrior asmFileToWarrior(std::string warrior_name)
     if (n_inst > max_warrior_len)
     {
         printf("Warning: '%s' has a length greater than the max (%d) and will be truncated."
-                "\n\tEdit |%s| to increase 'max_warrior_len'\n",
-                warrior_name.c_str(), max_warrior_len, 
-                Settings::get().file_name().c_str()
+                "\n\tEdit corewar config file to increase 'max_warrior_len'\n",
+                warrior_name.c_str(), max_warrior_len
         );
         // truncate length
         n_inst = max_warrior_len;
     }
 
     // construct warrior w/ default arguments
-    Warrior warrior = Warrior(warrior_name.c_str(), new Inst[n_inst],n_inst);
+    Warrior warrior = Warrior(warrior_name.c_str(), new Inst[n_inst], n_inst);
 
     // clean asm code to correct format
     for (int i = 0; i < n_inst; i++)
@@ -336,6 +332,6 @@ Warrior asmFileToWarrior(std::string warrior_name)
         #endif
     }
     return warrior;
-}
+} //// asmFileToWarrior()
 
-} /// namespace parser
+} //// namespace parser
