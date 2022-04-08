@@ -4,10 +4,10 @@
 namespace Parser
 {
 
-namespace /**** Anonymous Namespace ****/
+namespace //// Anonymous Namespace
 {
 
-    /**** Parser Utility Functions ****/
+    /* Parser Utility Functions */
 
 inline void invalidAssemblyError(std::string full_inst, std::string asm_arg)
 {
@@ -134,12 +134,11 @@ inline _MOD getDefaultModifier(_OP opcode, _AM admo_a, _AM admo_b)
     }
 } //// getDefaultModifier()
 
-} /// Anonymous Namespace
+} //// Anonymous Namespace
 
+    /* Parser Functions */
 
-    /**** Parser Functions ****/
-
-LabelLinker findAsmLabels(std::vector<std::string> &asm_data)
+LabelLinker findAsmLabels(AssemblyCode &asm_data)
 {
     LabelLinker labels;
     std::string first_arg; // first argument in asm code
@@ -272,11 +271,10 @@ Inst asmStrToInst(std::string &str, std::unordered_map<std::string, int> &linker
     return Inst(opcode, modifier, admo_a, operand_a, admo_b, operand_b);
 } //// asmStrToInst()
 
-Warrior asmFileToWarrior(std::string warrior_name, int max_warrior_len)
+Warrior asmCodeToWarrior(std::string warrior_name, AssemblyCode &asm_code, int max_warrior_len)
 {
-    std::vector<std::string> asm_code = file_loader::getFileData(warrior_name, ';');
-    int n_inst = asm_code.size();  // number of warrior instruction
     LabelLinker linker;            // stores label positions
+    int n_inst = asm_code.size();  // number of warrior instruction
 
     // validate number of instructions is within configuration bounds
     if (n_inst > max_warrior_len)
