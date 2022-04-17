@@ -10,11 +10,10 @@
 
 namespace file_loader
 {
-/** Get the File Data object
- * @param filename directory/filename location
- * @param comment  (optional) character considered a comment within the file
- * @return Vector containing each line of data from the file
- */
+/// Get the File Data object
+/// @param filename directory/filename location
+/// @param comment  (optional) character considered a comment within the file
+/// @return collection containing each line from the data file
 inline std::vector<std::string> getFileData(std::string filename, const char comment = 0)
 {
     std::vector<std::string> file_data;
@@ -42,9 +41,8 @@ inline std::vector<std::string> getFileData(std::string filename, const char com
     return file_data;
 }
 
-/** Shuffles all whitespace to the end of the string and erases the whitespace segment
- * @param str reference
- */
+/// Shuffles all whitespace to the end of the string and erases the whitespace segment
+/// @param str reference
 inline void removeWhiteSpace(std::string &str)
 {
     int ws = 0; // whitespace counter
