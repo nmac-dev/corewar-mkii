@@ -1,53 +1,67 @@
 /// Defines elements and entities in relation to assembly instructions
 #pragma once
 
+#include <vector>
 #include <string>
 
 namespace ASM
 {
+class Warrior;
+using WarriorList = std::vector<ASM::Warrior>;
 
 /// Assembly Instruction Opcode (specifies operation to perform)
 enum class _OP
 {
+    /* Read/Write */
     DAT, // Data: illegal instruction, kills the executing process
     MOV, // Move: (copy) overwrites B with A
+
+    /* Comparision */
+    CMP, // Skip IF Equal: if A is equal to B, skip the next instruction
+    SLT, // Skip if Less Than: if A is less than B, skip the next instruction
+    SPL, // Split: creates a new process at the address of A (unless processes are at max)
+
+    /* Arithmetic */
     ADD, // Add:      B -> A + B
     SUB, // Subtract: B -> B - A
     MUL, // Multiply: B -> A * B
     DIV, // Divide:   B -> B / A
     MOD, // Modulus:  B -> B % A (remainder of division)
-    JMP, // Jump:             queue process execution to address of A (no B value)
-    JMZ, // Jump IF Zero:     queue process execution to address of A, if B is 0
-    JMN, // Jump IF NOT Zero: queue process execution to address of A, if B is NOT 0
-    DJN, // Dec & Jump IF NOT Zero: decrement B, then queue process execution to address of A, if B is NOT 0
-    CMP, // Skip IF Equal: if A is equal to B, skip the next instruction
-    SLT, // Skip if Less Than: if A is less than B, skip the next instruction
-    SPL  // Split: creates a new process at the address of A (unless processes are at max)
+
+    /* Jump */
+    JMP, // Jump:             set program counter to address of A (no B value)
+    JMZ, // Jump IF Zero:     set program counter to address of A, if B is 0
+    JMN, // Jump IF NOT Zero: set program counter to address of A, if B is NOT 0
+    DJN, // Dec & Jump IF NOT Zero: decrement B, then set program counter to address of A, if B is NOT 0
 };
 
-/// Assembly Instruction Modifier (modifies opcode behaviour)
+/// Assembly Instruction Modifier: determines opcode behaviour for source and destination targets
 enum class _MOD
 {
-    A,    // A -> A
-    B,    // B -> B
-    AB,   // A -> B
-    BA,   // B -> B
-    F,    // A -> A & B -> B 
-    X,    // A -> B & B -> A
-    I     // [default] Opcode is applied to both operands
+    A,    // (src) A -> A (dest)
+    B,    // (src) B -> B (dest)
+    AB,   // (src) A -> B (dest)
+    BA,   // (src) B -> B (dest)
+    F,    // (src) A,B -> A,B (dest) 
+    X,    // (src) A,B -> B,A (dest)
+    I     // [default] (src) Instruction -> Instruction (dest) 
 };
 
 /// Assembly Instruction Addressing Mode (determines source and destination)
 enum class _AM
 {
-    IMMEDIATE,  // "#" evaluated as of 0
-    DIRECT,     // "$" [default] relative to the current cell 
-    A_INDIRECT, // "*" A becomes a pointer to a cell relative from its position
-    B_INDIRECT, // "@" B becomes a pointer to a cell relative from its position
-    A_PRE_DEC,  // "{" (indirect) A is incremented after use
-    A_POST_INC, // "}" (indirect) A is incremented before use
-    B_PRE_DEC,  // "<" (indirect) B is incremented after use
-    B_PRE_INC   // ">" (indirect) B is incremented before use
+    IMMEDIATE,  // "#" stores an immediate value (address evaluated as 0)
+    DIRECT,     // "$" [default] relative from the program counter
+
+    /* Indirect */
+    INDIRECT_A, // "*" A becomes a pointer to a cell relative the program counter
+    INDIRECT_B, // "@" B becomes a pointer to a cell relative the program counter
+    
+    /* Pre/Dec & Post/Inc */
+    PRE_DEC_A,  // "{" (indirect) A is decremented before use
+    PRE_DEC_B,  // "<" (indirect) B is decremented before use
+    POST_INC_A, // "}" (indirect) A is incremented after use
+    POST_INC_B, // ">" (indirect) B is incremented after use
 };
 
 /// Stores an assembly instruction [opcode].[modifier] [mode_a][op_a], [mode_b][op_b]
@@ -58,8 +72,6 @@ struct Inst
     _AM  admo_a, admo_b;       // Addressing mode for operands (A|B)
     int  operand_a, operand_b; // Operand (A|B) of the opcode argument
     
-    /// Constructs a default Instuction: DAT.F $0, $0
-    Inst();
     /// Constructs a custom Instuction: [op]<mod> <am_a>[o_a], <am_b>[o_b]
     /// @param op    opcode
     /// @param mod   modifier
@@ -68,6 +80,8 @@ struct Inst
     /// @param am_b  addressing mode B
     /// @param o_b   operand B
     Inst(_OP op, _MOD mod, _AM am_a, int o_a, _AM am_b, int o_b);
+    /// Constructs a default Instuction: DAT.F $0, $0
+    Inst();
 };
 
 /// Represents a warrior (player) containing assembly code instruction
@@ -84,7 +98,7 @@ class Warrior
     inline static int createUUID() 
     {
         static int unique_number;
-        return unique_number++;
+        return   ++unique_number;
     }
 
  public:
@@ -102,14 +116,19 @@ class Warrior
 
     /// Returns the name (file) of the warrior
     inline std::string getName() const { return name; }
+    /// Returns the warriors posistion within the core
+    inline int getCoreIndex()    const { return core_index; }
     /// Returns length (number of instructions) of the warrior
     inline int len()             const { return length; }
     /// Returns the UUID to identify the warrior
     inline int getUUID()         const { return uuid; }
 
-    /// access index of warrior's instruction array
+    // Sets the warriors posistion within the core
+    inline void setCoreIndex(int val) { core_index = val; }
+
+    /// Access index of warrior's instruction array
     Inst  operator[](int index) const;
-    /// modify index of warrior's instruction array
+    /// Modify index of warrior's instruction array
     Inst &operator[](int index);
 };
 
