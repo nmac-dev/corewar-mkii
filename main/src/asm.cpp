@@ -7,7 +7,7 @@ namespace ASM
 
 //// Inst
 
-Inst::Inst()  
+Inst::Inst()
 {
     opcode    = _OP::DAT;
     modifier  = _MOD::F;
@@ -32,24 +32,16 @@ Inst::Inst(_OP op, _MOD mod, _AM am_a, int o_a, _AM am_b, int o_b)
 
 //// Warrior
 
-Warrior::Warrior(std::string warrior_name, Inst *inst_array, const int n_inst)
+Warrior::Warrior(std::string _name, const int _length)
 {
-    name         = warrior_name;
     uuid         = createUUID();
-    length       = n_inst;
-    instructions = inst_array;
-    // core_index is set in the core
-}
-Warrior::~Warrior() { delete[] instructions; }
-
-Inst Warrior::operator[](int index) const
-{
-    return instructions[index];
+    name         = _name;
+    length       = _length;
+    core_index   = -1;              // core_index is late init
+    instructions.reserve(length);
 }
 
-Inst &Warrior::operator[](int index)
-{
-    return instructions[index];
-}
+Inst  Warrior::operator[](int index) const { return instructions[index]; }
+Inst &Warrior::operator[](int index)       { return instructions[index]; }
 
 } // namespace ASM

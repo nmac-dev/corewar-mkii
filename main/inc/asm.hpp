@@ -1,13 +1,16 @@
 /// Defines elements and entities in relation to assembly instructions
 #pragma once
 
+#include <memory>
 #include <vector>
 #include <string>
 
 namespace ASM
 {
 class Warrior;
-using WarriorList = std::vector<ASM::Warrior>;
+class Inst;
+using WarriorList = std::vector<Warrior>;
+using InstList    = std::vector<Inst>;
 
 /// Assembly Instruction Opcode (specifies operation to perform)
 enum class _OP
@@ -35,16 +38,33 @@ enum class _OP
     DJN, // Dec & Jump IF NOT Zero: decrement B, then set program counter to address of A, if B is NOT 0
 };
 
+/// Types of opcode arguments 
+enum class _OP_TYPE
+{
+    READWRITE,  // DAT, MOV
+    COMPARE,    // CMP, SLT, SPL
+    ARITHMETIC, // ADD, SUB, MUL, DIV, MOD
+    JUMP        // JMP, JMZ, JMN, DJN
+};
+
 /// Assembly Instruction Modifier: determines opcode behaviour for source and destination targets
 enum class _MOD
 {
-    A,    // (src) A -> A (dest)
-    B,    // (src) B -> B (dest)
-    AB,   // (src) A -> B (dest)
-    BA,   // (src) B -> B (dest)
-    F,    // (src) A,B -> A,B (dest) 
-    X,    // (src) A,B -> B,A (dest)
-    I     // [default] (src) Instruction -> Instruction (dest) 
+    A,  // (src) A -> A (dest)
+    B,  // (src) B -> B (dest)
+    AB, // (src) A -> B (dest)
+    BA, // (src) B -> A (dest)
+    F,  // (src) A,B -> A,B (dest) 
+    X,  // (src) A,B -> B,A (dest)
+    I   // [default] (src) Instruction -> Instruction (dest) 
+};
+
+/// Types of modifier arguments 
+enum class _MOD_TYPE
+{
+    SINGLE, // A, B, AB, BA
+    DOUBLE, // F, X
+    FULL    // I
 };
 
 /// Assembly Instruction Addressing Mode (determines source and destination)
@@ -88,11 +108,11 @@ struct Inst
 class Warrior
 {
  private:
-    std::string name;   // warrior's name (filename)
-    int  uuid;          // universally unique warrior identifier
-    int  length;        // length of the warrior (lines of asm instructions) 
-    int  core_index;    // location of the first warrior instruction in the core (late init) 
-    Inst *instructions; // array containing all the warriors asm instructions
+    std::string name;       // warrior's name (filename)
+    int  uuid;              // universally unique warrior identifier
+    int  length;            // length of the warrior (lines of instructions) 
+    int  core_index;        // location of the first warrior instruction in the core (late init) 
+    InstList instructions;  // contains all the warriors instructions
 
     // On each call a unique number is created as a new warrior ID
     inline static int createUUID() 
@@ -103,11 +123,10 @@ class Warrior
 
  public:
     /// Constructs a warrior
-    /// @param warrior_name warrior's name (filename)
-    /// @param inst_array   array of all the warriors asm instructions
-    /// @param n_inst       number (lines) of asm instructions 
-    Warrior(std::string warrior_name, Inst *inst_array, int n_inst);
-    ~Warrior();
+    /// @param _name   warrior's name (filename)
+    /// @param _length number (lines) of asm instructions 
+    Warrior(std::string _name, const int _length);
+    // ~Warrior();
 
     /// returns the start index of the warrior within the core
     inline int begin() const { return core_index; }
