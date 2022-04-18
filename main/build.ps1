@@ -11,7 +11,8 @@ if ( !(Test-Path .\bin) )
 }
 
 ## Compile
-g++ $CXXSTD $INC -o ./bin/$TARGET ./src/asm.cpp ./src/parser.cpp ./src/$TARGET.cpp
+g++ $CXXSTD $INC -o ./bin/$TARGET ./src/asm.cpp ./src/parser.cpp ./src/mars.cpp ./src/pcb.cpp ./src/scheduler.cpp ./src/core.cpp  `
+    ./src/$TARGET.cpp
 
 ## Delete object files
 Remove-Item ./bin/*.o -Recurse
