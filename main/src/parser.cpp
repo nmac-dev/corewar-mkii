@@ -280,24 +280,24 @@ Inst asmStrToInst(std::string &line, LabelLinker &linker, int index)
 Warrior asmCodeToWarrior(std::string warrior_name, AssemblyCode &asm_code, int max_warrior_len)
 {
     LabelLinker linker;            // stores label positions
-    int n_inst = asm_code.size();  // number of warrior instruction
+    int _length = asm_code.size();  // number of warrior instruction
 
     // validate number of instructions is within configuration bounds
-    if (n_inst > max_warrior_len)
+    if (_length > max_warrior_len)
     {
         printf("Warning: '%s' has a length greater than the max (%d) and will be truncated."
                 "\n\tEdit corewar config file to increase 'max_warrior_len'\n",
                 warrior_name.c_str(), max_warrior_len
         );
         // truncate length
-        n_inst = max_warrior_len;
+        _length = max_warrior_len;
     }
 
     // construct warrior w/ default arguments
-    Warrior warrior = Warrior(warrior_name.c_str(), new Inst[n_inst], n_inst);
+    Warrior warrior = Warrior(warrior_name.c_str(), _length);
 
     // clean asm code to correct format
-    for (int i = 0; i < n_inst; i++)
+    for (int i = 0; i < _length; i++)
     {
         asm_code[i] = cleanAsmStr(asm_code[i]);
 
@@ -319,7 +319,7 @@ Warrior asmCodeToWarrior(std::string warrior_name, AssemblyCode &asm_code, int m
     #endif
 
     // parse all asm code lineing instructions to a instruction object (Inst)
-    for (int i = 0; i < n_inst; i++)
+    for (int i = 0; i < _length; i++)
     {
         // replace default warrior instructions
         warrior[i] = asmStrToInst(asm_code[i], linker, i); 
