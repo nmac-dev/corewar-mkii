@@ -9,6 +9,7 @@
 
 namespace OS
 {
+namespace { using RAM_T = std::unique_ptr<ASM::Inst[]>; } // Unique Ptr to the systems RAM
 
 // Memory Array Redcode Simulator (MARS): handles stored assembly instruction objects
 class MARS
@@ -19,7 +20,7 @@ class MARS
         min_seperation;
 
     // memory array of assembly instructions
-    ASM::Inst *RAM;
+    RAM_T RAM;
     
  public:
     /// Defines event types commited by the core
@@ -33,16 +34,17 @@ class MARS
     struct CommitLog
     {
         int ir_pc;              // program counter index executing the instruction register
-        ASM::_OP opcode;
+        ASM::_OP_TYPE  commit_type;
+        ASM::_MOD_TYPE mod_type;
 
-        int adr_A, adr_B;       // relative address   for A|B
-        int *src_A,  *src_B,    // source operand      of A|B
-            *dest_A, *dest_B;   // destination operand of A|B
-        int pip_a, pip_b;       // post-increment value pointer A|B
-        int pdp_a, pdp_b;       // pre-decrement  value pointer A|B
+        int adr_src,  adr_dest; // relative address src|dest
+        int *src_A,  *src_B,    // source operand      A|B
+            *dest_A, *dest_B;   // destination operand A|B
+        int pi_a, pi_b;         // post-increment value A|B
+        int pd_a, pd_b;         // pre-decrement  value A|B
 
         Event event_src,        // event applied to the adr_A
-            event_dest;         // event applied to the adr_B
+              event_dest;       // event applied to the adr_B
         
         /// Creates a commit log with the initial program counter index (pre-configured for DAT opcode)
         CommitLog(int _i_pc);
@@ -78,10 +80,13 @@ class MARS
         return select == 0 ? &RAM[index].operand_a : &RAM[index].operand_b;
     }
     
-    /// Decodes the addressing mode for the input instruction, buffers the commit log
+    /// Decodes the addressing mode for the input instruction
     /// @param cl commit log; used as a buffer for the decoded results
     /// @param op_select 0 selects operand A, else B
     void decodeAdmo(CommitLog *cl, int op_select);
+    /// Decodes the modifier for the input instruction
+    /// @param cl commit log; used as a buffer for the decoded results
+    void decodeModifier(MARS::CommitLog *cl);
  
  public:
     /// Initialises the simulator by loading a default asm instruction (dat #0, #0) into every address,
@@ -91,11 +96,10 @@ class MARS
     /// @param _seperation (min_seperation) minimum seperation between warriors in the simulator
     MARS(ASM::WarriorList &warriors, int _size, int _seperation);
     MARS();
-    ~MARS();
 
-    /// Returns the next commit to be made on the simulator
+    /// Returns the a log of the next commit to be pushed to the MARS
     /// @param ir_pc instruction register program counter
-    CommitLog nextCommit(int ir_pc);
+    CommitLog nextCommit(int const ir_pc);
 
     /// Returns the size of the simulator
     inline int size() const { return core_size; }
