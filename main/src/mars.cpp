@@ -4,43 +4,63 @@
 
 namespace OS
 {
-
-MARS::CommitLog::CommitLog(int _ir_pc)
+/* ControlUnit */
+ControlUnit::Operand::Operand(int *_ptr)
 {
-    ir_pc = _ir_pc;
-    
-    adr_src = 0,       adr_dest = 0;
-    src_A   = nullptr, src_B    = nullptr;
-    dest_A  = nullptr, dest_B   = nullptr;
-    pi_a    = 0,       pi_b     = 0;
-    pd_a    = 0,       pd_b     = 0;
-
-    event_src   = Event::NOOP;
-    event_dest  = Event::NOOP;
+    if (_ptr != 0 || _ptr != nullptr)
+    {
+        ptr = _ptr;
+        val = *ptr;
+    }
+    else val = 0;
 }
-MARS::CommitLog::CommitLog(){}
+ControlUnit::Operand::Operand() = default;
 
-MARS::MARS(ASM::WarriorList &warriors, int _size, int _seperation)
+ControlUnit::Register::Register(int _index, ASM::Inst *_inst)
 {
-    core_size      = _size;
+    index = _index;
+    inst  = _inst;
+    A     = Operand(&inst->A.val); 
+    B     = Operand(&inst->B.val);
+    event = Event::NOOP; // event applied to the address
+}
+ControlUnit::Register::Register() = default;
+
+ControlUnit::ControlUnit(int _pc, RAM_T<ASM::Inst> *RAM)
+{
+    EXE      = Register(_pc, (*RAM)[_pc]);
+    SRC      = Register();  // EXE A
+    DEST     = Register();  // EXE B
+
+    post_A   = nullptr;
+    post_B   = nullptr;
+
+    TYPE.code = ASM::OPCODE_TYPE::READWRITE;
+    TYPE.mod  = ASM::MOD_TYPE::SINGLE;
+}
+ControlUnit::ControlUnit() = default;
+
+/* MARS */
+MARS::MARS(ASM::WarriorList *warriors, int _seperation)
+{
     min_seperation = _seperation;
 
-    // populate core with (dat #0, #0) asm instructions
-    RAM = RAM_T(new ASM::Inst[core_size]);
+    // populate RAM with (dat #0, #0) asm instructions
+    RAM = RAM_T<ASM::Inst>(core_size);
 
     // place warriors in core at random positions
-    for (int i = 0; i < warriors.size(); i++)
+    for (int i = 0; i < warriors->size(); i++)
     {
-        ASM::Warrior *warrior_i = &warriors[i];
+        ASM::Warrior warrior_i = *(*warriors)[i].get();
         uint32_t rnd_pos        = randomInt(core_size);
 
         // validate position meets minimum seperation requirements
         for (int k = 0; k < i; k++)
         {
             // get upper & lower limits for seperation boundry
-            int upper   = loopIndex(rnd_pos + min_seperation),
-                lower   = loopIndex(rnd_pos - min_seperation);
-            int w_index = warrior_i->getCoreIndex();
+            int upper   = RAM.loopIndex(rnd_pos + min_seperation),
+                lower   = RAM.loopIndex(rnd_pos - min_seperation);
+            int w_index = warrior_i.getCoreIndex();
 
             if (w_index > lower && w_index < upper)
             {
@@ -49,23 +69,23 @@ MARS::MARS(ASM::WarriorList &warriors, int _size, int _seperation)
                 k = 0;
             }
         }
-        warrior_i->setCoreIndex(rnd_pos);
+        (*warriors)[i].get()->setCoreIndex(rnd_pos);
 
         // add each warrior instruction into the core
-        for (int j = 0; j < warrior_i->len(); j++)
+        for (int j = 0; j < warrior_i.len(); j++)
         {
-            RAM[rnd_pos++] = (*warrior_i)[j];
+            *RAM[rnd_pos++] = warrior_i[j];
         }
 
         #ifdef MARS_DEBUG
-            if (i == 0) printf("\nMARS::MARS: \n");
-            printf("\tAdded |%d| instructions @ index [%d] \t...from: [%d] '%s'\n",
-                    warrior_i->len(), warrior_i->getCoreIndex(),
-                    warrior_i->getUUID(), warrior_i->getName().c_str());
+        if (i == 0) printf("\nMARS::MARS: \n");
+        printf("\tAdded |%d| instructions @ index [%d] \t...from: [%d] '%s'\n",
+                warrior_i.len(), (*warriors)[i].get()->getCoreIndex(),
+                warrior_i.getUUID(), warrior_i.getName().c_str());
         #endif
     }
 }
-MARS::MARS(){}
+MARS::MARS() = default;
 
 uint32_t MARS::randomInt(uint32_t maxRange)
 {
@@ -90,182 +110,151 @@ uint32_t MARS::randomInt(uint32_t maxRange)
     return seed % maxRange;
 }
 
-void MARS::decodeAdmo(CommitLog *cl, int op_select)
+ControlUnit::Register MARS::decodeAdmo(ControlUnit *_CTRL, OPR const exe_select)
 {
-    ASM::_AM ir_admo;           // addressing mode
-    int      ir_operand;        // operand
-
-    int *adr, **src, **dest;    // commit log pointer adr|src|dest
-
-    int ir_pc = cl->ir_pc;      // instruction register program counter
-    // select A
-    if (op_select == 0)
-    {
-        ir_admo     = RAM[ir_pc].admo_a;
-        ir_operand  = RAM[ir_pc].operand_a;
-        adr         = &cl->adr_src;
-        src         = &cl->src_A;
-        dest        = &cl->dest_A;
-    }
-    else // B
-    {
-        ir_admo     = RAM[ir_pc].admo_b;
-        ir_operand  = RAM[ir_pc].operand_b;
-        adr         = &cl->adr_dest;
-        src         = &cl->src_B;
-        dest        = &cl->dest_B;
-    }
+    ASM::ADMO _admo = (exe_select == OPR::A) ? _CTRL->EXE.inst->A.admo  // SRC
+                                             : _CTRL->EXE.inst->B.admo; // DEST
+    OPR indirect;
+    int main_i  = _CTRL->EXE.index; // executing instruction index
     
     // process addressing mode
-    switch (ir_admo)
+    int pre_dec = 0;                // pre-decrement flag: set to -1 when applied
+    switch (_admo)
     {
-        case ASM::_AM::IMMEDIATE: // address is 0 (stored value)
-            *adr  = 0;
-            *src  = selectOperand(ir_pc, op_select);
-            *dest = *src;
-            break;
-        case ASM::_AM::DIRECT:    // direct adr = ir_operand 
-            *adr  = ir_pc;
-            *src  = selectOperand(ir_pc, op_select);
-            *dest = selectOperand(ir_pc + (*adr), op_select);
-            break;
-        /* Indirect */
-        case ASM::_AM::INDIRECT_A: // direct adr + dest value = indirect
-        case ASM::_AM::PRE_DEC_A:
-        case ASM::_AM::POST_INC_A:
-            *adr  = ir_operand;
-            *src  = &RAM[loopIndex(ir_pc + (*adr))].operand_a; // arg pointer: ignore admo
-            *dest = &RAM[loopIndex(ir_pc + (*adr) + (*(*src)))].operand_a;
-            goto INDIRECT_PRE_POST;
-        case ASM::_AM::INDIRECT_B:
-        case ASM::_AM::PRE_DEC_B:
-        case ASM::_AM::POST_INC_B:
-            *adr  = ir_operand;
-            *src  = &RAM[loopIndex(ir_pc + (*adr))].operand_b; // arg pointer: ignore admo
-            *dest = &RAM[loopIndex(ir_pc + (*adr) + (*(*src)))].operand_b;
-            goto INDIRECT_PRE_POST;
-        /* apply dec/inc */
-        INDIRECT_PRE_POST:
-        switch (ir_admo)
-        {
-            /* pre/dec */
-            case ASM::_AM::PRE_DEC_A:
-                cl->pd_a = -1;
-                break;
-            case ASM::_AM::PRE_DEC_B:
-                cl->pd_a = -1;
-                break;
-            /* post/inc */
-            case ASM::_AM::POST_INC_A:
-                cl->pi_a = 1; // pointer admo: mark A for post-increment
-                break;
-            case ASM::_AM::POST_INC_B:
-                cl->pi_b = 1; // pointer admo: mark B for post-increment
-                break;
-        }
-    }
-} //// decodeAdmo()
-
-void MARS::decodeModifier(MARS::CommitLog *cl)
-{
-    ASM::_MOD mod = RAM[cl->ir_pc].modifier;
-    
-    int *swap_ptr;
-    // determine mod type
-    switch (mod)
-    {
-    case ASM::_MOD::A:
-    case ASM::_MOD::B:
-    case ASM::_MOD::AB:
-    case ASM::_MOD::BA:
-        cl->mod_type = ASM::_MOD_TYPE::SINGLE;
-        goto SWAP_OPERANDS;
-    case ASM::_MOD::F:
-    case ASM::_MOD::X:
-        cl->mod_type = ASM::_MOD_TYPE::DOUBLE;
-        goto SWAP_OPERANDS;
-    case ASM::_MOD::I:
-        cl->mod_type = ASM::_MOD_TYPE::FULL;
+    case ASM::ADMO::IMMEDIATE:
+        // relative address is 0, use stored value
         break;
 
-    // swap destination operand pointers
-    SWAP_OPERANDS:
-        switch (mod)
-        {
-        // src  A <-> B
-        // dest A <-> B
-        case ASM::_MOD::B:
-            // src
-            swap_ptr   = cl->src_A;
-            cl->src_A  = cl->src_B;
-            cl->src_B  = swap_ptr;
-            // dest
-            swap_ptr   = cl->dest_A;
-            cl->dest_A = cl->dest_B;
-            cl->dest_B = swap_ptr;
-            break;
-        // src  A <-> B
-        case ASM::_MOD::BA:
-            swap_ptr  = cl->src_A;
-            cl->src_A = cl->src_B;
-            cl->src_B = swap_ptr;
-            break;
-        // dest A <-> B
-        case ASM::_MOD::AB:
-        case ASM::_MOD::X:
-            swap_ptr   = cl->dest_A;
-            cl->dest_A = cl->dest_B;
-            cl->dest_B = swap_ptr;
-            break;
+    case ASM::ADMO::DIRECT:
+        main_i += (*selectOperand(main_i, exe_select));
+        break;
+        
+    /* Indirect */
+    case ASM::ADMO::PRE_DEC_A:  pre_dec = -1;
+    case ASM::ADMO::INDIRECT_A:
+    case ASM::ADMO::POST_INC_A: indirect = OPR::A; goto CALC_INDIRECT;
+
+    case ASM::ADMO::PRE_DEC_B:  pre_dec = -1;
+    case ASM::ADMO::INDIRECT_B:
+    case ASM::ADMO::POST_INC_B: indirect = OPR::B; goto CALC_INDIRECT;
+
+    CALC_INDIRECT:
+        main_i += (*selectOperand(main_i, indirect));       // indirect A|B
+        (*selectOperand(main_i, indirect)) += pre_dec;      // apply pre-dec flag
+
+        switch (_admo)
+        {   /* post-inc ptr */
+            case ASM::ADMO::POST_INC_A: _CTRL->post_A = selectOperand(main_i, indirect); break;
+            case ASM::ADMO::POST_INC_B: _CTRL->post_B = selectOperand(main_i, indirect); break;
         }
+        
+        main_i += (*selectOperand(main_i, indirect));       // indirect
+        break;
     }
-}
+    return ControlUnit::Register(main_i, RAM[main_i]);;
+} // decodeAdmo
 
-MARS::CommitLog MARS::nextCommit(int const ir_pc)
+void MARS::decodeModifier(ControlUnit *_CTRL)
 {
-    CommitLog cl_ = CommitLog(ir_pc);   // set commit location
-    int A = 0,  // select A
-        B = 1;  // B
 
-    decodeAdmo(&cl_, A);
-    decodeAdmo(&cl_, B);
+    ASM::OPCODE _code = _CTRL->EXE.inst->OP.code;
+    ASM::MOD    _mod  = _CTRL->EXE.inst->OP.mod;
 
-    // determine commit type
-    switch (RAM[ir_pc].opcode)
+    // ignore modifier
+    switch (_code)
+    {
+    case ASM::OPCODE::DAT: // ignored
+    case ASM::OPCODE::JMP:
+    case ASM::OPCODE::SPL: return;
+
+    case ASM::OPCODE::JMZ: // only change DEST operands on .B
+    case ASM::OPCODE::JMN:
+    case ASM::OPCODE::DJN: 
+        if      (_mod == ASM::MOD::B) goto SWAP_DEST;
+        else if (_mod == ASM::MOD::F) _CTRL->TYPE.mod = ASM::MOD_TYPE::DOUBLE;
+        return;
+    }
+
+    // adjust operand value pointers base on mod type
+    switch (_mod)
+    {
+    /* Single [default] */
+    case ASM::MOD::A:  break; 
+    case ASM::MOD::AB: goto SWAP_DEST;  // only dest
+    case ASM::MOD::BA:                  // only src
+    case ASM::MOD::B: // SRC A <-> B
+            swapElements(_CTRL->SRC.A, _CTRL->SRC.B);
+            goto SWAP_DEST;
+        
+    /* Double */ 
+    case ASM::MOD::F: _CTRL->TYPE.mod  = ASM::MOD_TYPE::DOUBLE; break;
+    case ASM::MOD::X: _CTRL->TYPE.mod  = ASM::MOD_TYPE::DOUBLE; goto SWAP_DEST;
+
+    /* Full */
+    case ASM::MOD::I:
+        switch (_code)
+        {
+        case ASM::OPCODE::MOV:
+        case ASM::OPCODE::SEQ:
+        case ASM::OPCODE::SNE: _CTRL->TYPE.mod = ASM::MOD_TYPE::FULL;   break; // MOV, SEQ, SNE (only)
+        default:               _CTRL->TYPE.mod = ASM::MOD_TYPE::DOUBLE; break; // else F
+        } break;
+    default: return;
+
+        SWAP_DEST:
+        switch (_mod)
+        {
+        case ASM::MOD::B:
+        case ASM::MOD::AB:
+        case ASM::MOD::X: // DEST A <-> B
+            swapElements(_CTRL->DEST.A, _CTRL->DEST.B); // PTR
+        } return;
+    }
+} // decodeModifier
+
+ControlUnit MARS::generateCTRL(int const _pc)
+{
+    ControlUnit CTRL_ = ControlUnit(_pc, &RAM);
+
+    // decode addressing modes, get SRC (A) and DEST (B) registers
+    CTRL_.SRC  = decodeAdmo(&CTRL_, OPR::A);
+    CTRL_.DEST = decodeAdmo(&CTRL_, OPR::B);
+                 decodeModifier(&CTRL_);
+
+    // determine opcode type
+    switch (CTRL_.EXE.inst->OP.code)
     {
     /* Read/Write */
-    case ASM::_OP::DAT:
-    case ASM::_OP::MOV:
-        cl_.commit_type = ASM::_OP_TYPE::READWRITE;
-        break;
+    case ASM::OPCODE::DAT:
+    case ASM::OPCODE::MOV: CTRL_.TYPE.code = ASM::OPCODE_TYPE::READWRITE;   break;
     /* Comparision */
-    case ASM::_OP::CMP:
-    case ASM::_OP::SLT:
-    case ASM::_OP::SPL:
-        cl_.commit_type = ASM::_OP_TYPE::COMPARE;
-        break;
+    case ASM::OPCODE::SEQ:
+    case ASM::OPCODE::SLT:
+    case ASM::OPCODE::SPL: CTRL_.TYPE.code = ASM::OPCODE_TYPE::COMPARISION; break;
     /* Arithmetic */
-    case ASM::_OP::ADD:
-    case ASM::_OP::SUB:
-    case ASM::_OP::MUL:
-    case ASM::_OP::DIV:
-    case ASM::_OP::MOD:
-        cl_.commit_type = ASM::_OP_TYPE::ARITHMETIC;
-        break;
+    case ASM::OPCODE::ADD:
+    case ASM::OPCODE::SUB:
+    case ASM::OPCODE::MUL:
+    case ASM::OPCODE::DIV:
+    case ASM::OPCODE::MOD: CTRL_.TYPE.code = ASM::OPCODE_TYPE::ARITHMETIC;  break;
     /* Jump */
-    case ASM::_OP::JMP:
-    case ASM::_OP::JMZ:
-    case ASM::_OP::JMN:
-    case ASM::_OP::DJN:
-        cl_.commit_type = ASM::_OP_TYPE::JUMP;
-        break;
+    case ASM::OPCODE::JMP:
+    case ASM::OPCODE::JMZ:
+    case ASM::OPCODE::JMN:
+    case ASM::OPCODE::DJN: CTRL_.TYPE.code = ASM::OPCODE_TYPE::JUMP;        break;
     }
-    decodeModifier(&cl_);
+    CTRL_.EXE.event = Event::EXECUTE;
 
-    return cl_;
-}
+    #ifdef MARS_DEBUG
+    printf("\nMARS::generateCTRL:\t (EXE)\t |%s| \t Index[%d] \n\t\t\t (SRC)\t '%s' \n\t\t\t (DEST)\t '%s' \n",
+            CTRL_.EXE.inst->toAsmCode().c_str(), CTRL_.EXE.index,
+            CTRL_.SRC.inst->toAsmCode().c_str(), CTRL_.DEST.inst->toAsmCode().c_str());
+    #endif
 
-ASM::Inst &MARS::operator[](int index) const { return RAM[index]; }
-ASM::Inst &MARS::operator[](int index)       { return RAM[index]; }
+    return CTRL_;
+} // nextCommit
+
+ASM::Inst &MARS::operator[](int index) const { return *RAM[index]; }
+ASM::Inst &MARS::operator[](int index)       { return *RAM[index]; }
     
-} //// namespace OS
+} // namespace OS
