@@ -58,14 +58,6 @@ int main(int argc, char const* argv[])
     }
     catch (const std::exception e) { return EXIT_FAILURE; }
 
-    /* Initialise Core Operating System  */
-    OS::Core core_os(
-        &warriors,
-        Settings::get().min_separation(),
-        Settings::get().max_cycles(),
-        Settings::get().max_processes()
-    );
-
     #ifdef COREWAR_DEBUG
     printf("\nmain():: initialise core: \n"
         "\t MARS size: %d \n\t Scheduler processes: %d \n", core_os.size(), core_os.processes()
@@ -74,13 +66,33 @@ int main(int argc, char const* argv[])
 
     //// TODO:
     /* Run Core (MARS & Scheduler) Operating System */
+    OS::Report report;
+    for (int i = 0; i < Settings::get().max_rounds(); i++)
+    {
+        /* Initialise Core Operating System  */
+        OS::Core core_os(
+            &warriors,
+            Settings::get().min_separation(),
+            Settings::get().max_cycles(),
+            Settings::get().max_processes()
+        );
 
-    int max_rounds = Settings::get().max_rounds(); // max number of rounds before the game is concluded
+        report = OS::Report();
+        while (report.prcs_status != OS::Status::EXIT && report.prcs_status != OS::Status::HAULTED)
+        {
+            report = core_os.nextFDECycle();
 
-    int report = 0;  // psudo report
+            // Update GUI
 
-    while (!report) report = core_os.nextFDECycle();
-    printf("\nCOREWAR: GAME CONCLUDED: %s \n", report == 1 ? "Victory" : "DRAW");
+
+        }
+
+        printf("\nCOREWAR: ROUND CONCLUDED:\t STATE:| %s | \n"
+                " Warrior:[%d] PCBs:|%d|... Cycles:|%d|\n",
+            report.prcs_status == OS::Status::EXIT ? "Victory" : "DRAW",
+            report.warrior_ID, report.pcbs, report.cycles);
+    }
+
 
     /* Completed Tasks */
     std::cout
