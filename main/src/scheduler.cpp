@@ -7,11 +7,11 @@ namespace OS {
 
 Scheduler::Scheduler(ASM::WarriorList *warriors, int _cycles, int _processes)
 {
-    max_cycles    = _cycles;
-    max_processes = _processes;
+    max_cycles     = _cycles;
+    max_processes  = _processes;
+    cycles_counter = 0;
     schedules_tbl.reserve(warriors->size());
 
-    cycles = 0;
 
     std::vector<int> warrior_UUIDs;
     warrior_UUIDs.reserve(warriors->size());
@@ -23,7 +23,7 @@ Scheduler::Scheduler(ASM::WarriorList *warriors, int _cycles, int _processes)
         warrior_UUIDs.push_back((*warriors)[i].get()->getUUID());
 
         // create a  schedule for the warrior with an initial process
-        schedules_tbl[warrior_UUIDs[i]] = PrcsQueue(new Queue<PCB>);
+        schedules_tbl[warrior_UUIDs[i]] = PrcsQueue();
         this->addProcess(warrior_UUIDs[i], (*warriors)[i].get()->getCoreIndex());
     }
     RR = RR_T(warrior_UUIDs);
@@ -33,22 +33,22 @@ Scheduler::Scheduler(ASM::WarriorList *warriors, int _cycles, int _processes)
             totalPCBs(), totalWarriors());
     #endif
 }
-Scheduler::Scheduler(){}
+Scheduler::Scheduler()  = default;
 
 void Scheduler::addProcess(int parent_ID, int pc_initial)
 {
     // validate warrior was pre-loaded in contructor
     if (schedules_tbl.count(parent_ID))
     {
-        if (schedules_tbl[parent_ID].get()->size() < max_processes)
+        if (schedules_tbl[parent_ID].size() < max_processes)
         {
-            schedules_tbl[parent_ID].get()->push(PCB(parent_ID, pc_initial));
+            schedules_tbl[parent_ID].push(PCB(parent_ID, pc_initial));
         }
     }
     else printf("ERROR: scheduler failed to add process... UUID|%d| \n", parent_ID);
 
     #ifdef SCHEDULER_DEBUG_ADD_PCB
-    schedules_tbl[parent_ID].get()->back() >> pc_initial;
+    schedules_tbl[parent_ID].back() >> pc_initial;
     printf("\nScheduler::addProcess: \t PC:|%d| \t Warrior:[%d] \n",
             pc_initial, parent_ID );
     #endif
@@ -60,7 +60,7 @@ void Scheduler::pushJump(PCB const &_prcs, int value)
     if (schedules_tbl.count(_prcs.getParentID()))
     {
         // validate matching process 
-        PCB *back_process = schedules_tbl[_prcs.getParentID()].get()->editBack();
+        PCB *back_process = schedules_tbl[_prcs.getParentID()].editBack();
         if (back_process != nullptr)
         {
             *back_process << value;
@@ -77,12 +77,12 @@ void Scheduler::killBackProcess(PCB& _prcs)
     if (schedules_tbl.count(_UUID))
     {
         // validate rollback success
-        schedules_tbl[_UUID].get()->kickBack();
+        schedules_tbl[_UUID].kickBack();
     
         _prcs.setStatus(Status::TERMINATED);
         
         // remove warrior if defeated
-        if (schedules_tbl[_UUID].get()->size() < 1)
+        if (schedules_tbl[_UUID].size() < 1)
         {
             auto itr = schedules_tbl.find(_UUID);
             schedules_tbl.erase(itr);
@@ -100,10 +100,10 @@ void Scheduler::killBackProcess(PCB& _prcs)
 PCB Scheduler::nextProcess()
 {
     PCB prcs_;
-    schedules_tbl[RR.i()].get()->pop(&prcs_);
+    schedules_tbl[RR.i()].pop(&prcs_);
 
     // hault process to notify of draw
-    if (cycles++ > max_cycles)
+    if (++cycles_counter > max_cycles)
     {
         prcs_.setStatus(Status::HAULTED);
     }
@@ -119,7 +119,7 @@ PCB Scheduler::nextProcess()
             prcs_.getPID(), warriorPCBs(prcs_.getParentID()), prcs_.getParentID());
     #endif
 
-    schedules_tbl[RR.i()].get()->push(prcs_); // add process to back of queue
+    schedules_tbl[RR.i()].push(prcs_); // add process to back of queue
     RR.next();                                // move to next round robin sequance
     return prcs_;
 }

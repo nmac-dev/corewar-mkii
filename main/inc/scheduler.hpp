@@ -20,8 +20,8 @@ namespace OS {
 
 namespace
 {
-using PrcsQueue = std::unique_ptr<Queue<PCB>>;           // Queue of scheduled processes
-using Schedules = std::unordered_map<int, PrcsQueue>;    // Hashtable of schedules
+using PrcsQueue = Queue<PCB>;                           // Queue of scheduled processes
+using Schedules = std::unordered_map<int, PrcsQueue>;   // Hashtable of schedules
 }
 
 /// Manages processes using a queue of PCBs for each warrior
@@ -30,8 +30,7 @@ class Scheduler
  private:
     int max_cycles,             // max number of cycles before the round has been concluded
         max_processes;          // max number of processes a single warrior can create
-
-    int cycles;                 // cycles executed
+    int cycles_counter;         // cycles executed
 
     Schedules schedules_tbl;    // hosts a queue of processes for each warrior
     RR_T<int> RR;               // A Round Robin System which manages its position rotation
@@ -63,6 +62,9 @@ class Scheduler
     /// @param opcode evaluates for DAT opcode
     PCB nextProcess();
 
+    /// Returns the current cycle number
+    inline int cycles() const { return cycles_counter; }
+
     /// Returns the total number of warriors
     inline int totalWarriors()  const { return schedules_tbl.size(); }
     /// Returns the number of a warrior's pcbs
@@ -72,7 +74,7 @@ class Scheduler
         int pcbs = 0;
         if (schedules_tbl.count(_UUID))
         {
-            pcbs = schedules_tbl[_UUID].get()->size();
+            pcbs = schedules_tbl[_UUID].size();
         }
         return pcbs;
     }
@@ -86,7 +88,7 @@ class Scheduler
             int UUID = RR.i();
             if(schedules_tbl.count(UUID))
             {
-                total_ += schedules_tbl[UUID].get()->size();
+                total_ += schedules_tbl[UUID].size();
             }
         }
         // ensure RR position is retained
