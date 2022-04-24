@@ -1,21 +1,16 @@
-/// Template declarations & definitions go in the header, for compiler to generate type parameters   
-
-/// P_Queue<Parent, Type>: a queue containing elements with an associated parent
-template <typename P, typename T> 
-class P_Queue
+/// Queue of nodes containing data <T>
+template <typename T> 
+class Queue
 {
  private:
-    // Associated parent of the queue elements
-    P m_parent;
-
-    // Containts data and pointer to the next node
+    /// Containts data and pointer to the next|previous node
     struct Node
     {
         T data;     // data of type <T>
         Node *prev, // previous node in queue
              *next; // next     node in queue
         
-        /// Creates a new node containing data & sets next node to nullptr
+        /// Creates a new node containing data <T>
         /// @param _data element to store in the node
         Node(T _data)
         {
@@ -25,54 +20,47 @@ class P_Queue
         }
     };
     
+    bool m_empty;   // empty queue flag
     int   m_size;   // current size of the queue
     Node *m_front,  // node at the front of the queue
          *m_back;   // node at the back  of the queue
 
  public:
-    /// Creates a queue to contain elements with an associated parent
-    /// @param parent of the queue elements
-    P_Queue(P parent)
+    /// Creates a queue to contain elements
+    Queue()
     {
-        m_parent = parent;
+        m_empty  = true;
         m_size   = 0;
         m_front  = nullptr;
         m_back   = nullptr;
     }
-    P_Queue(){}
     /// Deletes the queue & all nodes 
-    ~P_Queue() 
-    { 
-        while (m_size-- > 0)
-        {
-            this->pop();
-        }
-    }
-
-    /// Returns a reference to the parent of the queue elements
-    inline P const parent() const { return (m_parent != nullptr) ? m_parent : 0; }
+    ~Queue() { while (!isEmpty()) this->pop(); }
     
     /// Returns the size of the queue
     inline int size()       const { return m_size; }
     /// Returns true if the queue is empty
-    inline bool isEmpty()   const { return m_front == nullptr; }
+    inline bool isEmpty()   const { return m_empty; }
+
     /// Returns the element at the front of the queue (copy)
-    inline T const front()  const { return (m_front != nullptr) ? m_front->data : 0; }
+    inline T const front() { return !isEmpty() ? m_front->data : T(); }
     /// Returns the element at the front of the queue (copy)
-    inline T const back()   const { return (m_back != nullptr) ? m_back->data : 0; }
+    inline T const back()  { return !isEmpty() ? m_back->data  : T(); }
     
     /// Push a new node with the stored data to the back of the queue
-    /// @param data to store inside the node
-    inline void push(T data) 
+    /// @param _data to store inside the node
+    inline void push(T _data)
     {
-        Node *node = new Node(data);
+        Node *node = new Node(_data);
         
         // queue is empty
-        if (m_size == 0)
+        if (isEmpty())
         {
             m_front = node;
             m_back  = m_front; // new node is only element in queue
+
             m_size++;
+            m_empty = false;
             return;
         }
 
@@ -92,29 +80,61 @@ class P_Queue
         m_size++;
     }
 
-    /// Returns a copy of the node data at the front of the queue, then deletes the node
-    inline T pop() 
-    {
-        // queue is empty
-        if (m_front == nullptr) return 0; // skip
+    /// Copies the node data at the front of the queue, then deletes the node
+    inline void pop(T *data_bf = nullptr)
+    {   
+        if (isEmpty()) return;
         
         Node *ptr = m_front;    // point to front node
-        T data    = ptr->data;  // copy node data
+        if (data_bf != nullptr)
+        {
+            *data_bf = ptr->data;  // copy node data
+        }
 
         // queue contains multiple elements
         if (m_front != m_back)
         {
-            m_front =  m_front->prev;   // update front node
+            m_front =  m_front->prev;
             m_front->next = nullptr;
-            delete ptr;                 // delete pop node
         }
         else // only front node in queue
         {
             m_front = nullptr;
-            m_back  = nullptr;
-            delete ptr;
+            m_back = nullptr;
+
+            m_empty = true;
         }
+        delete ptr;
         m_size--;
-        return data;
+    }
+
+    /// Removes the node at the back of the queue
+    void kickBack()
+    {
+        if (isEmpty()) return;
+        
+        Node *ptr = m_back;
+
+        // queue contains multiple elements
+        if (m_back != m_front)
+        {
+            m_back = m_back->next;
+            m_back->prev = nullptr;
+        }
+        else // only front node in queue
+        {
+            m_back  = nullptr;
+            m_front = nullptr;
+
+            m_empty = true;
+        }
+        delete ptr;
+        m_size--;
+    }
+    
+    /// Returns the element at the front of the queue (pointer)
+    inline T* const editBack() const
+    {
+        return !isEmpty() ? &m_back->data : nullptr;
     }
 };
