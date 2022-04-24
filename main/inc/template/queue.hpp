@@ -35,7 +35,7 @@ class Queue
         m_back   = nullptr;
     }
     /// Deletes the queue & all nodes 
-    ~Queue() { while (!isEmpty()) this->pop(); }
+    ~Queue() { while (this->pop()); }
     
     /// Returns the size of the queue
     inline int size()       const { return m_size; }
@@ -80,48 +80,52 @@ class Queue
         m_size++;
     }
 
-    /// Copies the node data at the front of the queue, then deletes the node
-    inline void pop(T *data_bf = nullptr)
+    /// Copies the node data at the front of the queue into the data buffer, then deletes the node
+    /// @return true:  queue copied element to data buffer and deleted node
+    /// @return false: no node was deleted (empty queue) and buffer was left unchanged
+    inline bool pop(T *data_bf = nullptr)
     {   
-        if (isEmpty()) return;
+        if (isEmpty()) return false;    // empty queue
         
-        Node *ptr = m_front;    // point to front node
+        Node *ptr = m_front;            // point to front node
         if (data_bf != nullptr)
         {
-            *data_bf = ptr->data;  // copy node data
+            *data_bf = ptr->data;       // copy node data
         }
 
-        // queue contains multiple elements
-        if (m_front != m_back)
+        if (m_front != m_back)          // queue contains multiple elements
         {
-            m_front =  m_front->prev;
+            m_front       = m_front->prev;
             m_front->next = nullptr;
         }
-        else // only front node in queue
+        else                            // only front node in queue
         {
             m_front = nullptr;
-            m_back = nullptr;
+            m_back  = nullptr;
 
             m_empty = true;
         }
         delete ptr;
         m_size--;
+
+        return true;
     }
 
     /// Removes the node at the back of the queue
-    void kickBack()
+    /// @return true:  deleted node
+    /// @return false: no node was deleted (empty queue)
+    bool kickBack()
     {
-        if (isEmpty()) return;
+        if (isEmpty()) return false;
         
         Node *ptr = m_back;
-
-        // queue contains multiple elements
-        if (m_back != m_front)
+        
+        if (m_back != m_front)      // queue contains multiple elements
         {
             m_back = m_back->next;
             m_back->prev = nullptr;
         }
-        else // only front node in queue
+        else                        // only front node in queue
         {
             m_back  = nullptr;
             m_front = nullptr;
@@ -130,6 +134,8 @@ class Queue
         }
         delete ptr;
         m_size--;
+
+        return true;
     }
     
     /// Returns the element at the front of the queue (pointer)
