@@ -2,7 +2,7 @@
 ## Project
 ###
 
-main/bin/*
+main/build/*
 
 ###
 ## C++
