@@ -23,7 +23,7 @@ struct RAM_T
     inline int loopIndex(int index) const
     {
         // loop index until it is within the 
-        while (index < 0 || index > m_size)
+        while (index < 0 || index >= m_size)
         {
             // index to upper core section
             if (index < 0)  index += m_size;
