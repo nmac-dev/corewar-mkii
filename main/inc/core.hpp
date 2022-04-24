@@ -1,13 +1,41 @@
 /// Executes fetch/decode/execute cycles to MARS and selects warrior processes from the scheduler
 #pragma once
 
-// #define CORE_DEBUG
+//#define CORE_DEBUG
 
 #include "mars.hpp"
 #include "scheduler.hpp"
 
 /// Operating System handles: fetch/decode/execute cycle, memory simulator, and warrior processes
 namespace OS {
+
+/// Report returned from the OS after each FDE cycle
+struct Report
+{
+    /// Logs the index and event for an instruction in memory
+    struct Log {
+        int   index; // location of instruction in memory
+        Event event; // instruction event
+        Log(ControlUnit::Register &_reg);
+        Log();
+    };
+
+    int warrior_ID;     // executing warrior UUID
+    Status prcs_status; // status of the executing process
+    int pcbs;           // number of pcbs for the current warrior
+    int cycles;         // number of cycles executed
+
+    Log exe,            // executing instruction
+        src,            // exe: source instruction
+        dest;           // exe: destination instruction
+
+    /// Generates a report from the OS detailing its last FDE cycle
+    /// @param _prcs executing process with parent ID
+    /// @param _CTRL control block containing registers for the executing, source, and destination
+    /// @param _pcb  number of pcbs for the current warrior
+    Report(PCB &_prcs, ControlUnit &_CTRL, int _pcbs, int _cycles);
+    Report();
+};
 
 /// Handles the fetch/decode/execute cycle, memory array of assembly instructions, and warrior processes
 class Core
@@ -17,7 +45,7 @@ class Core
     Scheduler scheduler;   // manages warrior processes
 
     ControlUnit CTRL;      // Control Unit from MARS, used in executiom
-    PCB         PRCS_EXE;  // process executing the instruction
+    PCB         PRCS;      // process executing the instruction
 
  public:
     /// Creates a core to fetch/decode/execute and manage a memory array simulator
@@ -30,7 +58,7 @@ class Core
     inline int processes()  { return scheduler.totalPCBs();  }
 
     /// run the next fetch/decode/execute cycle, then returns an operating system report
-    int nextFDECycle();
+    Report nextFDECycle();
     
  /* Execute */
  private:
