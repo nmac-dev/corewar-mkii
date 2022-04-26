@@ -10,7 +10,11 @@
 
 namespace OS
 {
-namespace { enum class OPR { A, B }; } // Used to select operand A or B
+namespace 
+{ 
+    using namespace ASM;
+    enum class OPR { A, B };// Used to select operand A or B
+} 
 
 /// Defines event types applied to the core
 enum class Event{ NOOP, READ, WRITE, EXECUTE };
@@ -20,25 +24,17 @@ struct ControlUnit
 {
     /// Type: specifies types for the opcode operation and modifier argument
     struct Type {
-        ASM::OPCODE_TYPE code;  // opcode   operation
-        ASM::MOD_TYPE    mod;   // modifier argument
-    };
-    /// Operand: operand's core index address, pointer, value, and event
-    struct Operand {
-        int *ptr,       // pointer to instruction object's operand
-             val;       // operand value
-        Operand(int *_ptr);
-        Operand();
+        OPCODE_TYPE code;  // opcode   operation
+        MOD_TYPE    mod;   // modifier argument
     };
     /// Register: Instruction register for the control unit decoding
     struct Register {
-        int index;          // absolute Core address
-        ASM::Inst *inst;    // register instruction pointer
+        int index;                  // absolute Core address
+        Inst::Operation *OP;        // operation pointer
+        Inst::Operand *A, *B;       // operand pointer
+        Event event;                // event applied to the address
 
-        Operand A, B;       // operands pointer and value
-        Event event;        // event applied to the address
-
-        Register(int _index, ASM::Inst *_inst);
+        Register(int _index, Inst *_inst);
         Register();
     };
 
@@ -51,7 +47,7 @@ struct ControlUnit
     /// Creates an Instruction ControlUnit (pre-configured for DAT opcode)
     /// @param _pc  instruction register program counter
     /// @param _RAM array containing instruction objects
-    ControlUnit(int _pc, RAM_T<ASM::Inst> *_RAM);
+    ControlUnit(int _pc, RAM_T<Inst> *_RAM);
     ControlUnit();
 };
 
@@ -62,14 +58,14 @@ class MARS
     inline static int core_size = 8000; // number of memory addresses within the core 
     int min_seperation;                 // min distance between warriors at the start of a round (config.ini) 
 
-    RAM_T<ASM::Inst> RAM;               // Array of instruction objects (circular)
+    RAM_T<Inst> RAM;               // Array of instruction objects (circular)
 
  public:
     /// Initialises the simulator by loading a default asm instruction (dat #0, #0) into every address,
     /// then places each warrior at a random location in accordance with the 'min_seperation' setting
     /// @param warrior_list collection of warriors to be loaded into the core
     /// @param _seperation (min_seperation) minimum seperation between warriors in the simulator
-    MARS(ASM::WarriorList *warriors, int _seperation);
+    MARS(WarriorList *warriors, int _seperation);
     MARS();
 
  /* Functions */
@@ -78,12 +74,19 @@ class MARS
     /// @param maxRange output will not exceed this value
     uint32_t randomInt(uint32_t maxRange);
 
-    /// Returns a pointer to either operand A or B for the index given
+    /// Returns a pointer to either operand A or B values for the index given
     /// @param index instruction index within the MARS
     /// @param select selects operand A or B
     inline int *selectOperand(int index, OPR select)
     {
-        return select == OPR::A ? &RAM[index]->A.val : &RAM[index]->B.val;
+        int *operand = select == OPR::A ? &RAM[index]->A.val 
+                                        : &RAM[index]->B.val;
+
+        // loop value to arithmatic bounds, stops Integer overflow
+        while (*operand <= -8000) *operand += core_size;    // lower bound
+        while (*operand >=  8000) *operand -= core_size;    // upper bound
+
+        return operand;
     }
     
     /// Swaps the two elements
@@ -115,9 +118,9 @@ class MARS
     inline int size() const { return core_size; }
 
     /// access index of core simulators's memory array
-    ASM::Inst &operator[](int index) const;
+    Inst &operator[](int index) const;
     /// modify index of core simulators's memory array
-    ASM::Inst &operator[](int index);
+    Inst &operator[](int index);
 }; // MARS
 
 } // namespace OS
