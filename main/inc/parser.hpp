@@ -1,7 +1,7 @@
 /// Parses assembly instructions from a warrior file into a warrior class 
 #pragma once
 
-//#define ASM_PARSER_DEBUG
+// #define ASM_PARSER_DEBUG
 
 #define ASM_CDOE_COMMENT ';' // assembly code comment character
 
@@ -28,8 +28,9 @@ using AddrModes    = std::unordered_map<char, ADMO>;
 /// Hashes an opcode string to get the enum value
 Opcodes opcode_tbl =
 {
+    {"nop", OPCODE::NOP},
     {"dat", OPCODE::DAT}, {"mov", OPCODE::MOV}, 
-    {"cmp", OPCODE::SEQ}, {"seq", OPCODE::SEQ}, {"slt", OPCODE::SLT},
+    {"cmp", OPCODE::SEQ}, {"seq", OPCODE::SEQ}, {"sne", OPCODE::SNE}, {"slt", OPCODE::SLT},
     {"add", OPCODE::ADD}, {"sub", OPCODE::SUB}, {"mul", OPCODE::MUL}, {"div", OPCODE::DIV}, {"mod", OPCODE::MOD}, 
     {"jmp", OPCODE::JMP}, {"jmz", OPCODE::JMZ}, {"jmn", OPCODE::JMN}, {"djn", OPCODE::DJN}, {"spl", OPCODE::SPL}
 };
@@ -54,14 +55,33 @@ AddrModes admo_tbl =
 
 /* Utility Functions */
 
+/// (dynamic) Returns a stored static string
+/// @param cmd operation on stored string: 'G' get | 'S' set | 'C' clear
+/// @param str string to store
+inline std::string strRegister(char cmd, std::string str = "")
+{
+    static std::string stored_str;       // holds a single warrior name
+    // commands
+    switch (cmd)
+    {
+    case 'S': stored_str = str;   break; // set value 
+    case 'C': stored_str.clear(); break; // reset 
+    }
+    return stored_str;
+}
+
 /// Outputs an error for an invalid assembly argument with the full instruction (triggers Exception)
 /// @param line full assembly code instruction
 /// @param asm_arg asssembly code argument relative to the error
 /// @param index line number of assembly instruction
 inline void invalidAssemblyError(std::string line, std::string asm_arg, int index)
 {
-    printf("\nError: '%s' is not valid argument" "\n[Line Number]|Full Instruction|: [%d]|%s|",
-            asm_arg.c_str(), index, line.c_str());
+    printf( "\nError: '%s' is not valid argument \n"
+            "\tWarrior: '%s' \n"
+            "\tLine:[%d]|%s|",
+            asm_arg.c_str(),
+            strRegister('G').c_str(),
+            index, line.c_str());
     throw std::exception(); // begin stack unwind
 }
 

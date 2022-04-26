@@ -178,6 +178,7 @@ Inst asmStrToInst(std::string &line, LabelLinker &linker, int index)
                 switch (OP_.code)
                 {
                 /* Ignored */
+                case OPCODE::NOP:
                 case OPCODE::DAT: OP_.mod = MOD::F; break;
                 case OPCODE::JMP:
                 case OPCODE::SPL: OP_.mod = MOD::B; break;
@@ -258,8 +259,10 @@ Inst asmStrToInst(std::string &line, LabelLinker &linker, int index)
 
 Warrior *asmCodeToWarrior(std::string warrior_name, AssemblyCode &asm_code, int _max_warrior_len)
 {
-    LabelLinker linker;            // stores label positions
+    LabelLinker linker;             // stores label positions
     int _length = asm_code.size();  // number of warrior instruction
+   
+    strRegister('S', warrior_name); // set string register with warrior name incase of error
 
     // validate number of instructions is within configuration bounds
     if (_length > _max_warrior_len)
@@ -313,6 +316,8 @@ Warrior *asmCodeToWarrior(std::string warrior_name, AssemblyCode &asm_code, int 
                 (*warrior)[i].B.admo, (*warrior)[i].B.val);
         #endif
     }
+
+    strRegister('C'); // clear register
     return warrior;
 } // asmCodeToWarrior()
 
