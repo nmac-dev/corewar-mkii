@@ -12,7 +12,6 @@
 
 namespace Parser
 {
-
 using AssemblyCode = std::vector<std::string>;
 
 namespace // Anonymous Namespace
@@ -93,6 +92,17 @@ inline bool isAsmSeperator(char val)
     return val == ' ' || val == '\t' || val == '.' || val == ',';
 }
 
+/// Returns true if the test value is between the upper and lower bounds
+/// @param val   value to be tested
+/// @param begin lower bound
+/// @param end   upper bound
+template<typename T>
+inline bool isBetween(T val, T begin, T end)
+{
+    return val >= begin 
+        && val <= end;
+}
+
 /// Takes an assembly instruction string and returns the next valid argument from the position given 
 /// @param line assembly instruction string
 /// @param pos start position to look for the next assembly argument
@@ -122,8 +132,8 @@ std::string cleanAsmStr(std::string line);
 MOD getDefaultModifier(OPCODE opcode, ADMO admo_a, ADMO admo_b);
 
 /// Creates a label linker to identify the posistions of all labels within an assembly file
-/// @param asm_data a vector containing each line of the assembly file data as a string
-LabelLinker findAsmLabels(AssemblyCode &asm_data);
+/// @param asm_code Labels start with ( a-z, A-Z, '_' ) and can contain 0-9 plus a ':' at the end
+LabelLinker findAsmLabels(AssemblyCode &asm_code);
 
 /// Parses an assembly code string to an asm_instr object
 /// @param line (asm code) in the format of: <label> [opcode]<.modifier> <mode_a>[op_a],<mode_b>[op_b]

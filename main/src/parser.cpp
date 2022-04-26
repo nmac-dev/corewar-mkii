@@ -101,29 +101,52 @@ MOD getDefaultModifier(OPCODE opcode, ADMO admo_a, ADMO admo_b)
     }
 } // getDefaultModifier()
 
-LabelLinker findAsmLabels(AssemblyCode &asm_data)
+LabelLinker findAsmLabels(AssemblyCode &asm_code)
 {
     LabelLinker labels;
     std::string first_arg; // first argument in asm code
 
     // search each line of asm code
-    for (int i = 0; i < asm_data.size(); i++)
+    for (int i = 0; i < asm_code.size(); i++)
     {
         int pos = 0;
-        first_arg = findAsmArgument(asm_data[i], pos);
+        first_arg = findAsmArgument(asm_code[i], pos);
 
         // label found, as first_arg is not opcode
         if (!opcode_tbl.count(first_arg))
         {
-            // true if label starts with ('a-z', '0-9' or '_')
-            bool is_alphanumeric = first_arg[0] >= 'a' && first_arg[0] <= 'z' ||
-                                   first_arg[0] >= '0' && first_arg[0] <= '9' ||
-                                   first_arg[0] == '_';
-
-            // add label to linker with line position
-            if (is_alphanumeric)
+            char select_c = first_arg[0];
+            // true if label starts with ('a-z', 'A-Z' or '_')
+            if (isBetween(select_c, 'a', 'z') || isBetween(select_c, 'A', 'Z') || select_c == '_')
             {
-                labels[first_arg] = i;
+                bool is_alphanumeric;
+                // validate full label is alphanumeric or '_', and contains ':' at the end (optional)
+                for (int i = 1; i < first_arg.size(); i++)
+                {
+                    select_c = first_arg[i];
+
+                    is_alphanumeric = 
+                           isBetween(select_c, 'a', 'z') || isBetween(select_c, 'A', 'Z')
+                        || isBetween(select_c, '0', '9') 
+                        || select_c == '_';
+                    
+                    // end of label contains colon
+                    if (select_c == ':' && i == first_arg.size() -1)
+                    {
+                        is_alphanumeric = true;
+                        first_arg.pop_back();   // remove colon for hash table lookup
+                    }
+                    
+                    // not alphanumeric, skip label so parser will report error line
+                    if (!is_alphanumeric)
+                        break;
+                }
+
+                // all tests passed, add label
+                if (is_alphanumeric)
+                {
+                    labels[first_arg] = i;
+                }
             }
         }
     }
@@ -132,14 +155,14 @@ LabelLinker findAsmLabels(AssemblyCode &asm_data)
 
 Inst asmStrToInst(std::string &line, LabelLinker &linker, int index)
 {    
-        /* Inst members */
+    /* Inst members */
     Inst::Operation OP_;
     Inst::Operand A_, B_;
 
-        /* Asm lineing */
+    /* Asm line */
     std::string asm_arg;      // stores assembly code arguments
     bool no_modifier = false; // flag to notify function to create modifier
-    int pos = 0;              // tracks asm lineing processing position
+    int pos = 0;              // tracks asm line processing position
 
     // set mode & value to operand A until B is found
     ADMO *admo_ptr = &A_.admo;
@@ -148,7 +171,11 @@ Inst asmStrToInst(std::string &line, LabelLinker &linker, int index)
     // get assembly argument
     asm_arg = findAsmArgument(line, pos);
 
-        /* identify argument */
+    /* <label> */
+    if (asm_arg[asm_arg.size() -1] == ':')
+    {
+        asm_arg.pop_back(); // remove colon (not contained by hash table)
+    }
 
     // skip <label>
     if (linker.count(asm_arg))
@@ -157,7 +184,7 @@ Inst asmStrToInst(std::string &line, LabelLinker &linker, int index)
         asm_arg = findAsmArgument(line, pos);
     }
     
-    // [code]
+    /* [code] */
     if (opcode_tbl.count(asm_arg))
     {
         // add [code]
@@ -169,7 +196,7 @@ Inst asmStrToInst(std::string &line, LabelLinker &linker, int index)
             // get <mod> argument 
             asm_arg = findAsmArgument(line, pos);
 
-            // add <mod>
+            /* <mod> */
             if (mod_tbl.count(asm_arg))
             {
                 OP_.mod = mod_tbl.at(asm_arg);
@@ -206,7 +233,7 @@ Inst asmStrToInst(std::string &line, LabelLinker &linker, int index)
             // get <mode>[operand]
             asm_arg = findAsmArgument(line, pos);
             
-            // process <mode>
+            /* <mode> */
             if (admo_tbl.count(asm_arg[0]))
             {
                 *admo_ptr = admo_tbl.at(asm_arg[0]);
@@ -221,8 +248,9 @@ Inst asmStrToInst(std::string &line, LabelLinker &linker, int index)
                 else                         *admo_ptr = admo_tbl.at('$');
             }
 
-            // process [operand]
-            if (asm_arg[0] >= '0' && asm_arg[0]<= '9' || asm_arg[0] == '-')
+            /* [operand] */
+            char first_c = asm_arg[0];
+            if (isBetween(first_c, '0', '9') || first_c == '+' || first_c == '-')
             {
                 *val_ptr = stoi(asm_arg);
             }
