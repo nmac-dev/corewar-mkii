@@ -11,6 +11,7 @@
 #endif
 
 #include <unordered_map>
+#include "asm.hpp"
 #include "pcb.hpp"
 #include "template/queue.hpp"
 #include "template/round_robin.hpp"

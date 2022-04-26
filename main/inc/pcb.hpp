@@ -1,8 +1,6 @@
 /// Represents a single process within a process control block
 #pragma once
 
-#include "asm.hpp"
-
 /// Operating System handles: fetch/decode/execute cycle, memory simulator, and warrior processes
 namespace OS {
 
