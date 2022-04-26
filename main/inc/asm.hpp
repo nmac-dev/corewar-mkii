@@ -16,6 +16,8 @@ using InstList    = std::vector<Inst>;
 /// Assembly Instruction Opcode (specifies operation to perform)
 enum class OPCODE
 {
+    NOP, // Literally does nothing
+    
     /* Read/Write */
     DAT, // Data: illegal instruction, kills the executing process
     MOV, // Move: (copy) overwrites B with A
