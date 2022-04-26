@@ -24,12 +24,27 @@ inline std::vector<std::string> getFileData(std::string filename, const char com
         while(std::getline(fs, line))
         {
             char first = line[0]; // first character of the line
-            if (first == comment || first == 0 || first == '\n') 
+            if (first == comment || first == 0 || first == '\n')
                 continue;
-            file_data.push_back(line);
+            
+            // remove comments and ignore blank strings
+            bool blank = true;
+            for (int i = 0; i < line.size(); i++)
+            {
+                char val = line[i];
+                // slice comment
+                if (val == comment)
+                    line.erase(i);
+                
+                // ignore blank line
+                if (val != ' ' && val != '\t' && val != '\n')
+                    blank = false;
+            }
+            if (!blank)
+                file_data.push_back(line);
 
             #ifdef FILE_LOADER_DEBUG
-                std::cout << "file_loader::getFileData: \t" << line << std::endl;
+                std::cout << "file_loader::getFileData: \t" << !blank ? "Added: " : "Ignored: " << line << std::endl;
             #endif
         }
     else 
