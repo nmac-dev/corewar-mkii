@@ -34,7 +34,8 @@ add_executable (${PROJECT} corewar-cli
 	src/pcb.cpp
 	src/scheduler.cpp
 	src/core.cpp
-	src/corewar-cli.cpp # only used to debug and developer
+	src/corewar.cpp 
+	src/cli_debug.cpp  # only used to debug and developer
 	)
 
 ## Resources
