@@ -10,7 +10,7 @@ namespace OS {
  Report::Report(PCB& _prcs, ControlUnit& _CTRL, int _pcbs, int _cycles)
  {
      warrior_ID  = _prcs.getParentID();
-     prcs_status = _prcs.getStatus();
+     status = _prcs.getStatus();
      pcbs        = _pcbs;
      cycles      = _cycles;
 
@@ -34,6 +34,7 @@ Core::Core(WarriorList *_warriors, int _seperation, int _cycles, int _processes)
     mars      = MARS(_warriors, _seperation);   // must be first (warrior needs core_index)
     scheduler = Scheduler(_warriors, _cycles, _processes);
 }
+Core::Core() = default;
 
 Report Core::nextFDECycle()
 {

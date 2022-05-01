@@ -21,7 +21,7 @@ struct Report
     };
 
     int warrior_ID;     // executing warrior UUID
-    Status prcs_status; // status of the executing process
+    Status status;      // status of the executing process
     int pcbs;           // number of pcbs for the current warrior
     int cycles;         // number of cycles executed
 
@@ -50,6 +50,7 @@ class Core
  public:
     /// Creates a core to fetch/decode/execute and manage a memory array simulator
     Core(ASM::WarriorList *warriors, int _seperation, int _cycles, int _processes);
+    Core();
 
  /* Functions */
     /// Returns the size of the memory array
