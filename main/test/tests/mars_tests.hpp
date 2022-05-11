@@ -120,11 +120,6 @@ BoolInt ALL_ADMOS(MARS &_mars)
     int E__src,  A__src;
     int E__dest, A__dest;
 
-    #define ALL_ADMOS__RESET_TEST()  \
-        _src = _dest = _reset_;      \
-        _src.A.val   = 3;            \
-        _dest.B.val  = 4;
-
     #define ALL_ADMOS__SET_TEST(E_1, E_2)  \
         E__src   = E_1;                    \
         E__dest  = E_2;                    \
@@ -145,11 +140,10 @@ BoolInt ALL_ADMOS(MARS &_mars)
         RUN_TEST(E__src,  A__src, HDR_);              \
         RUN_TEST(E__dest, A__dest, HDR_);             \
                                                       \
-        ALL_ADMOS__RESET_TEST()
+        _src = _dest = _reset_;                       \
+        _src.A.val   = 3;                             \
+        _dest.B.val  = 4;
     /* # ::..__RUN_TEST() */
-
-    #define ALL_ADMOS__RESTORE()        \
-        _exe = _src = _dest = _reset_;
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
  HDR_.info.test_desc = "IMMEDIATE ( '#' )";
 
@@ -211,7 +205,7 @@ BoolInt ALL_ADMOS(MARS &_mars)
     ALL_ADMOS__SET_TEST(_src.B.val + 1, _dest.B.val + 1)
     ALL_ADMOS__RUN_TEST(_src.B.val,     _dest.B.val)
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-    ALL_ADMOS__RESTORE()
+    _exe = _src = _dest = _reset_;
     return HDR_.result;
 } /* ::ALL_ADMOS() */
 
@@ -246,9 +240,6 @@ BoolInt ALL_MODIFIERS(MARS &_mars)
     int E__src,  A__src;
     int E__dest, A__dest;
 
-    #define ALL_MODIFIERS__RESET_TEST()        \
-        CTRL = ControlUnit(_exe, _src, _dest);
-
     #define ALL_MODIFIERS__SET_TEST(E_1, E_2)  \
         E__src   = E_1;                        \
         E__dest  = E_2;                        \
@@ -263,11 +254,8 @@ BoolInt ALL_MODIFIERS(MARS &_mars)
         RUN_TEST(E__src,   A__src,  HDR_);     \
         RUN_TEST(E__dest,  A__dest, HDR_);     \
                                                \
-        ALL_MODIFIERS__RESET_TEST()
+        CTRL = ControlUnit(_exe, _src, _dest);
     /* # ::..__RUN_TEST() */
-
-    #define ALL_MODIFIERS__RESTORE()           \
-        _mars[_index] = _mars[_exe.A->val] = _mars[_exe.B->val] = _reset_;
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
  HDR_.info.test_desc = "( '.A' )";
 
@@ -330,7 +318,7 @@ BoolInt ALL_MODIFIERS(MARS &_mars)
     ALL_MODIFIERS__SET_TEST(    _src.B->val,     _dest.B->val)
     ALL_MODIFIERS__RUN_TEST(CTRL.SRC.B->val, CTRL.DEST.B->val)
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-    ALL_MODIFIERS__RESTORE()
+    _mars[_index] = _mars[_exe.A->val] = _mars[_exe.B->val] = _reset_;
     return HDR_.result;
 } /* ::ALL_MODIFIERS() */
 
