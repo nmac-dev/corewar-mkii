@@ -8,13 +8,23 @@
 #include <fstream>
 #include <vector>
 
-namespace file_loader
+namespace File_Loader
 {
-/// Get the File Data object
+namespace /* {anonymous} */
+{    
+/// Return true if the character is white space
+/// @param val to be compared
+inline bool is_space(char val)
+{
+    return val == '\t' || val == ' '; 
+}
+} /* ::{anonymous} */
+
+/// Load the File Data to a string collection
 /// @param filename directory/filename location
 /// @param comment  (optional) character considered a comment within the file
 /// @return collection containing each line from the data file
-inline std::vector<std::string> getFileData(std::string filename, const char comment = 0)
+inline std::vector<std::string> load_file_data(std::string filename, const char comment = 0)
 {
     std::vector<std::string> file_data;
     std::ifstream fs (filename, std::ios::in);
@@ -34,17 +44,20 @@ inline std::vector<std::string> getFileData(std::string filename, const char com
                 char val = line[i];
                 // slice comment
                 if (val == comment)
-                    line.erase(i);
-                
-                // ignore blank line
-                if (val != ' ' && val != '\t' && val != '\n')
+                {
+                    while (is_space(line[--i])); // find last non-whitespace
+                    line.erase(++i);            // then erase
+                    break;
+                }
+                // unset blank flag if line contains content
+                if (!is_space(val))
                     blank = false;
             }
             if (!blank)
                 file_data.push_back(line);
 
             #ifdef FILE_LOADER_DEBUG
-                std::cout << "file_loader::getFileData: \t" << !blank ? "Added: " : "Ignored: " << line << std::endl;
+            std::cout << "File_Loader::load_file_data: \t" << !blank ? "Added: " : "Ignored: " << line << std::endl;
             #endif
         }
     else 
@@ -56,9 +69,10 @@ inline std::vector<std::string> getFileData(std::string filename, const char com
     return file_data;
 }
 
+
 /// Shuffles all whitespace to the end of the string and erases the whitespace segment
 /// @param str reference
-inline void removeWhiteSpace(std::string &str)
+inline void remove_whitespace(std::string &str)
 {
     int ws = 0; // whitespace counter
     for (int i = 0; i < str.length() - ws; i++)
@@ -70,9 +84,10 @@ inline void removeWhiteSpace(std::string &str)
     str.erase(str.length() - ws);
 
     #ifdef FILE_LOADER_DEBUG
-            std::cout 
-                << "file_loader::removeWhiteSpace: \t" << str.c_str()
-                << std::endl;
+    std::cout 
+        << "File_Loader::remove_whitespace: \t" << str.c_str()
+        << std::endl;
     #endif
 }
-} /// namespace file_loader
+
+} /* ::File_Loader */
