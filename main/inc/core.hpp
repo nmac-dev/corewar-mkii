@@ -1,7 +1,8 @@
 /// Executes fetch/decode/execute cycles to MARS and selects warrior processes from the scheduler
 #pragma once
 
-//#define CORE_DEBUG
+// #define CORE_DEBUG
+// #define CORE_DEBUG_CODES
 
 #include "mars.hpp"
 #include "scheduler.hpp"
@@ -12,28 +13,24 @@ namespace OS {
 /// Report returned from the OS after each FDE cycle
 struct Report
 {
-    /// Logs the index and event for an instruction in memory
+    /// Logs the address and event for an instruction in memory
     struct Log {
-        int   index; // location of instruction in memory
+        int   address; // location of instruction in memory
         Event event; // instruction event
-        Log(ControlUnit::Register &_reg);
-        Log();
     };
 
-    int warrior_ID;     // executing warrior UUID
-    Status status;      // status of the executing process
-    int pcbs;           // number of pcbs for the current warrior
-    int cycles;         // number of cycles executed
+    int warrior_ID,     // executing warrior UUID
+        next_pc;        // next program counter to be executed
+    Status status;      // m_status of the execution
 
-    Log exe,            // executing instruction
-        src,            // exe: source instruction
-        dest;           // exe: destination instruction
+    Log exe,            // executing instruction    (EXE)
+        src,            // EXE: source instruction
+        dest;           // EXE: destination instruction
 
     /// Generates a report from the OS detailing its last FDE cycle
-    /// @param _prcs executing process with parent ID
+    /// @param _PROCESS executing process with parent ID
     /// @param _CTRL control block containing registers for the executing, source, and destination
-    /// @param _pcb  number of pcbs for the current warrior
-    Report(PCB &_prcs, ControlUnit &_CTRL, int _pcbs, int _cycles);
+    Report(PCB &_PROCESS, ControlUnit &_CTRL);
     Report();
 };
 
@@ -41,62 +38,48 @@ struct Report
 class Core
 {
  private:
-    MARS      mars;        // memory array simulator
-    Scheduler scheduler;   // manages warrior processes
+    MARS      *os_memory;  // memory array simulator
+    Scheduler *os_sched;   // process scheduler (sched) for warriors
 
-    ControlUnit CTRL;      // Control Unit from MARS, used in executiom
-    PCB         PRCS;      // process executing the instruction
+    ControlUnit ctrl;       // Control Unit from MARS, used in executiom
+    PCB         exe_process;    // process executing the instruction
 
  public:
     /// Creates a core to fetch/decode/execute and manage a memory array simulator
-    Core(ASM::WarriorList *warriors, int _seperation, int _cycles, int _processes);
+    Core(MARS *_memory, Scheduler *_sched);
     Core();
 
  /* Functions */
-    /// Returns the size of the memory array
-    inline int size() const { return mars.size(); }
-    /// Returns the number of processes
-    inline int processes()  { return scheduler.totalPCBs();  }
-
     /// run the next fetch/decode/execute cycle, then returns an operating system report
-    Report nextFDECycle();
+    Report run_fde_cycle();
     
  /* Execute */
  private:
-   /// Executes a (DAT, MOV)
-   void execute_ReadWrite();
-   /// Executes a (CMP, SLT, SPL)
-   void execute_Compare(int &jump_val);
-   /// Executes a (ADD, SUB, MUL, DIV, MOD)
-   void execute_Arithmetic();
-   /// Executes a (JMP, JMZ, JMN, DJN)
-   void execute_Jump(int &jump_val);
+    /// Executes a (NOP, DAT, MOV)
+    void execute_system();
+    /// Executes a (CMP, SLT, SPL)
+    void execute_compare();
+    /// Executes a (ADD, SUB, MUL, DIV, MOD)
+    void execute_arithmetic();
+    /// Executes a (JMP, JMZ, JMN, DJN)
+    void execute_jump();
 
-   /// Arithmatic operation filter: applies the operator to both values and returns the result
-   /// @param operator_char char represnetation of the operation to perform
-   /// @param l_val left value  used as the base
-   /// @param r_val right value to perform operation on
-   inline int arithOpFilter(int l_val, int r_val, char operator_char)
-   {
-      int ret_ = 0;
-      switch (operator_char)
-      {
-      case '+': ret_ = l_val + r_val; break;
-      case '-': ret_ = l_val - r_val; break;
-      case '*': ret_ = l_val * r_val; break;
-      case '/': ret_ = l_val / r_val; break;
-      case '%': ret_ = l_val % r_val; break;
-      default: break;
-      }
-      return ret_;
-   }
+    /// Applies an arithmetic operation to the left value
+    /// @param operator_char char represnetation of the arithmetic operator
+    /// @param l_val modifiable left value used as the base
+    /// @param r_val right value to apply to l_val
+    inline void apply_arithmatic(int &l_val, int r_val, char _operator)
+    {
+        switch (_operator)
+        {
+            case '+': l_val = l_val + r_val; break;
+            case '-': l_val = l_val - r_val; break;
+            case '*': l_val = l_val * r_val; break;
+            case '/': l_val = l_val / r_val; break;
+            case '%': l_val = l_val % r_val; break;
+            default: break;
+        }
+    }
+}; /* Core */
 
-   /// Applies the post-increment
-   /// @param _post pointer to be incremented
-   inline void applyPostIncrement(int *_post)
-   {
-       if (_post != 0 && _post != nullptr && _post != NULL) (*_post)++;
-   }
-};
-
-} // namespace OS
+} /* ::OS */

@@ -2,254 +2,357 @@
 
 #include "core.hpp"
 
-/// Operating System handles: fetch/decode/execute cycle, memory simulator, and warrior processes
+/// Operating System handles: fetch/decode/execute cycle, memory, and processes
 namespace OS {
 
-/* OS::Report */
-
- Report::Report(PCB& _prcs, ControlUnit& _CTRL, int _pcbs, int _cycles)
- {
-     warrior_ID  = _prcs.getParentID();
-     status = _prcs.getStatus();
-     pcbs        = _pcbs;
-     cycles      = _cycles;
-
-     exe  = Log(_CTRL.EXE);
-     src  = Log(_CTRL.SRC);
-     dest = Log(_CTRL.DEST);
- }
- Report::Report() = default;
-
- Report::Log::Log(ControlUnit::Register &_reg)
- {
-     index = _reg.index;
-     event = _reg.event;
- }
- Report::Log::Log() = default;
-
- /* Core */
-
-Core::Core(WarriorList *_warriors, int _seperation, int _cycles, int _processes) 
+Report::Report(PCB& _prcs, ControlUnit& _CTRL)
 {
-    mars      = MARS(_warriors, _seperation);   // must be first (warrior needs core_index)
-    scheduler = Scheduler(_warriors, _cycles, _processes);
+    warrior_ID  = _prcs.parent_id();
+                  _prcs >> next_pc;
+    status      = _prcs.status();
+
+    exe  = { _CTRL.EXE.address,  _CTRL.EXE.event  };
+    src  = { _CTRL.SRC.address,  _CTRL.SRC.event  };
+    dest = { _CTRL.DEST.address, _CTRL.DEST.event };
+}
+Report::Report() = default;
+
+Core::Core(MARS *_memory, Scheduler *_sched)
+{
+    os_memory = _memory;
+    os_sched  = _sched;
 }
 Core::Core() = default;
 
-Report Core::nextFDECycle()
+Report Core::run_fde_cycle()
 {
-    /* Fetch */
-    int IR_PC;                       // instruction register program counter
-    PRCS = scheduler.nextProcess();  // fetch next process
+ /* Fetch */
+    int IR_PC;                              // instruction register program counter
+    exe_process = os_sched->fetch_next();     // fetch next process
 
-    /* Decode */
-    PRCS >> IR_PC;
-    CTRL = mars.generateCTRL(IR_PC); // generate a control unit
+ /* Decode */
+    exe_process >> IR_PC;
+    ctrl     = os_memory->generate_ctrl(IR_PC); // generate a control unit
 
     #ifdef CORE_DEBUG
-    printf("\nCore::nextFDECycle:\t Cycle:[%d]\t Warrior:[%d] Index:[%d] Inst:'%s' \n",
-        scheduler.cycle(), PRCS.getParentID(), CTRL.EXE.index, CTRL.EXE.to->smCode().c_str());
+    printf("\nCore::run_fde_cycle:\t Cycle:[%d]\t Warrior:[%d] Index:[%d] Inst:'%s' \n",
+        os_sched->cycles(), exe_process.parent_id(), 
+        ctrl.EXE.address, (*os_memory)[ctrl.EXE.address].to_assembly().c_str());
     #endif
 
-    // check for victory or draw
-    if (PRCS.getStatus() != Status::EXIT && PRCS.getStatus() != Status::HAULTED)
+ /* Execute */
+    if (exe_process.status() < Status::HAULTED)
     {
-        /* Execute */
-        int jump_val = CTRL.EXE.index +1; // value to apply to program counter (next instruction) 
-        switch (CTRL.TYPE.code)
+        exe_process << ctrl.EXE.address +1;   // set program counter
+
+        ctrl.EXE.event = Event::EXECUTE;
+        switch (ctrl.TYPE.code)
         {
-        case OPCODE_TYPE::READWRITE:
-            execute_ReadWrite();
-            break;
-        case OPCODE_TYPE::COMPARISION:
-            execute_Compare(jump_val);
-            break;
-        case OPCODE_TYPE::ARITHMETIC:
-            execute_Arithmetic();
-            break;
-        case OPCODE_TYPE::JUMP:
-            execute_Jump(jump_val);
+        case OpcodeType::SYSTEM:
+        {
+            execute_system();
             break;
         }
+        case OpcodeType::COMPARISION:
+        {
+            execute_compare();
+            break;
+        }
+        case OpcodeType::ARITHMETIC:
+        {
+            execute_arithmetic();
+            break;
+        }
+        case OpcodeType::JUMP:
+        {
+            execute_jump();
+            break;
+        }
+        default:
+        {
+            #ifdef CORE_DEBUG_CODES
+            printf("ERROR! Core:: FDE cycle: undefined 'OPCODE TYPE'");
+            #endif
+            break;
+        }
+        } /* switch() */
+
         // check if killed
-        if (PRCS.getStatus() != Status::TERMINATED)
+        if (exe_process.status() < Status::TERMINATED)
         {
-            scheduler.pushJump(PRCS, jump_val);
+            os_sched->return_process(exe_process);
+
+            if(exe_process.status() == Status::NEW)
+            {
+                os_sched->add_process(exe_process.parent_id(), ctrl.SRC.address);
+            }
         }
-
-        applyPostIncrement(CTRL.post_A);  // apply post-increment
-        applyPostIncrement(CTRL.post_B);
+        os_memory->apply_post_inc(ctrl);
     }
-    return Report(PRCS, CTRL, scheduler.warriorPCBs(PRCS.getParentID()), scheduler.cycles());
-}
+    return Report(exe_process, ctrl);
+} /* nextFDEcycle() */
 
-void Core::execute_ReadWrite()
+void Core::execute_system()
 {
-    ControlUnit::Register &_SRC  = CTRL.SRC,
-                          &_DEST = CTRL.DEST;
-    switch (CTRL.EXE.OP->code)
+    Opcode   code_  = ctrl.EXE.OP->code;
+    ModifierType mod_t  = ctrl.TYPE.mod;
+    Register &SRC_  = ctrl.SRC,
+             &DEST_ = ctrl.DEST;
+
+    switch (code_)
     {
-    case OPCODE::NOP: return;
-
-    case OPCODE::DAT:
-
-        scheduler.killBackProcess(PRCS);
-        CTRL.SRC.event  = Event::NOOP;
-        CTRL.DEST.event = Event::NOOP;
-        break;
-
-    case OPCODE::MOV:
-
-        switch (CTRL.TYPE.mod)
+        case Opcode::NOP:
         {
-        case MOD_TYPE::DOUBLE: _DEST.B->val = _SRC.B->val; // doubles bleed into singles
-        case MOD_TYPE::SINGLE: _DEST.A->val = _SRC.A->val; break;
-        case MOD_TYPE::FULL:   
-            *CTRL.DEST.OP = *CTRL.SRC.OP; 
-            *CTRL.DEST.A  = *CTRL.SRC.A; 
-            *CTRL.DEST.B  = *CTRL.SRC.B; 
+            ctrl.EXE.event  = Event::NOOP;
+            SRC_.event  = Event::NOOP;
+            DEST_.event = Event::NOOP;
             break;
         }
-        CTRL.SRC.event  = Event::READ;
-        CTRL.DEST.event = Event::WRITE;
-    }
-}
-
-void Core::execute_Compare(int &jump_val)
-{
-    ControlUnit::Register &_SRC  = CTRL.SRC,
-                          &_DEST = CTRL.DEST;
-
-    CTRL.SRC.event  = Event::READ;
-    CTRL.DEST.event = Event::READ;
-
-    // comparison boolean
-    bool compare_eq = true;
-    switch (CTRL.TYPE.mod)
-    {
-    case MOD_TYPE::DOUBLE: compare_eq  = _SRC.B->val - _DEST.B->val == 0;
-    case MOD_TYPE::SINGLE: compare_eq &= _SRC.A->val - _DEST.A->val == 0; break;
-
-    case MOD_TYPE::FULL:
-        ControlUnit::Register &src_i  = CTRL.SRC,
-                              &dest_i = CTRL.DEST;
-        // entire instruction comparison
-        compare_eq =   src_i.OP->code == dest_i.OP->code    // opcode
-                    && src_i.OP->mod  == dest_i.OP->mod     // modifier
-                    && src_i.A->admo  == dest_i.A->admo     // A admo
-                    && src_i.B->admo  == dest_i.B->admo     // B admo
-                    && src_i.A->val   == dest_i.A->val      // A val
-                    && src_i.B->val   == dest_i.B->val;     // A val
-    }
-
-    switch (CTRL.EXE.OP->code)
-    {
-    case OPCODE::SEQ: if(compare_eq)          break;   else return; // return skips jump++
-    case OPCODE::SNE: if(compare_eq == false) break;   else return;
-
-    case OPCODE::SLT:
-        switch (CTRL.TYPE.mod)
+        case Opcode::DAT:
         {
-        case MOD_TYPE::DOUBLE: if (_SRC.B->val < _DEST.B->val) /* bleed */; else return;
-        case MOD_TYPE::SINGLE: if (_SRC.A->val < _DEST.A->val) break;       else return;
+            // os_sched->kill_process(PROCESS);
+            exe_process.set_status(Status::TERMINATED);
+            SRC_.event  = Event::NOOP;
+            DEST_.event = Event::NOOP;
+            break;
+        }
+        case Opcode::MOV:
+        {
+            switch (mod_t)
+            {
+                case ModifierType::DOUBLE:
+                {
+                    DEST_.B->val = SRC_.B->val; 
+                    /* ->::SINGLE */
+                }
+                case ModifierType::SINGLE:
+                {
+                    DEST_.A->val = SRC_.A->val;
+                    break;
+                }
+                case ModifierType::FULL:
+                {
+                    *ctrl.DEST.OP = *ctrl.SRC.OP;
+                    *ctrl.DEST.A  = *ctrl.SRC.A;
+                    *ctrl.DEST.B  = *ctrl.SRC.B;
+                    break;
+                }
+            } /* switch() */
+            SRC_.event  = Event::READ;
+            DEST_.event = Event::WRITE;
+            break;
+        }
+        case Opcode::SPL:
+        {
+            exe_process.set_status(Status::NEW);
+            break;
+        }
+        default:
+        {
+            #ifdef CORE_DEBUG_CODES
+            printf("ERROR! Core:: 'execute SYSTEM' opcode not found");
+            #endif
+            break;
+        }
+    } /* switch() */
+} /* ::execute_system() */
+
+void Core::execute_compare()
+{
+    Opcode   code_  = ctrl.EXE.OP->code;
+    ModifierType mod_t  = ctrl.TYPE.mod;
+    Register &SRC_  = ctrl.SRC,
+             &DEST_ = ctrl.DEST;
+
+    SRC_.event  = Event::READ;
+    DEST_.event = Event::READ;
+
+    // comparison flag (assume true)
+    bool compare_flag = true;
+
+    // SEQ, SNE
+    if (code_ != Opcode::SLT)
+    {    
+        if (mod_t == ModifierType::FULL)
+        {
+            // entire instruction comparison
+            compare_flag =  SRC_.OP->code == DEST_.OP->code     // [code].<mod>
+                         && SRC_.OP->mod  == DEST_.OP->mod      //
+                         && SRC_.A->admo  == DEST_.A->admo      // <admo>[A],
+                         && SRC_.A->val   == DEST_.A->val       //
+                         && SRC_.B->admo  == DEST_.B->admo      // <admo>[B]
+                         && SRC_.B->val   == DEST_.B->val;      //
+        }
+        else
+        {
+            if (mod_t == ModifierType::DOUBLE)
+            {
+                compare_flag  = SRC_.B->val - DEST_.B->val == 0;
+            }
+            compare_flag &= SRC_.A->val - DEST_.A->val == 0; 
         }
     }
-    jump_val++;
-}
 
-void Core::execute_Arithmetic()
+    /* OPCODES */
+    bool skip_next = true;
+    switch (code_)
+    {
+        case Opcode::SEQ:
+        {
+            skip_next = compare_flag;
+            break;
+        }
+        case Opcode::SNE:
+        {
+            skip_next = !compare_flag;
+            break;
+        }
+        case Opcode::SLT:
+        {
+            if(mod_t == ModifierType::DOUBLE)
+            {
+                skip_next = SRC_.B->val < DEST_.B->val;
+            }
+            skip_next    &= SRC_.A->val < DEST_.A->val;
+            break;
+        }
+        default:
+        {
+            #ifdef CORE_DEBUG_CODES
+            printf("ERROR! Core:: 'execute COMPARISION' opcode not found"); 
+            #endif
+            break;
+        }
+    } /* switch() */
+
+    if (skip_next)
+    {
+        exe_process << ctrl.EXE.address + 2;
+    }
+} /* execute_compare() */
+
+void Core::execute_arithmetic()
 {
-    ControlUnit::Register &_SRC  = CTRL.SRC,
-                          &_DEST = CTRL.DEST;
+    Opcode   code_  = ctrl.EXE.OP->code;
+    ModifierType mod_t  = ctrl.TYPE.mod;
+    Register &SRC_  = ctrl.SRC,
+             &DEST_ = ctrl.DEST;
 
-    CTRL.SRC.event  = Event::READ;
-    CTRL.DEST.event = Event::WRITE;
+    SRC_.event  = Event::READ;
+    DEST_.event = Event::WRITE;
 
-    // select operator argument
     char operator_char;
-    switch (CTRL.EXE.OP->code)
+    switch (code_)
     {
-    case OPCODE::ADD: operator_char = '+'; break;
-    case OPCODE::SUB: operator_char = '-'; break;
-    case OPCODE::MUL: operator_char = '*'; break;
-    case OPCODE::DIV: operator_char = '/'; break;
-    case OPCODE::MOD: operator_char = '%'; break;
-    }
+        case Opcode::ADD: operator_char = '+'; break;
+        case Opcode::SUB: operator_char = '-'; break;
+        case Opcode::MUL: operator_char = '*'; break;
+        case Opcode::DIV: operator_char = '/'; break;
+        case Opcode::MOD: operator_char = '%'; break;
 
-    // check for division by zero
-    if (operator_char == '/' || operator_char == '%')
-    {
-        bool zero_div = false; // true if division by zero
-        switch (CTRL.TYPE.mod)
+        default:
         {
-        case MOD_TYPE::DOUBLE: zero_div = !(_SRC.B->val && _DEST.B->val); // NOT 0
-        case MOD_TYPE::SINGLE: zero_div = !zero_div && !(_SRC.A->val && _DEST.A->val); break;
-        }
-
-        if (zero_div) // kill process
-        {
-            scheduler.killBackProcess(PRCS);
-            CTRL.SRC.event = Event::NOOP;
-            CTRL.SRC.event = Event::NOOP;
+            #ifdef CORE_DEBUG_CODES
+            printf("ERROR! Core:: 'execute ARITHMETIC' opcode not found"); 
+            #endif
             return;
         }
     }
 
-    switch (CTRL.TYPE.mod)
+    // check for division by zero
+    if (code_ == Opcode::DIV || code_ == Opcode::MOD)
     {
-    case MOD_TYPE::DOUBLE: // bleeds into single
-        _DEST.B->val = arithOpFilter(_DEST.B->val, _SRC.B->val, operator_char);
-
-    case MOD_TYPE::SINGLE:
-        _DEST.A->val = arithOpFilter(_DEST.A->val, _SRC.A->val, operator_char);
-    }
-}
-
-void Core::execute_Jump(int &jump_val)
-{
-    OPCODE code = CTRL.EXE.OP->code;
-    ControlUnit::Register &_SRC  = CTRL.SRC,
-                          &_DEST = CTRL.DEST;
-
-    CTRL.SRC.event  = Event::READ;
-    CTRL.DEST.event = (code == OPCODE::JMP) ? Event::NOOP
-                                                 : Event::READ; // JMZ, JMN, DJN
-
-// comparison boolean: true if target is zero
-    bool compare_zero = true;
-    if (code == OPCODE::JMZ || code == OPCODE::JMN)
-    {
-        switch (CTRL.TYPE.mod)
+        bool zero_div = false; // true if division by zero
+        
+        if(mod_t == ModifierType::DOUBLE)
         {
-        case MOD_TYPE::DOUBLE: compare_zero  = _DEST.B->val == 0;
-        case MOD_TYPE::SINGLE: compare_zero &= _DEST.A->val == 0; break;
+            zero_div = !(SRC_.B->val && DEST_.B->val);
+        }
+        zero_div = !zero_div && !(SRC_.A->val && DEST_.A->val);
+
+        if (zero_div) // kill process
+        {
+            os_sched->kill_process(exe_process);
+            SRC_.event  = Event::NOOP;
+            DEST_.event = Event::NOOP;
+            return;
         }
     }
-    /* code */
-    switch (code)
+
+    if(mod_t == ModifierType::DOUBLE)
     {
-    case OPCODE::JMP: break; // break to set jump value
-    case OPCODE::JMZ: if ( compare_zero) break;   else return;
-    case OPCODE::JMN: if (!compare_zero) break;   else return;
-    case OPCODE::DJN:
-        switch (CTRL.TYPE.mod)
-        {
-        case MOD_TYPE::DOUBLE:
-            --(_DEST.B->val); /* pre-dec */
-            compare_zero  = _DEST.B->val == 0;
-
-        case MOD_TYPE::SINGLE:
-            --(_DEST.A->val);
-            compare_zero |= _DEST.A->val == 0;
-
-            if(compare_zero) return; // all compared values are zero, skip jump
-        } break;
-
-    case OPCODE::SPL:
-        scheduler.addProcess(PRCS.getParentID(), CTRL.SRC.index);
-        return;
+        apply_arithmatic(DEST_.B->val, SRC_.B->val, operator_char);
     }
-    jump_val = _SRC.index; // only reached by break statement
-}
+    apply_arithmatic(DEST_.A->val, SRC_.A->val, operator_char);
+} /* execute_arithmetic() */
 
-} // namespace OS
+void Core::execute_jump()
+{
+    Opcode   code_  = ctrl.EXE.OP->code;
+    ModifierType mod_t  = ctrl.TYPE.mod;
+    Register &SRC_  = ctrl.SRC,
+             &DEST_ = ctrl.DEST;
+
+    SRC_.event  = Event::READ;
+    DEST_.event = Event::READ;
+
+    // comparison boolean: true if target is zero
+    bool compare_zero = true;
+    if (code_ == Opcode::JMZ || code_ == Opcode::JMN)
+    {
+        if (mod_t == ModifierType::DOUBLE)
+        {
+            compare_zero  = DEST_.B->val == 0;
+        }
+        compare_zero &= DEST_.A->val == 0;
+    }
+
+    bool set_jump = false;
+    switch (code_)
+    {
+        case Opcode::JMP:
+        {
+            set_jump    = true;
+            DEST_.event = Event::NOOP;
+            break;
+        }
+        case Opcode::JMZ:
+        {
+            set_jump = compare_zero;
+            break;
+        }
+        case Opcode::JMN:
+        { 
+            set_jump = !compare_zero;
+            break;
+        }
+        case Opcode::DJN:
+        {
+            compare_zero = false;
+            if (mod_t == ModifierType::DOUBLE)
+            {
+                DEST_.B->val += -1;
+                compare_zero  = DEST_.B->val == 0;
+            }
+            DEST_.A->val += -1;
+            compare_zero |= DEST_.A->val == 0;
+
+            set_jump = !compare_zero;
+            break;
+        }
+        default:
+        {
+            #ifdef CORE_DEBUG_CODES
+            printf("ERROR! Core:: 'execute JUMP' opcode not found"); 
+            #endif
+            break;
+        }
+    }
+    
+    if (set_jump)
+    {
+        exe_process << SRC_.address;
+    }    
+} /* execute_jump() */
+
+} /* ::OS */
