@@ -5,16 +5,15 @@
 /// Operating System handles: fetch/decode/execute cycle, memory simulator, and warrior processes
 namespace OS {
 
-PCB::PCB(int _parent_ID, int pc_initial)
+PCB::PCB(int _parent_ID, int _pc_initial)
 {
-    parent_ID = _parent_ID;
-    pc        = pc_initial;
-    pid       = createPID();
-    status    = Status::ACTIVE;
+    m_parent_id = _parent_ID;
+    m_pc        = _pc_initial;
+    m_status    = Status::NEW;
 }
 PCB::PCB() = default;
 
-void PCB::operator<<(int r_value)        { pc      = r_value; }
-void PCB::operator>>(int &r_value) const { r_value = pc;      }
+void PCB::operator<<(int r_value)        { m_pc      = r_value; }
+void PCB::operator>>(int &r_value) const { r_value = m_pc;      }
 
-} // namespace OS
+} /* ::OS */
