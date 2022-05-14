@@ -129,8 +129,8 @@ BoolInt ALL_ADMOS()
     /* # ALL_ADMOS__SET_TEST() */
 
     #define ALL_ADMOS__RUN_TEST(A_1, A_2)                     \
-        ctrl.SRC  = mars_.decode_admo(&ctrl, INST_FIELD::A);  \
-        ctrl.DEST = mars_.decode_admo(&ctrl, INST_FIELD::B);  \
+        ctrl.SRC  = mars_.decode_admo(&ctrl, InstField::A);   \
+        ctrl.DEST = mars_.decode_admo(&ctrl, InstField::B);   \
                                                               \
         if (test_admo >= Admo::POST_INC_A)                    \
             mars_.apply_post_inc(ctrl);                       \
