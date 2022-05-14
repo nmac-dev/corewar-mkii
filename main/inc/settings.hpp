@@ -14,14 +14,25 @@ class Settings
     inline static const std::string INI_SECTION = "[Match Parameters]";
     inline static const std::string FILENAME    = "corewar.ini";
     inline static const char        COMMENT     = '#';
-    inline static const int         N_SETTINGS  = 6;
+    inline static const int         N_SETTINGS  = 5;
 
     /// .ini setting names
-    inline static const std::string INI_NAMES[N_SETTINGS] =
-    {"core_size", "max_rounds", "max_cycles", "max_processes", "max_warrior_len", "min_separation"};
+    inline static const std::string INI_NAMES[N_SETTINGS] {
+        "max_rounds",
+        "max_cycles",
+        "max_processes",
+        "max_warrior_len",
+        "min_separation"
+        };
 
     /// default values for the .ini settings, used if parameters are missing
-    inline static const int INI_DEFAULT_VALUES[N_SETTINGS] = {8000, 3, 8 ,8, 12, 8};
+    inline static const int INI_DEFAULT_VALUES[N_SETTINGS] {
+        3,  // max_rounds
+        8,  // max_cycles
+        8,  // max_processes
+        12, // max_warrior_len
+        8   // min_separation
+        };
 
     /// stores the .ini setting values
     std::unordered_map<std::string, int> ini_values;
@@ -29,10 +40,10 @@ class Settings
     /// Constructor is blocked
     Settings(){}
 
-    /// Uses file_loader:: to read match_settings.ini, then processes the contents into the hash table
-    inline void loadINI()
+    /// Uses File_Loader:: to read match_settings.ini, then processes the contents into the hash table
+    inline void load_ini()
     {
-        std::vector<std::string> data = file_loader::getFileData(FILENAME, COMMENT);
+        std::vector<std::string> data = File_Loader::load_file_data(FILENAME, COMMENT);
         std::string name; int value; // Map<key, value>
         ini_values.clear();
 
@@ -49,7 +60,7 @@ class Settings
         for (int i = 1; i < data.size(); i++)
         {
             // clean data, get setting name & value
-            file_loader::removeWhiteSpace(data[i]);
+            File_Loader::remove_whitespace(data[i]);
             for (int j = 0; j < data[i].length(); j++)
             {
                 if (data[i][j] == '=')
@@ -71,11 +82,11 @@ class Settings
             }
 
             #ifdef SETTINGS_DEBUG
-                if (i == 0) printf("\nSettings::loadINI: \n");
-                printf("\t\"%s\" = %d\n", INI_NAMES[i].c_str(), ini_values.at(INI_NAMES[i]));
+            if (i == 0) printf("\nSettings::load_ini: \n");
+            printf("\t\"%s\" = %d\n", INI_NAMES[i].c_str(), ini_values.at(INI_NAMES[i]));
             #endif
         }
-    }
+    }  /* ::load_ini() */
 
  public:
     /// Settings instance access method
@@ -87,14 +98,14 @@ class Settings
         static int flag_loaded;
         if (!flag_loaded)
         {
-            match_settings.loadINI();
+            match_settings.load_ini();
             flag_loaded++;
         }
         return match_settings;
     }
 
     /// Copy creation method deleted
-    Settings(Settings const &)       = delete;
+    Settings(Settings const &)        = delete;
     /// Assignment operator method deleted
     void operator= (Settings const &) = delete;
 
@@ -102,21 +113,19 @@ class Settings
     /// FILENAME of the .ini configuration file containing the settings values
     inline const std::string file_name() const {return get().FILENAME;}
 
-    /// Total number of memory addresses within the core
-    inline int core_size()               const {return get().ini_values.at(INI_NAMES[0]);}
-
     /// Max number of rounds before the game is concluded
-    inline int max_rounds()              const {return get().ini_values.at(INI_NAMES[1]);}
+    inline int max_rounds()              const {return get().ini_values.at(INI_NAMES[0]);}
 
     /// Max number of cycles before the round has been concluded
-    inline int max_cycles()              const {return get().ini_values.at(INI_NAMES[2]);}
+    inline int max_cycles()              const {return get().ini_values.at(INI_NAMES[1]);}
 
     /// Max number of processes a single warrior can create
-    inline int max_processes()           const {return get().ini_values.at(INI_NAMES[3]);}
+    inline int max_processes()           const {return get().ini_values.at(INI_NAMES[2]);}
 
     /// Max instructions a warrior can consist of
-    inline int max_warrior_len()         const {return get().ini_values.at(INI_NAMES[4]);}
+    inline int max_warrior_len()         const {return get().ini_values.at(INI_NAMES[3]);}
 
     /// Min distance between warriors at the start of a round
-    inline int min_separation()          const {return get().ini_values.at(INI_NAMES[5]);}
-};
+    inline int min_separation()          const {return get().ini_values.at(INI_NAMES[4]);}
+
+}; /* ::Settings */
