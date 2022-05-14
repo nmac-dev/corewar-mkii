@@ -34,16 +34,16 @@ struct Info
 struct Header
 {
     BoolInt result;     // Test Suite result
-    CMP_OP cmp_op;
-    Info info;
+    CMP_OP cmp_op;      // [default] EQ ('==')
+    Info info;          // Test info
 
     /// Create a header
     /// @param _cmp_op
     /// @param _info
-    Header(CMP_OP _cmp_op, Info _info)
+    Header(Info _info)
     {
         result = TEST_PASSED;
-        cmp_op = _cmp_op;
+        cmp_op = CMP_OP::EQ;
         info   = _info;
     }
 
@@ -102,9 +102,9 @@ void RUN_TEST(T _E, T _A, Header &_HDR)
 
         std::cout
         << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n"
-        << "  FAILED!  | FUNC: '"      << _HDR.info.func_name    << nl 
-        << "  #######  | TEST: '"      << _HDR.full_suite_name() << nl
-        << "           |  CMP: '|E| " << cmp_desc << " |A|"      << nl
+        << "  FAILED!  | FUNC: '"     << _HDR.info.func_name         << nl 
+        << "  #######  | TEST: '"     << _HDR.full_suite_name()      << nl
+        << "           |  CMP: '|E| " << _HDR.cmp_to_str() << " |A|" << nl
         << "..............................................................\n"
         << " |E|xpected: '" << _E << nl
         << " |A|ctual:   '" << _A << nl
@@ -115,4 +115,4 @@ void RUN_TEST(T _E, T _A, Header &_HDR)
     _HDR.result += compare_;
 } /* RUN_TEST() */
 
-} // namespace TS
+} /* ::TS */
