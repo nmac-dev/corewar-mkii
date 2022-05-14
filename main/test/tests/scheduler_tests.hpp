@@ -14,145 +14,163 @@ Info suite_info(Info _info)
     return _info;
 }
 
-BoolInt ROUND_ROBIN_LOOP(Scheduler _scheduler);    /** TEST: round robin system                */
-BoolInt ADD_PRCS(Scheduler _scheduler);            /** TEST: add  processes                    */
-BoolInt KILL_PRCS(Scheduler _scheduler);           /** TEST: kill processes                    */
-BoolInt MAX_PROCESSES_LIMIT(Scheduler _scheduler); /** TEST: adding process over max           */
+#define TS__SCHEDULER__SET_TEST_ENV(N_WARRIORS)                     \
+    int constexpr max_warrior_len = 1,                              \
+                  max_cycles      = 200000,                         \
+                  max_processes   = 200,                            \
+                  program_counter = 1;                              \
+                                                                    \
+    ASM::WarriorVec warriors;                                       \
+    warriors.reserve(N_WARRIORS);                                   \
+                                                                    \
+    for (int i = 0; i < N_WARRIORS; i++)                            \
+    {                                                               \
+        warriors.push_back(                                         \
+            ASM::UniqWarrior (                                      \
+                new ASM::Warrior("example", 1, max_warrior_len)     \
+            )                                                       \
+        );                                                          \
+        warriors[i].get()->set_address(program_counter + i);        \
+    }                                                               \
+    Scheduler sched_(&warriors, max_cycles, max_processes);         \
+                                                                    \
+    PCB process_ = sched_.fetch_next();                             \
+                   sched_.return_process(process_);                 \
+                                                                    \
+    int UUID_      = process_.parent_id();                          \
+    int processes_ = sched_.processes(UUID_);
+    /* TS__SCHEDULER__SET_TEST_ENV() */
+
+BoolInt ROUND_ROBIN_LOOP();    /** TEST: round robin system                */
+BoolInt ADD_PRCS();            /** TEST: add  processes                    */
+BoolInt KILL_PRCS();           /** TEST: kill processes                    */
+BoolInt MAX_PROCESSES_LIMIT(); /** TEST: adding process over max           */
 } /* ::{anonymous} */
 
-/** ALLTESTS: Scheduler */
-BoolInt ALL_TEST()
+/** ALLTESTS: ( OS::Scheduler ) */
+BoolInt ALL_TESTS()
 {
-    int constexpr max_warrior_len = 200,
-                  max_cycles      = 40,
-                  max_processes   = 200,
-                  program_counter = 1,
-                  n_warriors      = 3;
-
-    ASM::WarriorList warriors;
-    warriors.reserve(n_warriors);
-
-    for (int i = 0; i < n_warriors; i++)
-    {
-        warriors.push_back(
-            ASM::UniqWarrior ( new ASM::Warrior("example", 1, max_warrior_len) )
-        );
-        warriors[i].get()->setCoreIndex(program_counter + i);
-    }    
-
-    Scheduler scheduler_(&warriors, max_cycles, max_processes);
  /** ALLTESTS: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     BoolInt results_ = TEST_PASSED;
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-    if ( results_ += ROUND_ROBIN_LOOP(scheduler_)    ) return results_;
-    if ( results_ += ADD_PRCS(scheduler_)            ) return results_;
-    if ( results_ += KILL_PRCS(scheduler_)           ) return results_;
-    if ( results_ += MAX_PROCESSES_LIMIT(scheduler_) ) return results_;
+    if ( results_ += ROUND_ROBIN_LOOP()    ) return results_;
+    if ( results_ += ADD_PRCS()            ) return results_;
+    if ( results_ += KILL_PRCS()           ) return results_;
+    if ( results_ += MAX_PROCESSES_LIMIT() ) return results_;
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     return results_;
-} /* ::ALL_TESTS() */
+} /* ALL_TESTS() */
 
 namespace /* {anonymous} */
 {
 /** TEST: round robin loop */
-BoolInt ROUND_ROBIN_LOOP(Scheduler _scheduler)
+BoolInt ROUND_ROBIN_LOOP()
 {
-    PCB _process    = _scheduler.nextProcess();
-    int const _UUID = _process.getParentID();
+    int constexpr n_warriors = 12;
+    TS__SCHEDULER__SET_TEST_ENV(n_warriors)
 
  /** SUITE: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-    Header HDR_ (CMP_OP::EQ, suite_info( {"RoundRobin", "ROUND_ROBIN_LOOP()", ""} ));
+    Header HDR_ (suite_info( {"RoundRobin", "ROUND_ROBIN_LOOP()", ""} ));
     int E_, A_;
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
- HDR_.info.test_desc = "Complete Index Rotation";
+ HDR_.info.test_desc = "Complete Multiple Index Rotations";
 
-    E_ = _UUID;
+    E_ = UUID_;
 
-    for (int i = 0; i < _scheduler.totalWarriors(); i++)  // loop back to first warrior
-        _process = _scheduler.nextProcess();
-
-    A_ = _process.getParentID();
-
+    int len = sched_.rr_len();
+    for (int i = 0; i < (len * len); i++)
+    {
+        process_ = sched_.fetch_next();
+                   sched_.return_process(process_);
+    }
+    A_ = process_.parent_id();
     RUN_TEST(E_, A_, HDR_);
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     return HDR_.result;
-} /* ::ROUND_ROBIN_LOOP */
+} /* ROUND_ROBIN_LOOP() */
 
 /** TEST: add processes */
-BoolInt ADD_PRCS(Scheduler _scheduler)
+BoolInt ADD_PRCS()
 {
-    PCB _process   = _scheduler.nextProcess();
-    int _UUID      = _process.getParentID();
-    int _processes = _scheduler.warriorPCBs(_UUID);
+    int constexpr n_warriors = 3;
+    TS__SCHEDULER__SET_TEST_ENV(n_warriors)
 
  /** SUITE: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-    Header HDR_ (CMP_OP::EQ, suite_info( {"addProcess()", "ADD_PRCS()", ""} ));
+    Header HDR_ (suite_info( {"add_process()", "ADD_PRCS()", ""} ));
     int E_, A_;
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
  HDR_.info.test_desc = "Add Processes";
 
-    E_ = _scheduler.max_processes();
-    while (_processes++ != _scheduler.max_processes())
-        _scheduler.addProcess(_UUID, 0);
+    E_ = sched_.max_processes();
 
-    A_ = _scheduler.warriorPCBs(_UUID);
-
+    while (processes_++ != sched_.max_processes())
+    {
+        sched_.add_process(UUID_, 0);
+    }
+    A_ = sched_.processes(UUID_);
     RUN_TEST(E_, A_, HDR_);
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     return HDR_.result;
-} /* ::ADD_PRCS */
+} /* ADD_PRCS() */
 
 /** TEST: kill processes */
-BoolInt KILL_PRCS(Scheduler _scheduler)
+BoolInt KILL_PRCS()
 {
-    PCB _process   = _scheduler.nextProcess();
-    int _UUID      = _process.getParentID();
-    int _processes = _scheduler.warriorPCBs(_UUID);
-    
-    while (_processes++ != _scheduler.max_processes())
-        _scheduler.addProcess(_UUID, 0);
+    int constexpr n_warriors = 3;
+    TS__SCHEDULER__SET_TEST_ENV(n_warriors)
+
+    while (sched_.size() != sched_.max_processes())
+    {
+        sched_.add_process(UUID_, 0);
+    }
+    processes_ = sched_.max_processes();
 
  /** SUITE: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-    Header HDR_ (CMP_OP::EQ, suite_info( {"killBackProcess()", "KILL_PRCS()", ""} ));
+    Header HDR_ (suite_info( {"kill_process()", "KILL_PRCS()", ""} ));
     int E_, A_;
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
  HDR_.info.test_desc = "Kill Processes";
 
     E_ = 0;
-    while (--_processes > 0)
-        _scheduler.killBackProcess(_process);
 
-    A_ = _scheduler.warriorPCBs(_UUID);
+    while (processes_-- > 0)
+    {
+        process_ = sched_.fetch_next();
+        sched_.kill_process(process_);
+    }
+    process_ = sched_.fetch_next(); // fetch last
 
+    A_ = sched_.processes(UUID_);
     RUN_TEST(E_, A_, HDR_);
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     return HDR_.result;
-} /* ::KILL_PRCS */
+} /* KILL_PRCS() */
 
 /** TEST: adding process over max */
-BoolInt MAX_PROCESSES_LIMIT(Scheduler _scheduler)
+BoolInt MAX_PROCESSES_LIMIT()
 {
-    PCB _process   = _scheduler.nextProcess();
-    int _UUID      = _process.getParentID();
-    int _processes = _scheduler.warriorPCBs(_UUID);
-    int test_limit = _scheduler.max_processes() + 5;
+    int constexpr n_warriors = 3;
+    TS__SCHEDULER__SET_TEST_ENV(n_warriors)
+
+    int test_limit = sched_.max_processes() + 5;
 
  /** SUITE: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-    Header HDR_ (CMP_OP::EQ, suite_info( {"max_processes()", "MAX_PROCESSES_LIMIT()", ""} ));
+    Header HDR_ (suite_info( {"max_processes()", "MAX_PROCESSES_LIMIT()", ""} ));
     int E_, A_;
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
  HDR_.info.test_desc = "Add Processes Over Limit";
 
-    E_ = _scheduler.max_processes();
-    while (_processes++ != test_limit)
-        _scheduler.addProcess(_UUID, 0);
+    E_ = sched_.max_processes();
 
-    A_ = _scheduler.warriorPCBs(_UUID);
-
+    while (processes_++ != test_limit)
+    {
+        sched_.add_process(UUID_, 0);
+    }
+    A_ = sched_.processes(UUID_);
     RUN_TEST(E_, A_, HDR_);
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     return HDR_.result;
-} /* ::MAX_PROCESSES_LIMIT */
+} /* MAX_PROCESSES_LIMIT() */
 
 } /* ::{anonymous}  */
 }}/* ::TS::_Scheduler_ */

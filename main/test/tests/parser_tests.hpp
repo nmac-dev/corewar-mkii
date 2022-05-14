@@ -15,30 +15,23 @@ Info suite_info(Info _info)
     return _info;
 }
 
-BoolInt CLEAN_ASSEMBLY();                       /** TEST: cleaning assembly code */
-BoolInt LABEL_LINKER();                         /** TEST: label linker           */
-BoolInt PARSE_ASSEMBLY(AssemblyCode _assembly); /** TEST: parsed assembly file   */
+BoolInt CLEAN_ASSEMBLY(); /** TEST: cleaning assembly code */
+BoolInt LABEL_LINKER();   /** TEST: label linker           */
+BoolInt PARSE_ASSEMBLY(); /** TEST: parsed assembly file   */
 } /* ::{anonymous} */
 
-/** ALLTESTS: Parser */
+/** ALLTESTS: ( Parser ) */
 BoolInt ALL_TESTS()
 {
-    char constexpr test_file[] = "test_warriors/parser_test.asm";
-    AssemblyCode assembly_; 
-    try
-    {
-        assembly_ = AssemblyCode(file_loader::getFileData(test_file, ASM_CDOE_COMMENT));
-    }
-    catch(const std::exception &) { return TEST_FAILED; }
  /** ALLTESTS: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     BoolInt results_ = TEST_PASSED;
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     if ( results_ += CLEAN_ASSEMBLY()          ) return results_;
     if ( results_ += LABEL_LINKER()            ) return results_;
-    if ( results_ += PARSE_ASSEMBLY(assembly_) ) return results_;
+    if ( results_ += PARSE_ASSEMBLY() ) return results_;
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     return results_;
-} /* ::ALL_TESTS() */
+} /* ALL_TESTS() */
 
 namespace /* {anonymous} */
 {
@@ -61,7 +54,7 @@ BoolInt CLEAN_ASSEMBLY()
     };
 
  /** SUITE: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-    Header HDR_ (CMP_OP::EQ, suite_info( {"cleanAsmStr()", "CLEAN_ASSEMBLY()", ""} ));
+    Header HDR_ (suite_info( {"clean_assembly()", "CLEAN_ASSEMBLY()", ""} ));
     std::string E_, A_;
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
  HDR_.info.test_desc = "Clean Raw Assembly Code";
@@ -69,12 +62,12 @@ BoolInt CLEAN_ASSEMBLY()
     for (size_t i = 0; i < n_tests; i++)
     {
         E_ = clean_[i];
-        A_ = cleanAsmStr(raw_lines[i]);
+        A_ = clean_assembly(raw_lines[i]);
 
         TS::RUN_TEST(E_, A_, HDR_);
     }
     return HDR_.result;
-} /* ::CLEAN_ASSEMBLY() */
+} /* CLEAN_ASSEMBLY() */
 
 /** TEST: label linker */
 BoolInt LABEL_LINKER()
@@ -95,7 +88,7 @@ BoolInt LABEL_LINKER()
     };
 
  /** SUITE: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-    Header HDR_ (CMP_OP::EQ, suite_info( {"findAsmLabels()", "LABEL_LINKER()", ""} ));
+    Header HDR_ (suite_info( {"generate_label_linker()", "LABEL_LINKER()", ""} ));
     bool E_, A_;
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
  HDR_.info.test_desc = "Label Linker";
@@ -103,12 +96,12 @@ BoolInt LABEL_LINKER()
     E_ = true;
 
     LabelLinker linker_;
-    linker_ = findAsmLabels(raw_code);
+    linker_ = generate_label_linker(raw_code);
 
     for (int i = 0; i < raw_code.size(); i--)
     {
         int pos = 0;
-        std::string first_arg = findAsmArgument(raw_code[i], pos);
+        std::string first_arg = find_argument(raw_code[i], pos);
 
         A_ = linker_.count(labels_[i]);
 
@@ -116,41 +109,45 @@ BoolInt LABEL_LINKER()
     }
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     return HDR_.result;
-} /* ::LABEL_LINKER() */
+} /* LABEL_LINKER() */
 
 /** TEST: parsed assembly file */
-BoolInt PARSE_ASSEMBLY(AssemblyCode _assembly)
+BoolInt PARSE_ASSEMBLY()
 {
-    char constexpr defaults_file[] = "test_warriors/syntax_defaults.asm";
+    char constexpr test_file[]     = "test_warriors/parser_test.asm",
+                   defaults_file[] = "test_warriors/syntax_defaults.asm";
 
-    AssemblyCode _defaults;  // DO NOT ClEAN
+    AssemblyCode assembly_, // clean 
+                 defaults_; // DO NOT clean
     try
     {
-        _defaults = AssemblyCode(file_loader::getFileData(defaults_file, ASM_CDOE_COMMENT));
+        assembly_ = AssemblyCode(File_Loader::load_file_data(test_file, ASSEMBLY_COMMENT));
+        defaults_ = AssemblyCode(File_Loader::load_file_data(defaults_file, ASSEMBLY_COMMENT));
     }
     catch(const std::exception &) { return TEST_FAILED; }
 
-    for (int i = 0; i < _assembly.size(); i++)
-        _assembly[i] = cleanAsmStr(_assembly[i]);
-
+    for (int i = 0; i < assembly_.size(); i++)
+    {
+        assembly_[i] = clean_assembly(assembly_[i]);
+    }
  /** SUITE: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-    Header HDR_ (CMP_OP::EQ, suite_info( {"asmCodeToInst()", "PARSE_ASSEMBLY()", ""} ));
+    Header HDR_ (suite_info( {"asmCodeToInst()", "PARSE_ASSEMBLY()", ""} ));
     std::string E_, A_;
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
  HDR_.info.test_desc = "Parsed Assembly Code";
 
-    LabelLinker label_linker = findAsmLabels(_assembly);
+    LabelLinker label_linker = generate_label_linker(assembly_);
 
-    for (int i = 0; i < _defaults.size(); i++)
+    for (int i = 0; i < defaults_.size(); i++)
     {
-        E_ = _defaults[i];
-        A_ = asmStrToInst(_assembly[i], label_linker, i).toAsmCode();
+        E_ = defaults_[i];
+        A_ = assembly_to_inst(assembly_[i], label_linker, i).to_assembly();
 
         RUN_TEST(E_, A_, HDR_);
     }
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     return HDR_.result;
-} /* ::PARSE_ASSEMBLY() */
+} /* PARSE_ASSEMBLY() */
 
 } /* ::{anonymous} */
 }}/* ::TS::_Parser_ */
