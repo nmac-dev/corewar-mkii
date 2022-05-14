@@ -5,67 +5,110 @@
 namespace ASM
 {
 
-/* Inst */
-
-Inst::Operation::Operation()
-{
-    code = OPCODE::DAT;
-    mod  = MOD::F;
-}
-
-Inst::Operand::Operand()
-{
-    admo  = ADMO::DIRECT;
-    val   = 0;
-}
-
 Inst::Inst(Operation _OP, Operand _A, Operand _B)
 {
     OP = _OP;
     A  = _A;
     B  = _B;
 }
-Inst::Inst() = default;
-Inst::~Inst(){}
-
-std::string Inst::toAsmCode()
+Inst::Inst()
 {
-    std::string asm_arg   = "";         // single asm argument
-    std::string asm_code_ = "";         // full asm code string
-    asm_code_.reserve(32);
+    (*this) = { {Opcode::DAT, Modifier::F}, {Admo::IMMEDIATE, 0}, {Admo::IMMEDIATE, 0} };
+}
 
+Modifier Inst::find_default_mod(Opcode _code, Admo _A, Admo _B)
+{
+    switch (_code)
+    {
+    // [dat]
+    case Opcode::DAT: 
+        return Modifier::F;
+    // [mov, seq, sne]
+    case Opcode::MOV:
+    case Opcode::SEQ:
+    case Opcode::SNE:
+    // [add, sub, mul, div, mod]
+    case Opcode::ADD:
+    case Opcode::SUB:
+    case Opcode::MUL:
+    case Opcode::DIV:
+    case Opcode::MOD:
+        // A == '#'
+        if (_A == Admo::IMMEDIATE)
+        {
+            return Modifier::AB;
+        }
+        // A != ['#','*'] && B == '#' 
+        else if (_A != Admo::IMMEDIATE && _B == Admo::IMMEDIATE)
+        {
+            return Modifier::B;
+        }
+        else
+        {   // default: [mov, seq, sne]
+            if (_code <= Opcode::SNE)
+            {
+                return Modifier::I;
+            }
+            // default: [add, sub, mul, div, mod]
+            return Modifier::F;
+        }
+    // [slt]
+    case Opcode::SLT:
+        // A == '#'
+        if (_A == Admo::IMMEDIATE)
+        {
+            return Modifier::AB;
+        }
+    // [nop, jmp, jmz, jmn, djn, spl]
+    case Opcode::NOP:
+    case Opcode::JMP:
+    case Opcode::JMZ:
+    case Opcode::JMN:
+    case Opcode::DJN:
+    case Opcode::SPL:
+        default: return Modifier::B;
+    }
+} /* ::getDefaultModifier() */
+
+std::string Inst::to_assembly()
+{
+    int constexpr avg_inst_size = 16;           // average asm code inst size
+    std::string code_ = "";                     // full asm code string
+                code_.reserve(avg_inst_size);
+
+    std::string asm_arg   = "";                 // single asm argument
     /* opcode */
     switch (OP.code)
     {
-        case OPCODE::DAT: asm_arg = "dat"; break;
-        case OPCODE::MOV: asm_arg = "mov"; break;
-        case OPCODE::SEQ: asm_arg = "seq"; break;
-        case OPCODE::SNE: asm_arg = "sne"; break;
-        case OPCODE::SLT: asm_arg = "slt"; break;
-        case OPCODE::ADD: asm_arg = "add"; break;
-        case OPCODE::SUB: asm_arg = "sub"; break;
-        case OPCODE::MUL: asm_arg = "mul"; break;
-        case OPCODE::DIV: asm_arg = "div"; break;
-        case OPCODE::MOD: asm_arg = "mod"; break;
-        case OPCODE::JMP: asm_arg = "jmp"; break;
-        case OPCODE::JMZ: asm_arg = "jmz"; break;
-        case OPCODE::JMN: asm_arg = "jmn"; break;
-        case OPCODE::DJN: asm_arg = "djn"; break;
-        case OPCODE::SPL: asm_arg = "spl"; break;
-    } asm_code_.append(asm_arg);
+        case Opcode::NOP: asm_arg = "nop"; break;
+        case Opcode::DAT: asm_arg = "dat"; break;
+        case Opcode::MOV: asm_arg = "mov"; break;
+        case Opcode::SEQ: asm_arg = "seq"; break;
+        case Opcode::SNE: asm_arg = "sne"; break;
+        case Opcode::SLT: asm_arg = "slt"; break;
+        case Opcode::ADD: asm_arg = "add"; break;
+        case Opcode::SUB: asm_arg = "sub"; break;
+        case Opcode::MUL: asm_arg = "mul"; break;
+        case Opcode::DIV: asm_arg = "div"; break;
+        case Opcode::MOD: asm_arg = "mod"; break;
+        case Opcode::JMP: asm_arg = "jmp"; break;
+        case Opcode::JMZ: asm_arg = "jmz"; break;
+        case Opcode::JMN: asm_arg = "jmn"; break;
+        case Opcode::DJN: asm_arg = "djn"; break;
+        case Opcode::SPL: asm_arg = "spl"; break;
+    } code_.append(asm_arg);
 
-    /* mod */
-    asm_code_.append(".");
+    /* mod */;
     switch (OP.mod)
     {
-        case MOD::A:  asm_arg = "a";  break;
-        case MOD::B:  asm_arg = "b";  break;
-        case MOD::AB: asm_arg = "ab"; break;
-        case MOD::BA: asm_arg = "ba"; break;
-        case MOD::F:  asm_arg = "f";  break;
-        case MOD::X:  asm_arg = "x";  break;
-        case MOD::I:  asm_arg = "i";  break;
-    } asm_code_.append(asm_arg);
+        case Modifier::A:  asm_arg = ".a";  break;
+        case Modifier::B:  asm_arg = ".b";  break;
+        case Modifier::AB: asm_arg = ".ab"; break;
+        case Modifier::BA: asm_arg = ".ba"; break;
+        case Modifier::F:  asm_arg = ".f";  break;
+        case Modifier::X:  asm_arg = ".x";  break;
+        case Modifier::I:  asm_arg = ".i";  break;
+    } code_.append(asm_arg);
 
     /* operands */
     Operand *opr = &A;
@@ -75,46 +118,44 @@ std::string Inst::toAsmCode()
         /* admo */
         switch (opr->admo)
         {
-            case ADMO::IMMEDIATE:  asm_arg = " #"; break;
-            case ADMO::DIRECT:     asm_arg = " $"; break;
-            case ADMO::INDIRECT_A: asm_arg = " *"; break;
-            case ADMO::INDIRECT_B: asm_arg = " @"; break;
-            case ADMO::PRE_DEC_A:  asm_arg = " {"; break;
-            case ADMO::PRE_DEC_B:  asm_arg = " <"; break;
-            case ADMO::POST_INC_A: asm_arg = " }"; break;
-            case ADMO::POST_INC_B: asm_arg = " >"; break;
-        } asm_code_.append(asm_arg);
+            case Admo::IMMEDIATE:  asm_arg = " #"; break;
+            case Admo::DIRECT:     asm_arg = " $"; break;
+            case Admo::INDIRECT_A: asm_arg = " *"; break;
+            case Admo::INDIRECT_B: asm_arg = " @"; break;
+            case Admo::PRE_DEC_A:  asm_arg = " {"; break;
+            case Admo::PRE_DEC_B:  asm_arg = " <"; break;
+            case Admo::POST_INC_A: asm_arg = " }"; break;
+            case Admo::POST_INC_B: asm_arg = " >"; break;
+        } code_.append(asm_arg);
 
         /* val */
-        asm_code_.append(std::to_string(opr->val));
+        code_.append(std::to_string(opr->val));
         
-        if (i == 0) asm_code_.append(",");
+        if (i == 1) code_.append(",");
         opr = &B; // swap A -> B
     }
-    return asm_code_;
-}
+    return code_;
+} /* ::toAsmCode() */
 
-/* Warrior */
 Warrior::Warrior(std::string _name, const int _length, int _max_warrior_len)
 {
-    if (!max_warrior_len) 
-        max_warrior_len = _max_warrior_len; // set once
+    if (!ini_max_warrior_len)
+        ini_max_warrior_len = _max_warrior_len; // set once
 
-    uuid         = createUUID();
-    name         = _name;
-    length       = _length;
-    core_index   = -1;              // core_index is late init
-    instructions.reserve(max_warrior_len);
+    m_uuid         = create_uuid();
+    m_name         = _name;
+    m_length       = _length;
+    m_address   = -1;              // m_address is late init
+    m_insts.reserve(ini_max_warrior_len);
 }
-Warrior::~Warrior(){}
 
 void Warrior::push(Inst _inst)
 {
-    if (instructions.size() != length) 
-        instructions.push_back(_inst);
+    if (m_insts.size() != m_length) 
+        m_insts.push_back(_inst);
 }
 
-Inst  Warrior::operator[](int index) const { return instructions[index]; }
-Inst &Warrior::operator[](int index)       { return instructions[index]; }
+Inst  Warrior::operator[](int address) const { return m_insts[address]; }
+Inst &Warrior::operator[](int address)       { return m_insts[address]; }
 
-} // namespace ASM
+} /* ::ASM */
