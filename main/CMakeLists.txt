@@ -6,19 +6,24 @@
 ##    CMakeLists.txt    ##
 ##########################
 
+####
 ## CMake
-cmake_minimum_required (VERSION 3.10)
+####
+
+cmake_minimum_required (VERSION 3.20)
 
 ## Target
 project(corewar-cli)
 
 ## Compiler
-set(CMAKE_CXX_STANDARD 17)
-
-set_target_properties(${PROJECT} PROPERTIES
-    CXX_STANDARD 17
+set(
+	CMAKE_CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON
 )
+
+####
+## Project Files
+####
 
 ## Headers
 include_directories(${PROJECT_SOURCE_DIR} 
@@ -30,11 +35,12 @@ include_directories(${PROJECT_SOURCE_DIR}
 add_executable (${PROJECT} corewar-cli
 	src/asm.cpp
 	src/parser.cpp
+	src/ctrl_unit.cpp
 	src/mars.cpp
 	src/pcb.cpp
 	src/scheduler.cpp
 	src/core.cpp
-	src/corewar.cpp 
+	src/corewar.cpp
 	src/cli_debug.cpp  # only used to debug and developer
 	)
 
@@ -54,7 +60,20 @@ configure_file(
 
 add_dependencies(corewar-cli warriors)
 
+####
+## Testing
+####
+
+## enable_testing()
+
+####
+## Vendors
+####
+
+
+####
 ## Automated fetch: source files (not recommended)
+####
 
 # file(GLOB_RECURSE SOURCE_FILES src/*.cpp)
 #
