@@ -35,26 +35,26 @@ class Queue
         m_back   = nullptr;
     }
     /// Deletes the queue & all nodes 
-    ~Queue() { while (this->pop()); }
+    ~Queue() { while (this->dequeue()); }
     
     /// Returns the size of the queue
     inline int size()       const { return m_size; }
     /// Returns true if the queue is empty
-    inline bool isEmpty()   const { return m_empty; }
+    inline bool is_empty()   const { return m_empty; }
 
     /// Returns the element at the front of the queue (copy)
-    inline T const front() { return !isEmpty() ? m_front->data : T(); }
+    inline T const front() { return !is_empty() ? m_front->data : T(); }
     /// Returns the element at the front of the queue (copy)
-    inline T const back()  { return !isEmpty() ? m_back->data  : T(); }
+    inline T const back()  { return !is_empty() ? m_back->data  : T(); }
     
-    /// Push a new node with the stored data to the back of the queue
+    /// Enqueue a new node with the stored data to the back of the queue
     /// @param _data to store inside the node
-    inline void push(T _data)
+    inline void enqueue(T _data)
     {
         Node *node = new Node(_data);
         
         // queue is empty
-        if (isEmpty())
+        if (is_empty())
         {
             m_front = node;
             m_back  = m_front; // new node is only element in queue
@@ -83,9 +83,9 @@ class Queue
     /// Copies the node data at the front of the queue into the data buffer, then deletes the node
     /// @return true:  queue copied element to data buffer and deleted node
     /// @return false: no node was deleted (empty queue) and buffer was left unchanged
-    inline bool pop(T *data_bf = nullptr)
+    inline bool dequeue(T *data_bf = nullptr)
     {   
-        if (isEmpty()) return false;    // empty queue
+        if (is_empty()) return false;    // empty queue
         
         Node *ptr = m_front;            // point to front node
         if (data_bf != nullptr)
@@ -109,38 +109,5 @@ class Queue
         m_size--;
 
         return true;
-    }
-
-    /// Removes the node at the back of the queue
-    /// @return true:  deleted node
-    /// @return false: no node was deleted (empty queue)
-    bool kickBack()
-    {
-        if (isEmpty()) return false;
-        
-        Node *ptr = m_back;
-        
-        if (m_back != m_front)      // queue contains multiple elements
-        {
-            m_back = m_back->next;
-            m_back->prev = nullptr;
-        }
-        else                        // only front node in queue
-        {
-            m_back  = nullptr;
-            m_front = nullptr;
-
-            m_empty = true;
-        }
-        delete ptr;
-        m_size--;
-
-        return true;
-    }
-    
-    /// Returns the element at the front of the queue (pointer)
-    inline T* const editBack() const
-    {
-        return !isEmpty() ? &m_back->data : nullptr;
     }
 };
