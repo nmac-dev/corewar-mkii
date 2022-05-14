@@ -3,121 +3,79 @@
 
 namespace Parser
 {
-
-std::string cleanAsmStr(std::string line)
+std::string clean_assembly(std::string _data)
 {
-    std::string clean_asm = "";
-    int pos = 0;
+    std::string clean_code_ = "";
+    int _pos   = 0,
+        code_i = 0;
 
     // filter
-    while (pos++ < line.size())
+    int comma_i   = _data.size() +1; // unreachable incase of single operand argument
+    while (_pos++ < _data.size())
     {
+        char &val = _data[_pos];
+
+        // find colon
+        if (val == ',')
+            comma_i = _pos;
         // to lowercase
-        if (line[pos] >= 'A' && line[pos] <= 'Z') line[pos] = line[pos] - ('Z' - 'z');
+        if (is_between(val, 'A', 'Z'))
+            val = val - ('Z' - 'z');
         // remove comment
-        if (line[pos] == ASM_CDOE_COMMENT) line.erase(pos);
+        if (val == ASSEMBLY_COMMENT) 
+            _data.erase(_pos);
     }
 
-    // build clean asm lineing
-    pos = 0;
-    while (pos < line.length())
-    {    
-        clean_asm.append( findAsmArgument(line, pos) );
+    // build clean code
+    _pos = 0;
+    while (_pos < _data.size())
+    {
+        clean_code_.append( find_argument(_data, _pos) );
         
         // retain dot for modifier argument
-        if (line[pos] == '.')
+        if (_data[_pos] == '.')
         {
-            clean_asm.push_back('.');
+            clean_code_.push_back('.');
             continue;
         }
-        // skip space after comma of [op_a] & [op_b]
-        if(line[pos] == ',') {
-            clean_asm.push_back(',');
-            continue;
-        } 
-        clean_asm.push_back(' ');
+
+        // add comma [A]',' [B]
+        if(_pos > comma_i) {
+            clean_code_.insert(code_i, 1, ',');
+            comma_i = _data.size() +1;
+        }
+        clean_code_.push_back(' ');
+        code_i = clean_code_.size() -1;
     }
     // erase end partition
-    pos = clean_asm.length() -1;
-    while(isAsmSeperator(clean_asm[pos--])) clean_asm.pop_back();
+    while(is_seperator(clean_code_[code_i--]))
+        clean_code_.pop_back();
     
-    return clean_asm;
-}
+    #ifdef ASM_PARSER_DEBUG
+    printf("\nparser::clean_assembly(): |%s| \n", clean_code_.c_str());
+    #endif
 
-MOD getDefaultModifier(OPCODE opcode, ADMO admo_a, ADMO admo_b)
+    return clean_code_;
+} /* ::clean_assembly() */
+
+
+LabelLinker generate_label_linker(AssemblyCode &assembly)
 {
-    switch (opcode)
-    {
-        // [dat]
-        case OPCODE::DAT: return MOD::F;
-            
-        // [mov, seq, sne]
-        case OPCODE::MOV:
-        case OPCODE::SEQ:
-        case OPCODE::SNE:
-        // [add, sub, mul, div, mod]
-        case OPCODE::ADD:
-        case OPCODE::SUB:
-        case OPCODE::MUL:
-        case OPCODE::DIV:
-        case OPCODE::MOD:
-            // A == '#'
-            if (admo_a == ADMO::IMMEDIATE)
-            {
-                return MOD::AB;
-            }
-            // A != ['#','*'] && B == '#' 
-            else if (admo_a != ADMO::IMMEDIATE && admo_b == ADMO::IMMEDIATE)
-            {
-                return MOD::B;
-            }
-            else
-            {   // default: [mov, seq, sne]
-                switch (opcode)
-                {
-                    case OPCODE::MOV:
-                    case OPCODE::SEQ:
-                    case OPCODE::SNE: 
-                        return MOD::I;
-                }
-                // default: [add, sub, mul, div, mod]
-                return MOD::F;
-            }
-        // [slt]
-        case OPCODE::SLT:
-            // A == '#'
-            if (admo_a == ADMO::IMMEDIATE)
-            {
-                return MOD::AB;
-            } // else B
-
-        // [jmp, jmz, jmn, djn, spl]
-        case OPCODE::JMP:
-        case OPCODE::JMZ:
-        case OPCODE::JMN:
-        case OPCODE::DJN:
-        case OPCODE::SPL:
-            default: return MOD::B;
-    }
-} // getDefaultModifier()
-
-LabelLinker findAsmLabels(AssemblyCode &asm_code)
-{
-    LabelLinker labels;
+    LabelLinker linker_;
     std::string first_arg; // first argument in asm code
 
     // search each line of asm code
-    for (int i = 0; i < asm_code.size(); i++)
+    for (int i = 0; i < assembly.size(); i++)
     {
         int pos = 0;
-        first_arg = findAsmArgument(asm_code[i], pos);
+        first_arg = find_argument(assembly[i], pos);
 
         // label found, as first_arg is not opcode
         if (!opcode_tbl.count(first_arg))
         {
             char select_c = first_arg[0];
             // true if label starts with ('a-z', 'A-Z' or '_')
-            if (isBetween(select_c, 'a', 'z') || isBetween(select_c, 'A', 'Z') || select_c == '_')
+            if (is_between(select_c, 'a', 'z') || is_between(select_c, 'A', 'Z') || select_c == '_')
             {
                 bool is_alphanumeric;
                 // validate full label is alphanumeric or '_', and contains ':' at the end (optional)
@@ -126,8 +84,8 @@ LabelLinker findAsmLabels(AssemblyCode &asm_code)
                     select_c = first_arg[i];
 
                     is_alphanumeric = 
-                           isBetween(select_c, 'a', 'z') || isBetween(select_c, 'A', 'Z')
-                        || isBetween(select_c, '0', '9') 
+                           is_between(select_c, 'a', 'z') || is_between(select_c, 'A', 'Z')
+                        || is_between(select_c, '0', '9') 
                         || select_c == '_';
                     
                     // end of label contains colon
@@ -145,31 +103,38 @@ LabelLinker findAsmLabels(AssemblyCode &asm_code)
                 // all tests passed, add label
                 if (is_alphanumeric)
                 {
-                    labels[first_arg] = i;
+                    linker_[first_arg] = i;
+
+                    #ifdef ASM_PARSER_DEBUG
+                    printf("\nparser::generate_label_linker: found [%d]|%s| \n", 
+                            i, first_arg.c_str());
+                    #endif
                 }
             }
         }
     }
-    return labels;
-}
+    return linker_;
 
-Inst asmStrToInst(std::string &line, LabelLinker &linker, int index)
+} /* ::generate_label_linker() */
+
+Inst assembly_to_inst(std::string &_line, LabelLinker &_linker, int _index)
 {    
     /* Inst members */
-    Inst::Operation OP_;
-    Inst::Operand A_, B_;
-
+    Inst const inst;
+    Inst::Operation OP_ {inst.OP};
+    Inst::Operand A_ {inst.A}, 
+                  B_ {inst.B};
     /* Asm line */
     std::string asm_arg;      // stores assembly code arguments
     bool no_modifier = false; // flag to notify function to create modifier
     int pos = 0;              // tracks asm line processing position
 
     // set mode & value to operand A until B is found
-    ADMO *admo_ptr = &A_.admo;
+    Admo *admo_ptr = &A_.admo;
     int  *val_ptr  = &A_.val;
 
     // get assembly argument
-    asm_arg = findAsmArgument(line, pos);
+    asm_arg = find_argument(_line, pos);
 
     /* <label> */
     if (asm_arg[asm_arg.size() -1] == ':')
@@ -178,10 +143,10 @@ Inst asmStrToInst(std::string &line, LabelLinker &linker, int index)
     }
 
     // skip <label>
-    if (linker.count(asm_arg))
+    if (_linker.count(asm_arg))
     {
         // get [code]
-        asm_arg = findAsmArgument(line, pos);
+        asm_arg = find_argument(_line, pos);
     }
     
     /* [code] */
@@ -191,10 +156,10 @@ Inst asmStrToInst(std::string &line, LabelLinker &linker, int index)
         OP_.code = opcode_tbl.at(asm_arg);
 
         // check [code] has <mod>
-        if (line[pos] == '.')
+        if (_line[pos] == '.')
         {
             // get <mod> argument 
-            asm_arg = findAsmArgument(line, pos);
+            asm_arg = find_argument(_line, pos);
 
             /* <mod> */
             if (mod_tbl.count(asm_arg))
@@ -205,33 +170,33 @@ Inst asmStrToInst(std::string &line, LabelLinker &linker, int index)
                 switch (OP_.code)
                 {
                 /* Ignored */
-                case OPCODE::NOP:
-                case OPCODE::DAT: OP_.mod = MOD::F; break;
-                case OPCODE::JMP:
-                case OPCODE::SPL: OP_.mod = MOD::B; break;
+                case Opcode::NOP:
+                case Opcode::DAT: OP_.mod = Modifier::F; break;
+                case Opcode::JMP:
+                case Opcode::SPL: OP_.mod = Modifier::B; break;
                 /* Filtered */
-                case OPCODE::JMZ:
-                case OPCODE::JMN:
-                case OPCODE::DJN:
+                case Opcode::JMZ:
+                case Opcode::JMN:
+                case Opcode::DJN:
                     switch (OP_.mod) // correct: compare jumps modifier
                     {
-                    case MOD::AB: OP_.mod = MOD::B; break;
-                    case MOD::BA: OP_.mod = MOD::A; break;
-                    case MOD::X:
-                    case MOD::I:  OP_.mod = MOD::F; break;
+                    case Modifier::AB: OP_.mod = Modifier::B; break;
+                    case Modifier::BA: OP_.mod = Modifier::A; break;
+                    case Modifier::X:
+                    case Modifier::I:  OP_.mod = Modifier::F; break;
                     }
                 }
             }
-            else invalidAssemblyError(line, asm_arg, index); // invalid <mod>
+            else invalid_assembly(_index, _line, asm_arg);// invalid <mod>
         }
         // set flag to create default <mod> at the end (depends on all other arguments)
         else no_modifier = true;
 
         // loop over both <mode>[operand]
-        while (pos < line.length())
+        while (pos < _line.size())
         {
             // get <mode>[operand]
-            asm_arg = findAsmArgument(line, pos);
+            asm_arg = find_argument(_line, pos);
             
             /* <mode> */
             if (admo_tbl.count(asm_arg[0]))
@@ -244,13 +209,13 @@ Inst asmStrToInst(std::string &line, LabelLinker &linker, int index)
             // no <mode>, add default
             else 
             {
-                if (OP_.code == OPCODE::DAT) *admo_ptr = admo_tbl.at('#');
+                if (OP_.code == Opcode::DAT) *admo_ptr = admo_tbl.at('#');
                 else                         *admo_ptr = admo_tbl.at('$');
             }
 
             /* [operand] */
             char first_c = asm_arg[0];
-            if (isBetween(first_c, '0', '9') || first_c == '+' || first_c == '-')
+            if (is_between(first_c, '0', '9') || first_c == '+' || first_c == '-')
             {
                 *val_ptr = stoi(asm_arg);
             }
@@ -258,17 +223,17 @@ Inst asmStrToInst(std::string &line, LabelLinker &linker, int index)
             else
             {
                 // get label position from linker
-                if (linker.count(asm_arg))
+                if (_linker.count(asm_arg))
                 {
-                    int lbl_i    = linker.at(asm_arg); // label index 
+                    int lbl_i    = _linker.at(asm_arg); // label address 
 
-                    // calculate labels relative reference for operand index
-                    if      (lbl_i < index) lbl_i -= index;
-                    else if (lbl_i > index) lbl_i  = std::abs(index - lbl_i);
+                    // calculate labels relative reference for operand address
+                    if      (lbl_i < _index) lbl_i -= _index;
+                    else if (lbl_i > _index) lbl_i  = std::abs(_index - lbl_i);
                     
                     *val_ptr = lbl_i;
                 }
-                else invalidAssemblyError(line, asm_arg, index); // invalid [operand]
+                else invalid_assembly(_index, _line, asm_arg); // invalid [operand]
             }
             // move from <mode>[operand] A -> B
             admo_ptr = &B_.admo;
@@ -277,76 +242,59 @@ Inst asmStrToInst(std::string &line, LabelLinker &linker, int index)
         // get default <modifer>
         if (no_modifier)
         {
-            OP_.mod = getDefaultModifier(OP_.code, A_.admo, B_.admo);
+            OP_.mod = Inst::find_default_mod(OP_.code, A_.admo, B_.admo);
         }
     }
-    else invalidAssemblyError(line, line.substr(0, pos), index); // invalid [code]
+    else invalid_assembly(_index, _line,  _line.substr(0, pos)); // invalid [code]
 
     return Inst(OP_, A_, B_);
-} // asmStrToInst()
 
-Warrior *asmCodeToWarrior(std::string warrior_name, AssemblyCode &asm_code, int _max_warrior_len)
+} /* ::assembly_to_inst() */
+
+Warrior *create_warrior(std::string _warrior_name, AssemblyCode &_assembly, int _max_warrior_len)
 {
-    LabelLinker linker;             // stores label positions
-    int _length = asm_code.size();  // number of warrior instruction
-   
-    strRegister('S', warrior_name); // set string register with warrior name incase of error
+    LabelLinker linker_;             // stores label positions
+    int _length = _assembly.size();  // number of warrior instruction
 
     // validate number of instructions is within configuration bounds
     if (_length > _max_warrior_len)
     {
         printf("Warning: '%s' has a length greater than the max (%d) and will be truncated."
                 "\n\tEdit corewar config file to increase '_max_warrior_len'\n",
-                warrior_name.c_str(), _max_warrior_len
+                _warrior_name.c_str(), _max_warrior_len
         );
         // truncate length
         _length = _max_warrior_len;
     }
 
     // construct warrior w/ default arguments
-    Warrior *warrior = new Warrior(warrior_name.c_str(), _length, _max_warrior_len);
+    Warrior *warrior_ = new Warrior(_warrior_name.c_str(), _length, _max_warrior_len);
 
     // clean asm code to correct format
     for (int i = 0; i < _length; i++)
     {
-        asm_code[i] = cleanAsmStr(asm_code[i]);
-
-        #ifdef ASM_PARSER_DEBUG
-        if (i == 0) printf("\nparser::cleanAsmStr: \n");
-        printf("\t |%s| \n", asm_code[i].c_str());
-        #endif
+        _assembly[i] = clean_assembly(_assembly[i]);
     }
 
     // find all labels within the asm code
-    linker = findAsmLabels(asm_code);
-
-    #ifdef ASM_PARSER_DEBUG
-    printf("\nparser::findAsmLabels: found %d\n", linker.size());
-    for (auto itr = linker.begin(); itr != linker.end(); itr++)
-    {
-        printf("\t [%d]|%s| \n", itr->second, itr->first.c_str());
-    }
-    #endif
+    linker_ = generate_label_linker(_assembly);
 
     // parse all asm code lineing instructions to a instruction object (Inst)
     for (int i = 0; i < _length; i++)
     {
         // replace default warrior instructions
-        (*warrior).push(asmStrToInst(asm_code[i], linker, i)); 
+        (*warrior_).push(assembly_to_inst(_assembly[i], linker_, i));
 
         #ifdef ASM_PARSER_DEBUG
-        if (i == 0) printf("\nparser::asmStrToInst: '%s'\n" , warrior_name.c_str());
-        printf(" line:%d \n\t I::|%s| \n\t O::|[%d].<%d> <%d>[%d] <%d>[%d]|\n",
+        if (i == 0) printf("\nparser::create_warrior: '%s'\n" , _warrior_name.c_str());
+        printf(" line:[%d] \n\t I::|%s| \n\t O::|%s|\n",
                 i + 1,
-                asm_code[i].c_str(),
-                (*warrior)[i].OP.code,(*warrior)[i].OP.mod,
-                (*warrior)[i].A.admo, (*warrior)[i].A.val,
-                (*warrior)[i].B.admo, (*warrior)[i].B.val);
+                _assembly[i].c_str(),
+                (*warrior_)[i].to_assembly().c_str());
         #endif
     }
+    return warrior_;
 
-    strRegister('C'); // clear register
-    return warrior;
-} // asmCodeToWarrior()
+} /* ::create_warrior() */
 
-} // namespace parser
+} /* ::Parser */
