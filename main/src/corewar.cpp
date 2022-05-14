@@ -2,21 +2,25 @@
 
 #include "corewar.hpp"
 
-Corewar::Corewar() = default;
+Corewar::Corewar()
+{
+    m_round = 0;
+    m_state = GameState::WAITING;
+}
 
-enum GameStatus Corewar::init(Filenames _filenames)
+enum GameState Corewar::init(Filenames _filenames)
 {
     int n_warriors = _filenames.size();
 
     m_round = 0;
-    m_warriors.reserve(n_warriors);
+    asm_warriors.reserve(n_warriors);
 
     /* Load Settings */
     try
     {
         Settings::get();
     }
-    catch (const std::exception e) { return GameStatus::ERR_INI; }
+    catch (const std::exception e) { return GameState::ERR_INI; }
 
     #ifdef COREWAR_DEBUG
     printf("\n Corewar::init: loaded settings: 'config.ini' \n");
@@ -29,10 +33,12 @@ enum GameStatus Corewar::init(Filenames _filenames)
         {
             std::string filename = _filenames[i];
             // load warrior file contents
-            Parser::AssemblyCode asm_code = file_loader::getFileData(filename, ASM_CDOE_COMMENT);
+            Parser::AssemblyCode asm_code = File_Loader::load_file_data(filename, ASSEMBLY_COMMENT);
 
-            m_warriors.push_back(
-                ASM::UniqWarrior(Parser::asmCodeToWarrior(filename, asm_code, Settings::get().max_warrior_len()))
+            asm_warriors.push_back(
+                ASM::UniqWarrior(
+                    Parser::create_warrior(filename, asm_code, Settings::get().max_warrior_len())
+                )
             );
 
             #ifdef COREWAR_DEBUG
@@ -40,32 +46,34 @@ enum GameStatus Corewar::init(Filenames _filenames)
             printf("\t [%d] '%s' \n", i, filename.c_str());
             #endif
         }
-    }
-    catch (const std::exception e) { return GameStatus::ERR_WARRIORS; }
+    } catch (const std::exception e) { return GameState::ERR_WARRIORS; }
 
-    return GameStatus::RUNNING;
-}
+    return m_state = GameState::RUNNING;
+} /* ::init() */
 
 void Corewar::next(OS::Report &_report)
 {
+    if (m_state != GameState::RUNNING)
+        return;
+    
     // Re-initialise Core
     if (m_round == 0)
     {
-        resetCore();
+        resetOS();
         m_round++;
     }
 
     // buffer OS report
-    _report = m_core.nextFDECycle();
+    _report = os_core.run_fde_cycle();
 
     // round complete
-    if (_report.status == OS::Status::EXIT || _report.status == OS::Status::HAULTED)
+    if (_report.status >= OS::Status::HAULTED)
     {
         // check end game condition
-        if (m_round > Settings::get().max_rounds())
+        if (m_round >= Settings::get().max_rounds())
         {
             m_round = 0;
-            m_status = GameStatus::COMPLETE;
+            m_state = GameState::COMPLETE;
 
             #ifdef COREWAR_DEBUG
             printf("\n Corewar::next:\t GAME OVER \n");
@@ -74,11 +82,11 @@ void Corewar::next(OS::Report &_report)
         else // move to next round
         {
             m_round++;
-            resetCore();
-            m_status = GameStatus::RUNNING;
+            resetOS();
+            m_state = GameState::RUNNING;
 
             #ifdef COREWAR_DEBUG
-            std::string winner = m_warriors[_report.warrior_ID -1].get()->getName().c_str();
+            std::string winner = asm_warriors[_report.warrior_ID -1].get()->name().c_str();
             printf("\n Corewar::next:\t Round |%d| complete\t winner '%s' \n", 
                     m_round -1, 
                     _report.status == OS::Status::EXIT ? winner.c_str() : "Draw");
