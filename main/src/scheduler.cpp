@@ -5,123 +5,118 @@
 /// Operating System handles: fetch/decode/execute cycle, memory simulator, and warrior processes
 namespace OS {
 
-Scheduler::Scheduler(ASM::WarriorList *warriors, int _cycles, int _processes)
+Scheduler::Scheduler(ASM::WarriorVec *_warriors, int _cycles, int _processes)
 {
-    max_cycles     = _cycles;
-    max_processes  = _processes;
-    cycles_counter = 0;
-    schedules_tbl.reserve(warriors->size());
-
-
-    std::vector<int> warrior_UUIDs;
-    warrior_UUIDs.reserve(warriors->size());
+    ini_max_cycles     = _cycles;
+    ini_max_processes  = _processes;
+    cycles_counter     = 0;
+    schedules_tbl.reserve(_warriors->size());
 
     // create a queue for each warrior
-    for (int i = 0; i < warriors->size(); i++)
+    for (int i = 0; i < _warriors->size(); i++)
     {
-        int core_index        = (*warriors)[i].get()->getCoreIndex();
-        warrior_UUIDs.push_back((*warriors)[i].get()->getUUID());
+        int UUID_ = (*_warriors)[i].get()->uuid();
+        RR.push_back(UUID_);
 
         // create a  schedule for the warrior with an initial process
-        schedules_tbl[warrior_UUIDs[i]] = PrcsQueue();
-        this->addProcess(warrior_UUIDs[i], (*warriors)[i].get()->getCoreIndex());
+        schedules_tbl[UUID_] = PrcsQueue();
+        this->add_process(UUID_, (*_warriors)[i].get()->address());
     }
-    RR = RR_T(warrior_UUIDs);
 
     #ifdef SCHEDULER_DEBUG
-    printf("\nScheduler::Scheduler: initialised with |%d| processes accross |%d| warriors \n",
-            totalPCBs(), totalWarriors());
+    printf("\nScheduler::Scheduler: initialised with |%d| processes \n",
+            size());
     #endif
 }
 Scheduler::Scheduler()  = default;
 
-void Scheduler::addProcess(int parent_ID, int pc_initial)
+void Scheduler::add_process(int _parent, int _pc_initial)
 {
-    // validate warrior was pre-loaded in contructor
-    if (schedules_tbl.count(parent_ID))
+    PCB process_(_parent, _pc_initial);
+        process_.set_status(Status::NEW);
+
+    if (schedules_tbl.count(_parent))
     {
-        if (schedules_tbl[parent_ID].size() < max_processes)
+        if (processes(_parent) < max_processes())
         {
-            schedules_tbl[parent_ID].push(PCB(parent_ID, pc_initial));
+            schedules_tbl[_parent].enqueue(process_);
         }
     }
-    else printf("ERROR: scheduler failed to add process... UUID|%d| \n", parent_ID);
+    else printf("ERROR: scheduler failed to add process... UUID|%d| \n", _parent);
 
     #ifdef SCHEDULER_DEBUG_ADD_PCB
-    schedules_tbl[parent_ID].back() >> pc_initial;
-    printf("\nScheduler::addProcess: \t PC:|%d| \t Warrior:[%d] \n",
-            pc_initial, parent_ID );
+    schedules_tbl[_parent].back() >> _pc_initial;
+    printf("\nScheduler::add_process: \t PC:|%d| \t Warrior:[%d] \n",
+            _pc_initial, _parent);
     #endif
 }
 
-void Scheduler::pushJump(PCB const &_prcs, int value)
+void Scheduler::kill_process(PCB& _process)
 {
-    // check exists
-    if (schedules_tbl.count(_prcs.getParentID()))
-    {
-        // validate matching process 
-        PCB *back_process = schedules_tbl[_prcs.getParentID()].editBack();
-        if (back_process != nullptr)
-        {
-            *back_process << value;
-        }
-        else printf("ERROR: scheduler failed to push Jump... UUID|%d| \n", _prcs.getParentID());
-    }
-}
-
-void Scheduler::killBackProcess(PCB& _prcs)
-{
-    int _UUID = _prcs.getParentID(); // parent UUID
+    int _UUID = _process.parent_id();
+                _process.set_status(Status::TERMINATED);
 
     // check warrior queue exists
     if (schedules_tbl.count(_UUID))
-    {
-        // validate rollback success
-        schedules_tbl[_UUID].kickBack();
-    
-        _prcs.setStatus(Status::TERMINATED);
-        
+    {   
         // remove warrior if defeated
-        if (schedules_tbl[_UUID].size() < 1)
+        if (processes(_UUID) < 1)
         {
             auto itr = schedules_tbl.find(_UUID);
             schedules_tbl.erase(itr);
             RR.remove(RR.prev());
         }
     }
-    else printf("ERROR: scheduler killBackProcess failed... Warrior:[%d] \n", _UUID);
+    else printf("ERROR: scheduler kill_process failed... Warrior:[%d] \n", _UUID);
 
     #ifdef SCHEDULER_DEBUG_KILL_PCB
-    printf("\nScheduler::killBackProcess:\t Warrior:[%d] \t PCBs:|%d| \n",
-                _UUID, warriorPCBs(_prcs.getParentID()));
+    printf("\nScheduler::kill_process:\t Warrior:[%d] \t PCBs:|%d| \n",
+                _UUID, processes(_process.parent_id()));
     #endif
 }
 
-PCB Scheduler::nextProcess()
+PCB Scheduler::fetch_next()
 {
-    PCB prcs_;
-    schedules_tbl[RR.i()].pop(&prcs_);
+    PCB process_;
+    schedules_tbl[RR.i()].dequeue(&process_);
 
-    // hault process to notify of draw
-    if (++cycles_counter > max_cycles)
+    process_.set_status(Status::ACTIVE);
+
+    // hault OS to notify of draw
+    if (++cycles_counter > max_cycles())
     {
-        prcs_.setStatus(Status::HAULTED);
+        process_.set_status(Status::HAULTED);
     }
-
-    // process exit, all other warriors have been killed (victory)
+    // OS exit, all other warriors have been killed (victory)
     if (schedules_tbl.size() < 2) 
     {
-        prcs_.setStatus(Status::EXIT);
+        process_.set_status(Status::EXIT);
     }
 
+    // schedules_tbl[RR.i()].push(process_); // add process to back of queue
+    RR.next();                         // move to next round robin sequance
+    
     #ifdef SCHEDULER_DEBUG
-    printf("\nScheduler::nextProcess: \t PID:[%d] PCBs:|%d| \t Warrior:[%d] \n",
-            prcs_.getPID(), warriorPCBs(prcs_.getParentID()), prcs_.getParentID());
+    printf("\nScheduler::fetch_next: \t Warrior:[%d] \t Processes:|%d| \n",
+           process_.parent_id(), processes(process_.parent_id()) );
     #endif
 
-    schedules_tbl[RR.i()].push(prcs_); // add process to back of queue
-    RR.next();                                // move to next round robin sequance
-    return prcs_;
+    return process_;
 }
+
+void Scheduler::return_process(PCB _process)
+{
+    int _UUID = _process.parent_id();
+    if (_process.status() == Status::TERMINATED)
+        return;
     
-} // namespace OS
+    if (schedules_tbl.count(_UUID))
+    {
+        if (processes(_UUID) < max_processes())
+        {
+            schedules_tbl[_UUID].enqueue(_process);
+        }
+    }
+}
+
+} /* ::OS */
