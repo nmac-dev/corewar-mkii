@@ -17,12 +17,12 @@ ___
 # 1. Getting Started
 
 ## 1.1. How to Build
-1. Open a terminal
-2. Navigate to the `corewar/build/` directory containing `.gitkeep`
-3. Before running `CMake` please read [CMake Notes](#CMake-Notes): 
-    * Run command `cmake -S ../ -B .` (or adjust the command to your needs)
-4. Run `make` once the makefile project is generated and no errors are reported. 
-5. Process Complete: An executable `corewar` should be present in the build directory
+1. Open a terminal in the `corewar/build/` directory containing `.gitkeep`
+2. Before running `CMake` please read [CMake Notes](#CMake-Notes): 
+    * Run `cmake -S ../ -B .` (or adjust the command to your needs)
+3. Run `make` if no errors were reported. 
+4. Process Complete: An executable `corewar` should be present in the build directory
+   * 4.5. optionally `ctest` can be run to print the results of the corewar test suites
 
 ## 1.2. CMake Notes
 When running CMake there a two consideration to be made:
