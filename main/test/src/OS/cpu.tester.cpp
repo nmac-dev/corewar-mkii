@@ -1,68 +1,13 @@
-#include "template/test_suite.hpp"
+#include "OS/cpu.tester.hpp"
 
-#include "core.hpp"
-
-namespace TS { namespace _Core_
+int main(int argc, char const *argv[])
 {
-namespace /* {anonymous} */
-{
-    using namespace OS;
-
-Info suite_info(Info _info)
-{
-    _info.func_name = "Core::" + _info.func_name;
-    return _info;
+    return TS::_CPU_::ALL_TESTS();
 }
 
-#define TS__CORE__CONST_OPRS()                        \
-    Inst::Operand const base_f {Admo::IMMEDIATE, 0};  \
-    Inst::Operand const jump_f {Admo::DIRECT,    3};  \
-    Inst::Operand const src_f  {Admo::IMMEDIATE, 8};  \
-    Inst::Operand const dest_f {Admo::IMMEDIATE, 4};
-    /* TS__CORE__CONST_OPRS() */
-
-#define TS__CORE__SET_TEST_ENV(N_INST, TEST_INSTS)                           \
-    int constexpr max_warrior_len = 16,                                      \
-                  min_seperation  = 20,                                      \
-                  max_cycles      = 1000,                                    \
-                  max_processes   = 2,                                       \
-                  n_warriors      = 2;                                       \
-                                                                             \
-    WarriorVec warriors;                                                     \
-                warriors.reserve(n_warriors);                                \
-    for (int i = 0; i < n_warriors; i++)                                     \
-    {                                                                        \
-        warriors.push_back(                                                  \
-            UniqWarrior (                                                    \
-                new Warrior("TS::_CORE_::Warrior", N_INST, max_warrior_len)  \
-            )                                                                \
-        );                                                                   \
-                                                                             \
-        for (int k = 0; k < N_INST; k++)                                     \
-        {                                                                    \
-            warriors[i].get()->push(TEST_INSTS[k]);                          \
-        }                                                                    \
-    }                                                                        \
-                                                                             \
-    MARS memory_(&warriors, min_seperation);                                 \
-    Scheduler sched_(&warriors, max_cycles, max_processes);                  \
-                                                                             \
-    Core core_(&memory_, &sched_);
-    /* TS__CORE__SET_TEST_ENV() */
-
-#define TS__CORE__RUN_TEST()                 \
-    RUN_TEST(E_, A_, HDR_);                  \
-    for (int i = 0; i < n_warriors -1; i++)  \
-        core_.run_fde_cycle();
-    /* TS__CORE__RUN_TEST() */
-
-BoolInt SYSTEM_CODES();      /** TEST: all system [code]...      NOP, DAT, MOV, SPL       */
-BoolInt COMPARISION_CODES(); /** TEST: all comparision [code]... SEQ, SNE, SLT            */
-BoolInt ARITHMETIC_CODES();  /** TEST: all arithmetic [code]...  ADD, SUB, MUL, DIV, MOD  */
-BoolInt JUMP_CODES();        /** TEST: all jump [code]...        JMP, JMZ, JMN, DJN       */
-} /* ::{anonymous} */
-
-/** ALLTESTS: ( OS::Core ) */
+namespace TS { namespace _CPU_
+{
+/** ALLTESTS: ( OS::CPU ) */
 BoolInt ALL_TESTS()
 {
  /** ALLTESTS: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -81,7 +26,7 @@ namespace /* {anonymous} */
 /** TEST: all system [code]... NOP, DAT, MOV, SPL                  */
 BoolInt SYSTEM_CODES()
 {
-    TS__CORE__CONST_OPRS()
+    TS__CPU__CONST_OPRS()
     
     Inst::Operand djn_zero  {Admo::IMMEDIATE, 1};
 
@@ -94,19 +39,19 @@ BoolInt SYSTEM_CODES()
         Inst( {Opcode::NOP, Modifier::B }, base_f, base_f ),
         Inst( /* DAT #0, #0 */                            ),
     };
-    TS__CORE__SET_TEST_ENV(n_inst, test_insts)
+    TS__CPU__SET_TEST_ENV(n_inst, test_insts)
 
     Report test_rpt;
 
  /** ENVIROMENT: *//*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~/
                         [0]  | mov.i    $3, #4  |
-                        [0]  | mov.f    $3, #4  |
+                        [1]  | mov.f    $3, #4  |
                         [2]  | mov.ab   #8, #4  |
                         [3]  | spl.b    $3, #0  |
-                        [1]  | nop      #0, #0  |
-                        [4]  | dat      #0, #0  |
+                        [4]  | nop      #0, #0  |
+                        [5]  | dat      #0, #0  |
  *//** SUITE: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-    Header HDR_ (suite_info( {"execute_System()", "SYSTEM_CODES()", ""} ));
+    Header HDR_ (suite_info( {"execute_system()", "SYSTEM_CODES()", ""} ));
     int E_,  A_;
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
  HDR_.info.test_desc = "[MOV].<I> (FULL)";
@@ -116,7 +61,7 @@ BoolInt SYSTEM_CODES()
     test_rpt = core_.run_fde_cycle();
     A_ = (int) memory_[ test_rpt.dest.address ].OP.code;
 
-    TS__CORE__RUN_TEST()
+    TS__CPU__RUN_TEST()
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
  HDR_.info.test_desc = "[MOV].<F> (DOUBLE)";
 
@@ -127,36 +72,36 @@ BoolInt SYSTEM_CODES()
     RUN_TEST(E_, A_, HDR_);
 
     A_ = memory_[ test_rpt.dest.address ].B.val;  // [B]
-    TS__CORE__RUN_TEST()
+    TS__CPU__RUN_TEST()
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
  HDR_.info.test_desc = "[MOV].<AB> (SINGLE)";
 
     E_ = src_f.val;
 
     A_ = memory_[ core_.run_fde_cycle().dest.address ].B.val;
-    TS__CORE__RUN_TEST()
+    TS__CPU__RUN_TEST()
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
  HDR_.info.test_desc = "[SPL]";
 
-    E_ = sched_.size() +1;
+    E_ = sched_.processes() +1;
 
     core_.run_fde_cycle();   // add process
-    A_ = sched_.size();
-    TS__CORE__RUN_TEST()
+    A_ = sched_.processes();
+    TS__CPU__RUN_TEST()
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
  HDR_.info.test_desc = "[NOP]";
 
     E_ = (int) Event::NOOP;
 
     A_ = (int) core_.run_fde_cycle().exe.event;
-    TS__CORE__RUN_TEST()
+    TS__CPU__RUN_TEST()
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
  HDR_.info.test_desc = "[DAT]";
 
     E_ = (int) Status::TERMINATED;
 
     A_ = (int) core_.run_fde_cycle().status;
-    TS__CORE__RUN_TEST()
+    TS__CPU__RUN_TEST()
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
  return HDR_.result;
 } /* SYSTEM_CODES() */
@@ -164,7 +109,7 @@ BoolInt SYSTEM_CODES()
 /** TEST: all comparision [code]... SEQ, SNE, SLT                  */
 BoolInt COMPARISION_CODES()
 {
-    TS__CORE__CONST_OPRS()
+    TS__CPU__CONST_OPRS()
 
     int constexpr n_inst = 6;
     Inst const test_insts[] {
@@ -175,7 +120,7 @@ BoolInt COMPARISION_CODES()
         Inst( {Opcode::SLT, Modifier::AB}, base_f, dest_f ),
         Inst( /* DAT #0, #0 */                            ),
     };
-    TS__CORE__SET_TEST_ENV(n_inst, test_insts)
+    TS__CPU__SET_TEST_ENV(n_inst, test_insts)
     Report test_rpt;
 
  /** ENVIROMENT: *//*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~/
@@ -186,14 +131,14 @@ BoolInt COMPARISION_CODES()
                         [4]  | slt.ab   #0, #8  |
                         [5]  | ...      ..  ..  |
  *//** SUITE: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-    Header HDR_ (suite_info( {"execute_Compare()", "COMPARISION_CODES()", ""} ));
+    Header HDR_ (suite_info( {"execute_compare()", "COMPARISION_CODES()", ""} ));
     int E_,  A_;
 
     #define COMPARISION_CODES__RUN_TEST()  \
         test_rpt = core_.run_fde_cycle();  \
         E_ = test_rpt.exe.address + 2;     \
         A_ = test_rpt.next_pc;             \
-        TS__CORE__RUN_TEST()
+        TS__CPU__RUN_TEST()
     /* COMPARISION_CODES__RUN_TEST() */
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
  HDR_.info.test_desc = "[SEQ]";
@@ -211,7 +156,7 @@ BoolInt COMPARISION_CODES()
 /** TEST: all arithmetic [code]... ADD, SUB, MUL, DIV, MOD         */
 BoolInt ARITHMETIC_CODES()
 {
-    TS__CORE__CONST_OPRS()
+    TS__CPU__CONST_OPRS()
 
     int constexpr n_inst = 7;
     Inst const test_insts[] {
@@ -223,7 +168,7 @@ BoolInt ARITHMETIC_CODES()
         /* Division by 0 */
         Inst( {Opcode::DIV, Modifier::AB}, src_f, base_f  ),
     };
-    TS__CORE__SET_TEST_ENV(n_inst, test_insts)
+    TS__CPU__SET_TEST_ENV(n_inst, test_insts)
  /** ENVIROMENT: *//*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~/
                         [0]  | add.ab   #8, #4  |
                         [1]  | sub.ab   #8, #4  |
@@ -232,13 +177,13 @@ BoolInt ARITHMETIC_CODES()
                         [4]  | mod.ab   #8, #4  |
                         [3]  | div.ab   #8, #0  | ( X / 0 )
  *//** SUITE: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-    Header HDR_ (suite_info( {"execute_Arithmetic()", "ARITHMETIC_CODES()", ""} ));
+    Header HDR_ (suite_info( {"execute_arithmetic()", "ARITHMETIC_CODES()", ""} ));
     int E_,  A_;
 
     #define ARITHMETIC_CODES__RUN_TEST(E_arithmetic)                \
         E_ = E_arithmetic;                                          \
         A_ = memory_[ core_.run_fde_cycle().dest.address ].B.val;   \
-        TS__CORE__RUN_TEST()
+        TS__CPU__RUN_TEST()
     /* ARITHMETIC_CODES__RUN_TEST() */
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
  HDR_.info.test_desc = "[ADD]";
@@ -261,7 +206,7 @@ BoolInt ARITHMETIC_CODES()
     E_ = (int) Status::TERMINATED;
     A_ = (int) core_.run_fde_cycle().status;
 
-    TS__CORE__RUN_TEST()
+    TS__CPU__RUN_TEST()
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
  return HDR_.result;
 } /* ARITHMETIC_CODES() */
@@ -269,7 +214,7 @@ BoolInt ARITHMETIC_CODES()
 /** TEST: all jump [code]... JMP, JMZ, JMN, DJN                    */
 BoolInt JUMP_CODES()
 {
-    TS__CORE__CONST_OPRS()
+    TS__CPU__CONST_OPRS()
 
     Inst::Operand djn_zero  {Admo::IMMEDIATE, 1};
 
@@ -289,7 +234,7 @@ BoolInt JUMP_CODES()
         Inst( /* DAT #0, #0 */                              ),
         Inst( {Opcode::DJN, Modifier::B }, jump_f, djn_zero ),
     };
-    TS__CORE__SET_TEST_ENV(n_inst, test_insts)
+    TS__CPU__SET_TEST_ENV(n_inst, test_insts)
     Report test_rpt;
 
  /** ENVIROMENT: *//*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~/
@@ -307,14 +252,14 @@ BoolInt JUMP_CODES()
                        [11]  | ...      ..  ..  |
                        [12]  | djn.b    #3, #1  | (DEST = ZERO)
  *//** SUITE: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-    Header HDR_ (suite_info( {"execute_Jump()", "JUMP_CODES()", ""} ));
+    Header HDR_ (suite_info( {"execute_jump()", "JUMP_CODES()", ""} ));
     int E_,  A_;
     
     #define JUMP_CODES__RUN_TEST()               \
         test_rpt = core_.run_fde_cycle();        \
         E_ = test_rpt.exe.address + jump_f.val;  \
         A_ = test_rpt.next_pc;                   \
-        TS__CORE__RUN_TEST()
+        TS__CPU__RUN_TEST()
     /* JUMP_CODES__RUN_TEST() */
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
  HDR_.info.test_desc = "[JMP]";
@@ -337,4 +282,4 @@ BoolInt JUMP_CODES()
 } /* JUMP_CODES() */
 
 } /* ::{anonymous}  */
-}} /* ::TS::_Core_ */
+}} /* ::TS::_CPU_ */

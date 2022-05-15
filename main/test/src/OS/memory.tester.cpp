@@ -1,39 +1,13 @@
-#include "template/test_suite.hpp"
+#include "OS/memory.tester.hpp"
 
-#include "mars.hpp"
-
-namespace TS { namespace _MARS_
+int main(int argc, char const *argv[])
 {
-namespace /* {anonymous} */
-{
-    using namespace OS;
-    using namespace ASM;
-
-Info suite_info(Info _info)
-{
-    _info.func_name = "MARS::" + _info.func_name;
-    return _info;
+    return TS::_Memory_::ALL_TESTS();
 }
 
-#define TS__MARS__SET_TEST_ENV()                                                \
-    constexpr int max_warrior_len = 12,                                         \
-                  min_seperation  = 12;                                         \
-                                                                                \
-    ASM::WarriorVec warriors;                                                   \
-    warriors.push_back(                                                         \
-        ASM::UniqWarrior ( new ASM::Warrior("example", 1, max_warrior_len) )    \
-    );                                                                          \
-    warriors[0].get()->push(Inst());                                            \
-                                                                                \
-    MARS mars_(&warriors, min_seperation);
-    /* TS__MARS__SET_TEST_ENV() */
-
-BoolInt OUT_OF_BOUNDS(); /** TEST: out of bounds (lower | upper)                        */
-BoolInt ALL_ADMOS();     /** TEST: all <admo> '#', '$', '*', '@', '<', '{', '>', '}'    */
-BoolInt ALL_MODIFIERS(); /** TEST: all <mod> '.a', '.b', '.ab', '.ba', '.f', '.x', '.i' */
-} /* ::{anonymous} */
-
-/** ALLTESTS: ( OS::MARS ) */
+namespace TS { namespace _Memory_
+{
+/** ALLTESTS: ( OS::Memory ) */
 BoolInt ALL_TESTS()
 {
  /** ALLTESTS: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -51,7 +25,7 @@ namespace /* {anonymous} */
 /** TEST: out of bounds (lower | upper) */
 BoolInt OUT_OF_BOUNDS()
 {
-    TS__MARS__SET_TEST_ENV()
+    TS__MEMORY__SET_TEST_ENV()
     
     int  const  lower_bounds = 0,
                 upper_bounds = mars_.size() - 1;
@@ -91,7 +65,7 @@ BoolInt OUT_OF_BOUNDS()
 /** TEST: all <admo> '#', '$', '*', '@', '<', '{', '>', '}' */
 BoolInt ALL_ADMOS()
 {
-    TS__MARS__SET_TEST_ENV()
+    TS__MEMORY__SET_TEST_ENV()
     Inst const _reset_ = Inst();
 
     int _index = 0;
@@ -212,7 +186,7 @@ BoolInt ALL_ADMOS()
 /** TEST: all <mod> ('.a'|'.b'|'.ab'|'.ba'|'.f'|'.x'|'.i') */
 BoolInt ALL_MODIFIERS()
 {
-    TS__MARS__SET_TEST_ENV()
+    TS__MEMORY__SET_TEST_ENV()
 
     int _index = 0;
     Register const _exe (_index, &mars_[_index]);               //  [EXE]
@@ -322,4 +296,4 @@ BoolInt ALL_MODIFIERS()
 } /* ALL_MODIFIERS() */
 
 } /* ::{anonymous}  */
-}} /* ::TS::_MARS_ */
+}} /* ::TS::_Memory_ */

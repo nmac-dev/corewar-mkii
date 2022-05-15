@@ -1,33 +1,20 @@
-#include "template/test_suite.hpp"
+#include "parser.tester.hpp"
 
-#include "file_loader.hpp"
-#include "parser.hpp"
+int main(int argc, char const *argv[])
+{
+    return TS::_Parser_::ALL_TESTS();
+}
 
 namespace TS { namespace _Parser_
 {
-namespace /* {anonymous} */
-{
-    using namespace Parser;
-
-Info suite_info(Info _info)
-{
-    _info.func_name = "Parser::" + _info.func_name;
-    return _info;
-}
-
-BoolInt CLEAN_ASSEMBLY(); /** TEST: cleaning assembly code */
-BoolInt LABEL_LINKER();   /** TEST: label linker           */
-BoolInt PARSE_ASSEMBLY(); /** TEST: parsed assembly file   */
-} /* ::{anonymous} */
-
 /** ALLTESTS: ( Parser ) */
 BoolInt ALL_TESTS()
 {
  /** ALLTESTS: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     BoolInt results_ = TEST_PASSED;
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-    if ( results_ += CLEAN_ASSEMBLY()          ) return results_;
-    if ( results_ += LABEL_LINKER()            ) return results_;
+    if ( results_ += CLEAN_ASSEMBLY() ) return results_;
+    if ( results_ += LABEL_LINKER()   ) return results_;
     if ( results_ += PARSE_ASSEMBLY() ) return results_;
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     return results_;
@@ -114,8 +101,8 @@ BoolInt LABEL_LINKER()
 /** TEST: parsed assembly file */
 BoolInt PARSE_ASSEMBLY()
 {
-    char constexpr test_file[]     = "test_warriors/parser_test.asm",
-                   defaults_file[] = "test_warriors/syntax_defaults.asm";
+    char constexpr test_file[]     = "warriors.tester/parser.tester.asm",
+                   defaults_file[] = "warriors.tester/syntax_defaults.asm";
 
     AssemblyCode assembly_, // clean 
                  defaults_; // DO NOT clean
