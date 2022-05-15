@@ -1,82 +1,84 @@
-﻿# !/bin/cmake -S <src_dir> -B <build_dir>
-# bash: 	  cmake -S ../../ -B .
-# powershell: cmake -S ../../ -B . -G "MinGW Makefiles"
-
-##########################
-##    CMakeLists.txt    ##
-##########################
-
-####
-## CMake
-####
-
+﻿#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#   CMAKE ---> PROJECT
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 cmake_minimum_required (VERSION 3.20)
 
-## Target
-project(corewar-cli)
+#~~PROJECT~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+project (corewar-cli)
 
-## Compiler
-set(
-	CMAKE_CXX_STANDARD 17
-    CXX_STANDARD_REQUIRED ON
-)
+include (CTest) #~~ BUILD_TESTING = TRUE
 
-####
-## Project Files
-####
+#~~COMPILER~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+set ( CMAKE_CXX_STANDARD       17  )
+set ( CXX_STANDARD_REQUIRED    ON  )
 
-## Headers
-include_directories(${PROJECT_SOURCE_DIR} 
-	inc/ 
-	inc/template/
-	)
+#~~CONSTANTS-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+set ( __SRC_HEADERS    inc               )
+set ( __SRC            src               )
+set ( __OS             OS                )
+set ( __SRC_OS         ${__SRC}/${__OS}  )
 
-## Sources
-add_executable (${PROJECT} corewar-cli
-	src/asm.cpp
-	src/parser.cpp
-	src/ctrl_unit.cpp
-	src/mars.cpp
-	src/pcb.cpp
-	src/scheduler.cpp
-	src/core.cpp
-	src/corewar.cpp
-	src/cli_debug.cpp  # only used to debug and developer
-	)
+set ( __SRC_COREWAR_ALL_CPP    __src_corewar_all_cpp  )
 
-## Resources
-add_custom_target(warriors ALL
-	COMMAND ${CMAKE_COMMAND} -E copy_directory
-	${PROJECT_SOURCE_DIR}/warriors
-	${PROJECT_BINARY_DIR}/warriors
-	COMMENT "Copying 'warriors/'"
-	)
-	
-configure_file(
-	${PROJECT_SOURCE_DIR}/corewar.ini 
-	${PROJECT_BINARY_DIR}/corewar.ini 
-	COPYONLY
-	)
+#~~TEST-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+if (BUILD_TESTING)
 
-add_dependencies(corewar-cli warriors)
+    enable_testing ()
+    message ("\n\t . . . Testing enabled . . . \n")
 
-####
-## Testing
-####
+    set ( __TEST            test                  )
+    set ( __TEST_HEADERS    ${__TEST}/test_suite  )
 
-## enable_testing()
+    add_subdirectory ( ${__TEST}  )
 
-####
-## Vendors
-####
+endif ()
+#~~SOURCE~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+add_subdirectory ( ${__SRC}  )
+
+#~~RESOURCES~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+set ( __WARRIORS       warriors     )
+set ( __COREWAR_INI    corewar.ini  )
+
+add_custom_target ( ${__WARRIORS}    ALL    #~~ 'warriors/'
+    COMMAND ${CMAKE_COMMAND}    -E copy_directory
+    ${PROJECT_SOURCE_DIR}/${__WARRIORS}
+    ${CMAKE_BINARY_DIR}/${__WARRIORS}
+    COMMENT "Copying \"${__WARRIORS}/\""
+    )
+
+add_custom_target ( ${__COREWAR_INI}    ALL    #~~ 'corewar.ini'
+    COMMAND ${CMAKE_COMMAND}    -E copy
+    ${PROJECT_SOURCE_DIR}/${__COREWAR_INI}
+    ${CMAKE_BINARY_DIR}/${__COREWAR_INI}
+    COMMENT "Copying \"${__COREWAR_INI}\""
+    )
+
+#~~DEPENDENCIES~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+add_dependencies ( ${PROJECT_NAME}   ${__WARRIORS}     )    #~~ 'warriors/'
+add_dependencies ( ${PROJECT_NAME}   ${__COREWAR_INI}  )    #~~ 'corewar.ini'
+
+#~~VENDORS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 
-####
-## Automated fetch: source files (not recommended)
-####
+#~~BUILD-STEPS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# $: = command line
 
-# file(GLOB_RECURSE SOURCE_FILES src/*.cpp)
-#
-# add_executable (${PROJECT} corewar-cli 
-#	${SOURCE_FILES}
-#	)
+#~~ 1
+#       $: cd <build_dir>
+
+#~~ 2:
+#       {on linux}      $: cmake -S ../../ -B .
+#       {on windows}    $: cmake -S ../../ -B . -G "MinGW Makefiles"
+#       -S = <src_dir> 
+#       -B = <build_dir>
+
+#~~ 3:
+#       $: make
+
+#~~ 3.5: if  ( testing    TRUE  )
+#       $: ctest
+#       outputs test results
+
+#~~ 4
+#       Run executable, <exe_name> = ${PROJECT_NAME}
+#       $: ./<exe_name>
