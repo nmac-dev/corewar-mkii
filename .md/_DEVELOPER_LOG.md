@@ -81,11 +81,11 @@ ___
 <!-- Build -->
 * [x] `CMake` as a build system (cross platform)
 <!-- Test -->
-* [ ] `Test/`
-  - [ ] Parser
-  - [ ] Core
-  - [ ] MARS
-  - [ ] Scheduler
+* [x] `test/`
+  - [x] Parser
+  - [x] Core
+  - [x] MARS
+  - [x] Scheduler
 <!-- GUI -->
 * [ ] GUI Implementation
   - [ ] Select and load Warriors
