@@ -1,40 +1,28 @@
-/// Pushes fetch/decode/execute cycles to MARS and selects warrior processes from the scheduler
+/// Pushes fetch/decode/execute cycles to Memory and selects warrior processes from the scheduler
 
-#include "core.hpp"
+#include "OS/cpu.hpp"
 
 /// Operating System handles: fetch/decode/execute cycle, memory, and processes
-namespace OS {
-
-Report::Report(PCB& _prcs, ControlUnit& _CTRL)
+namespace OS
 {
-    warrior_ID  = _prcs.parent_id();
-                  _prcs >> next_pc;
-    status      = _prcs.status();
-
-    exe  = { _CTRL.EXE.address,  _CTRL.EXE.event  };
-    src  = { _CTRL.SRC.address,  _CTRL.SRC.event  };
-    dest = { _CTRL.DEST.address, _CTRL.DEST.event };
-}
-Report::Report() = default;
-
-Core::Core(MARS *_memory, Scheduler *_sched)
+CPU::CPU(Memory *_memory, Scheduler *_sched)
 {
     os_memory = _memory;
     os_sched  = _sched;
 }
-Core::Core() = default;
+CPU::CPU() = default;
 
-Report Core::run_fde_cycle()
+Report CPU::run_fde_cycle()
 {
  /* Fetch */
-    int IR_PC;                              // instruction register program counter
+    int exe_pc;                               // instruction register program counter
     exe_process = os_sched->fetch_next();     // fetch next process
 
  /* Decode */
-    exe_process >> IR_PC;
-    ctrl     = os_memory->generate_ctrl(IR_PC); // generate a control unit
+    exe_process >> exe_pc;
+    ctrl        = os_memory->generate_ctrl(exe_pc); // generate control unit
 
-    #ifdef CORE_DEBUG
+    #ifdef CPU_DEBUG
     printf("\nCore::run_fde_cycle:\t Cycle:[%d]\t Warrior:[%d] Index:[%d] Inst:'%s' \n",
         os_sched->cycles(), exe_process.parent_id(), 
         ctrl.EXE.address, (*os_memory)[ctrl.EXE.address].to_assembly().c_str());
@@ -48,70 +36,66 @@ Report Core::run_fde_cycle()
         ctrl.EXE.event = Event::EXECUTE;
         switch (ctrl.TYPE.code)
         {
-        case OpcodeType::SYSTEM:
-        {
-            execute_system();
-            break;
-        }
-        case OpcodeType::COMPARISION:
-        {
-            execute_compare();
-            break;
-        }
-        case OpcodeType::ARITHMETIC:
-        {
-            execute_arithmetic();
-            break;
-        }
-        case OpcodeType::JUMP:
-        {
-            execute_jump();
-            break;
-        }
-        default:
-        {
-            #ifdef CORE_DEBUG_CODES
-            printf("ERROR! Core:: FDE cycle: undefined 'OPCODE TYPE'");
-            #endif
-            break;
-        }
-        } /* switch() */
-
-        // check if killed
-        if (exe_process.status() < Status::TERMINATED)
-        {
-            os_sched->return_process(exe_process);
-
-            if(exe_process.status() == Status::NEW)
+            case OpcodeType::SYSTEM:
             {
-                os_sched->add_process(exe_process.parent_id(), ctrl.SRC.address);
+                execute_system();
+                break;
+            }
+            case OpcodeType::COMPARISION:
+            {
+                execute_compare();
+                break;
+            }
+            case OpcodeType::ARITHMETIC:
+            {
+                execute_arithmetic();
+                break;
+            }
+            case OpcodeType::JUMP:
+            {
+                execute_jump();
+                break;
+            }
+            default:
+            {
+                #ifdef CPU_DEBUG_CODES
+                printf("ERROR! CPU:: FDE cycle: undefined 'OPCODE TYPE'");
+                #endif
+                break;
             }
         }
-        os_memory->apply_post_inc(ctrl);
     }
+    os_sched->return_process(&exe_process);
+
+    // SPL request new process
+    if(exe_process.status() == Status::NEW)
+    {
+        os_sched->add_process(exe_process.parent_id(), ctrl.SRC.address);
+    }
+    os_memory->apply_post_inc(ctrl);
+
     return Report(exe_process, ctrl);
 } /* nextFDEcycle() */
 
-void Core::execute_system()
+void CPU::execute_system()
 {
-    Opcode   code_  = ctrl.EXE.OP->code;
+    Opcode       code_  = ctrl.EXE.OP->code;
     ModifierType mod_t  = ctrl.TYPE.mod;
-    Register &SRC_  = ctrl.SRC,
-             &DEST_ = ctrl.DEST;
+    Register     &SRC_  = ctrl.SRC,
+                 &DEST_ = ctrl.DEST;
 
     switch (code_)
     {
         case Opcode::NOP:
         {
             ctrl.EXE.event  = Event::NOOP;
-            SRC_.event  = Event::NOOP;
-            DEST_.event = Event::NOOP;
+            SRC_.event      = Event::NOOP;
+            DEST_.event     = Event::NOOP;
             break;
         }
         case Opcode::DAT:
         {
-            // os_sched->kill_process(PROCESS);
-            exe_process.set_status(Status::TERMINATED);
+            os_sched->kill_process(&exe_process);
             SRC_.event  = Event::NOOP;
             DEST_.event = Event::NOOP;
             break;
@@ -144,25 +128,25 @@ void Core::execute_system()
         }
         case Opcode::SPL:
         {
-            exe_process.set_status(Status::NEW);
+            exe_process.set_status(Status::NEW); // new process after return
             break;
         }
         default:
         {
-            #ifdef CORE_DEBUG_CODES
-            printf("ERROR! Core:: 'execute SYSTEM' opcode not found");
+            #ifdef CPU_DEBUG_CODES
+            printf("ERROR! CPU:: 'execute SYSTEM' opcode not found");
             #endif
             break;
         }
     } /* switch() */
 } /* ::execute_system() */
 
-void Core::execute_compare()
+void CPU::execute_compare()
 {
-    Opcode   code_  = ctrl.EXE.OP->code;
+    Opcode       code_  = ctrl.EXE.OP->code;
     ModifierType mod_t  = ctrl.TYPE.mod;
-    Register &SRC_  = ctrl.SRC,
-             &DEST_ = ctrl.DEST;
+    Register     &SRC_  = ctrl.SRC,
+                 &DEST_ = ctrl.DEST;
 
     SRC_.event  = Event::READ;
     DEST_.event = Event::READ;
@@ -218,8 +202,8 @@ void Core::execute_compare()
         }
         default:
         {
-            #ifdef CORE_DEBUG_CODES
-            printf("ERROR! Core:: 'execute COMPARISION' opcode not found"); 
+            #ifdef CPU_DEBUG_CODES
+            printf("ERROR! CPU:: 'execute COMPARISION' opcode not found"); 
             #endif
             break;
         }
@@ -231,12 +215,12 @@ void Core::execute_compare()
     }
 } /* execute_compare() */
 
-void Core::execute_arithmetic()
+void CPU::execute_arithmetic()
 {
-    Opcode   code_  = ctrl.EXE.OP->code;
+    Opcode       code_  = ctrl.EXE.OP->code;
     ModifierType mod_t  = ctrl.TYPE.mod;
-    Register &SRC_  = ctrl.SRC,
-             &DEST_ = ctrl.DEST;
+    Register     &SRC_  = ctrl.SRC,
+                 &DEST_ = ctrl.DEST;
 
     SRC_.event  = Event::READ;
     DEST_.event = Event::WRITE;
@@ -252,8 +236,8 @@ void Core::execute_arithmetic()
 
         default:
         {
-            #ifdef CORE_DEBUG_CODES
-            printf("ERROR! Core:: 'execute ARITHMETIC' opcode not found"); 
+            #ifdef CPU_DEBUG_CODES
+            printf("ERROR! CPU:: 'execute ARITHMETIC' opcode not found"); 
             #endif
             return;
         }
@@ -272,7 +256,7 @@ void Core::execute_arithmetic()
 
         if (zero_div) // kill process
         {
-            os_sched->kill_process(exe_process);
+            os_sched->kill_process(&exe_process);
             SRC_.event  = Event::NOOP;
             DEST_.event = Event::NOOP;
             return;
@@ -286,12 +270,12 @@ void Core::execute_arithmetic()
     apply_arithmatic(DEST_.A->val, SRC_.A->val, operator_char);
 } /* execute_arithmetic() */
 
-void Core::execute_jump()
+void CPU::execute_jump()
 {
-    Opcode   code_  = ctrl.EXE.OP->code;
+    Opcode       code_  = ctrl.EXE.OP->code;
     ModifierType mod_t  = ctrl.TYPE.mod;
-    Register &SRC_  = ctrl.SRC,
-             &DEST_ = ctrl.DEST;
+    Register     &SRC_  = ctrl.SRC,
+                 &DEST_ = ctrl.DEST;
 
     SRC_.event  = Event::READ;
     DEST_.event = Event::READ;
@@ -342,8 +326,8 @@ void Core::execute_jump()
         }
         default:
         {
-            #ifdef CORE_DEBUG_CODES
-            printf("ERROR! Core:: 'execute JUMP' opcode not found"); 
+            #ifdef CPU_DEBUG_CODES
+            printf("ERROR! CPU:: 'execute JUMP' opcode not found"); 
             #endif
             break;
         }

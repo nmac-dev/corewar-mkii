@@ -1,21 +1,21 @@
 // memory array assembly simulator containts array of instruction objects and decoding functions
 
-#include "mars.hpp"
+#include "OS/memory.hpp"
 
 namespace OS
 {
-MARS::MARS(WarriorVec *_warriors, int _min_seperation)
+Memory::Memory(WarriorVec *_warriors, int _min_seperation)
 {
     ini_min_seperation = _min_seperation;
 
     // populate RAM with (dat #0, #0) asm instructions
-    RAM = C_RAM<Inst>(core_size);
+    RAM = C_RAM<Inst>(ram_size);
 
     // place warriors in core at random positions
     for (int i = 0; i < _warriors->size(); i++)
     {
         Warrior warrior_i = *(*_warriors)[i].get();
-        uint32_t rnd_pos  = random_int(core_size);
+        uint32_t rnd_pos  = random_int(ram_size);
 
         // validate position meets minimum seperation requirements
         for (int k = 0; k < i; k++)
@@ -28,7 +28,7 @@ MARS::MARS(WarriorVec *_warriors, int _min_seperation)
             if (w_index > lower && w_index < upper)
             {
                 // failed; generate new position, restart loop
-                rnd_pos = random_int(core_size);
+                rnd_pos = random_int(ram_size);
                 k = 0;
             }
         }
@@ -40,17 +40,17 @@ MARS::MARS(WarriorVec *_warriors, int _min_seperation)
             *RAM[rnd_pos++] = warrior_i[j];
         }
 
-        #ifdef MARS_DEBUG
-        if (i == 0) printf("\nMARS::MARS: \n");
+        #ifdef MEMORY_DEBUG
+        if (i == 0) printf("\n Memory::Memory: \n");
         printf("\tAdded |%d| instructions @ address [%d] \t...from: [%d] '%s'\n",
                 warrior_i.len(), (*_warriors)[i].get()->address(),
                 warrior_i.uuid(), warrior_i.name().c_str());
         #endif
     }
 }
-MARS::MARS() = default;
+Memory::Memory() = default;
 
-uint32_t MARS::random_int(uint32_t max_range)
+uint32_t Memory::random_int(uint32_t max_range)
 {
     static uint32_t repeated_flag; // stores first seed, flag triggers on seed repetition
     static uint32_t seed;          // seed is random and mutates on each function call
@@ -73,7 +73,7 @@ uint32_t MARS::random_int(uint32_t max_range)
     return seed % max_range;
 }
 
-Register MARS::decode_admo(ControlUnit *_ctrl, InstField const exe_select)
+Register Memory::decode_admo(ControlUnit *_ctrl, InstField const exe_select)
 {
     Admo _admo = (exe_select == InstField::A) ? _ctrl->EXE.A->admo  // SRC
                                               : _ctrl->EXE.B->admo; // DEST
@@ -135,7 +135,7 @@ Register MARS::decode_admo(ControlUnit *_ctrl, InstField const exe_select)
     return Register(main_i, RAM[main_i]);;
 } /* decode_admo() */
 
-void MARS::decode_modifier(ControlUnit *_ctrl)
+void Memory::decode_modifier(ControlUnit *_ctrl)
 {
     Opcode _code = _ctrl->EXE.OP->code;
     Modifier    _mod  = _ctrl->EXE.OP->mod;
@@ -238,7 +238,7 @@ void MARS::decode_modifier(ControlUnit *_ctrl)
     }
 } /* decode_modifier() */
 
-ControlUnit MARS::generate_ctrl(int const _pc)
+ControlUnit Memory::generate_ctrl(int const _pc)
 {
     ControlUnit ctrl_ ( {_pc, RAM[_pc]} );
 
@@ -289,8 +289,8 @@ ControlUnit MARS::generate_ctrl(int const _pc)
         default: break;
     }
 
-    #ifdef MARS_DEBUG
-    printf("\nMARS::generateCTRL:\t (EXE)  [%d]'%s' \n"
+    #ifdef MEMORY_DEBUG
+    printf("\n Memory::generate_ctrl:\t (EXE)  [%d]'%s' \n"
                           "\n\t\t\t (SRC)  [%d]'%s' \n"
                           "\n\t\t\t (DEST) [%d]'%s' \n",
         ctrl_.EXE.address,  RAM[ctrl_.EXE.address]->to_assembly().c_str(),
@@ -301,7 +301,7 @@ ControlUnit MARS::generate_ctrl(int const _pc)
     return ctrl_;
 } /* generate_ctrl() */
 
-Inst &MARS::operator[](int address) const { return *RAM[address]; }
-Inst &MARS::operator[](int address)       { return *RAM[address]; }
+Inst &Memory::operator[](int address) const { return *RAM[address]; }
+Inst &Memory::operator[](int address)       { return *RAM[address]; }
     
 } /* ::OS */

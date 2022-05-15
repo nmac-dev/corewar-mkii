@@ -1,10 +1,9 @@
 /// Defines elements and entities in relation to assembly instructions
 
-#include "asm.hpp"
+#include "OS/assembly.hpp"
 
 namespace ASM
 {
-
 Inst::Inst(Operation _OP, Operand _A, Operand _B)
 {
     OP = _OP;
@@ -137,16 +136,15 @@ std::string Inst::to_assembly()
     return code_;
 } /* ::toAsmCode() */
 
-Warrior::Warrior(std::string _name, const int _length, int _max_warrior_len)
+Warrior::Warrior(std::string _name, const int _length, int _max_warrior_inst)
 {
-    if (!ini_max_warrior_len)
-        ini_max_warrior_len = _max_warrior_len; // set once
+    ini_max_warrior_inst = _max_warrior_inst;
 
     m_uuid         = create_uuid();
     m_name         = _name;
     m_length       = _length;
-    m_address   = -1;              // m_address is late init
-    m_insts.reserve(ini_max_warrior_len);
+    m_address      = -1;                    // m_address (late init)
+    m_insts.reserve(ini_max_warrior_inst);
 }
 
 void Warrior::push(Inst _inst)

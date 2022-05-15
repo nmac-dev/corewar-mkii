@@ -6,7 +6,7 @@
 #define ASSEMBLY_COMMENT ';' // assembly code comment character
 
 #include <unordered_map>
-#include "asm.hpp"
+#include "OS/assembly.hpp"
 
 namespace Parser
 {
@@ -14,7 +14,7 @@ using AssemblyCode = std::vector<std::string>;
 
 namespace /* {anonymous} */
 {
-using namespace ASM;
+    using namespace ASM;
 
 /* Lookup HashTables */
 using LabelLinker  = std::unordered_map<std::string, int>;  // stores label name and address
@@ -108,19 +108,19 @@ inline std::string find_argument(std::string line, int &pos)
 std::string clean_assembly(std::string line);
 
 /// Creates a label linker to identify the posistions of all labels within an assembly file
-/// @param asm_code Labels start with ( a-z, A-Z, '_' ) and can contain 0-9 plus a ':' at the end
-LabelLinker generate_label_linker(AssemblyCode &asm_code);
+/// @param _assembly Labels start with ( a-z, A-Z, '_' ) and can contain 0-9 plus a ':' at the end
+LabelLinker generate_label_linker(AssemblyCode &_assembly);
 
 /// Parses an assembly code string to an object
-/// @param line (asm code) in the format of: <label> [opcode]<.modifier> <mode_a>[op_a],<mode_b>[op_b]
+/// @param line (code) in the format of: <label> [opcode]<.modifier> <mode_a>[op_a],<mode_b>[op_b]
 /// @param label_linker used to store and handle labels
 /// @param address instruction address (line number) in asm code
 Inst assembly_to_inst(std::string &_line, LabelLinker &_linker, int _index);
 
 /// Create a warrior object by parsing assembly code  
 /// @param warrior_name (file)name of the warrior
-/// @param asm_code collection containing the warriors assembly code
+/// @param _assembly collection containing the warriors assembly code
 /// @param max_warrior_len max instructions a warrior can consist of
-Warrior *create_warrior(std::string warrior_name, AssemblyCode &asm_code, int max_warrior_len);
+Warrior *create_warrior(std::string warrior_name, AssemblyCode &_assembly, int _max_warrior_inst);
 
 } /* ::Parser */

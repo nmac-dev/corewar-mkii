@@ -1,59 +1,36 @@
-/// Executes fetch/decode/execute cycles to MARS and selects warrior processes from the scheduler
+/// Executes fetch/decode/execute cycles to Memory and selects warrior processes from the scheduler
 #pragma once
 
-// #define CORE_DEBUG
-// #define CORE_DEBUG_CODES
+// #define CPU_DEBUG
+// #define CPU_DEBUG_CODES
 
-#include "mars.hpp"
+#include "memory.hpp"
 #include "scheduler.hpp"
+#include "report.hpp"
 
 /// Operating System handles: fetch/decode/execute cycle, memory simulator, and warrior processes
-namespace OS {
-
-/// Report returned from the OS after each FDE cycle
-struct Report
+namespace OS 
 {
-    /// Logs the address and event for an instruction in memory
-    struct Log {
-        int   address; // location of instruction in memory
-        Event event; // instruction event
-    };
-
-    int warrior_ID,     // executing warrior UUID
-        next_pc;        // next program counter to be executed
-    Status status;      // m_status of the execution
-
-    Log exe,            // executing instruction    (EXE)
-        src,            // EXE: source instruction
-        dest;           // EXE: destination instruction
-
-    /// Generates a report from the OS detailing its last FDE cycle
-    /// @param _PROCESS executing process with parent ID
-    /// @param _CTRL control block containing registers for the executing, source, and destination
-    Report(PCB &_PROCESS, ControlUnit &_CTRL);
-    Report();
-};
-
 /// Handles the fetch/decode/execute cycle, memory array of assembly instructions, and warrior processes
-class Core
+class CPU
 {
  private:
-    MARS      *os_memory;  // memory array simulator
-    Scheduler *os_sched;   // process scheduler (sched) for warriors
+    Memory    *os_memory;       // memory array simulator
+    Scheduler *os_sched;        // process scheduler (sched) for warriors
 
-    ControlUnit ctrl;       // Control Unit from MARS, used in executiom
+    ControlUnit ctrl;           // Control Unit from Memory, used in executiom
     PCB         exe_process;    // process executing the instruction
 
  public:
     /// Creates a core to fetch/decode/execute and manage a memory array simulator
-    Core(MARS *_memory, Scheduler *_sched);
-    Core();
+    CPU(Memory *_memory, Scheduler *_sched);
+    CPU();
 
- /* Functions */
+ /* Execute */
+
     /// run the next fetch/decode/execute cycle, then returns an operating system report
     Report run_fde_cycle();
-    
- /* Execute */
+
  private:
     /// Executes a (NOP, DAT, MOV)
     void execute_system();
@@ -80,6 +57,6 @@ class Core
             default: break;
         }
     }
-}; /* Core */
+}; /* CPU */
 
 } /* ::OS */

@@ -1,13 +1,13 @@
 /// Represents a single process within a process control block
 
-#include "pcb.hpp"
+#include "OS/pcb.hpp"
 
 /// Operating System handles: fetch/decode/execute cycle, memory simulator, and warrior processes
 namespace OS {
 
-PCB::PCB(int _parent_ID, int _pc_initial)
+PCB::PCB(UUID _parent_id, int _pc_initial)
 {
-    m_parent_id = _parent_ID;
+    m_parent_id = _parent_id;
     m_pc        = _pc_initial;
     m_status    = Status::NEW;
 }

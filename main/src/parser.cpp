@@ -59,16 +59,16 @@ std::string clean_assembly(std::string _data)
 } /* ::clean_assembly() */
 
 
-LabelLinker generate_label_linker(AssemblyCode &assembly)
+LabelLinker generate_label_linker(AssemblyCode &_assembly)
 {
     LabelLinker linker_;
     std::string first_arg; // first argument in asm code
 
     // search each line of asm code
-    for (int i = 0; i < assembly.size(); i++)
+    for (int i = 0; i < _assembly.size(); i++)
     {
         int pos = 0;
-        first_arg = find_argument(assembly[i], pos);
+        first_arg = find_argument(_assembly[i], pos);
 
         // label found, as first_arg is not opcode
         if (!opcode_tbl.count(first_arg))
@@ -251,24 +251,24 @@ Inst assembly_to_inst(std::string &_line, LabelLinker &_linker, int _index)
 
 } /* ::assembly_to_inst() */
 
-Warrior *create_warrior(std::string _warrior_name, AssemblyCode &_assembly, int _max_warrior_len)
+Warrior *create_warrior(std::string _warrior_name, AssemblyCode &_assembly, int _max_warrior_inst)
 {
     LabelLinker linker_;             // stores label positions
     int _length = _assembly.size();  // number of warrior instruction
 
     // validate number of instructions is within configuration bounds
-    if (_length > _max_warrior_len)
+    if (_length > _max_warrior_inst)
     {
         printf("Warning: '%s' has a length greater than the max (%d) and will be truncated."
-                "\n\tEdit corewar config file to increase '_max_warrior_len'\n",
-                _warrior_name.c_str(), _max_warrior_len
+                "\n\tEdit corewar config file to increase '_max_warrior_inst'\n",
+                _warrior_name.c_str(), _max_warrior_inst
         );
         // truncate length
-        _length = _max_warrior_len;
+        _length = _max_warrior_inst;
     }
 
     // construct warrior w/ default arguments
-    Warrior *warrior_ = new Warrior(_warrior_name.c_str(), _length, _max_warrior_len);
+    Warrior *warrior_ = new Warrior(_warrior_name.c_str(), _length, _max_warrior_inst);
 
     // clean asm code to correct format
     for (int i = 0; i < _length; i++)

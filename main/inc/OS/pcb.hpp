@@ -1,31 +1,33 @@
 /// Represents a single process within a process control block
 #pragma once
 
+#include "uuid.hpp"
+
 /// Operating System handles: fetch/decode/execute cycle, memory simulator, and warrior processes
 namespace OS {
 
-/// Denotes the m_status of execution
+/// Denotes the status of execution
 enum class Status { NEW, ACTIVE, TERMINATED, HAULTED, EXIT };
 
 /// Process Control Block: represents a process with a parent ID, status, and program counter
 class PCB
 {
  private:
-    int     m_parent_id;      // UUID of the process's parent
+    UUID    m_parent_id;      // UUID of the process's parent
     int     m_pc;             // program counter: holds address of next instruction to be executed
     Status  m_status;         // current execution status
 
- /* Functions */
  public:
     /// Creates a process
     /// @param _parent_ID UUID of the process's parent
     /// @param _pc_initial initial program counter address 
-    PCB(int _parent_ID, int _pc_initial);
+    PCB(UUID _parent_ID, int _pc_initial);
     PCB();
- 
- /* Getters */
-    inline int    parent_id()       const { return m_parent_id; }
-    inline Status status()         const { return m_status;    }
+
+ /* Utility */
+
+    inline UUID   parent_id()          const { return m_parent_id; }
+    inline Status status()             const { return m_status;    }
     inline void   set_status(Status _status) { m_status = _status; }
 
     /// [setter] Sets the program counters address to the r_value

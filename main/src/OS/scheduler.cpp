@@ -1,26 +1,27 @@
 /// Handles warrior processes in a round robin system, ensures one process each per cycle
 
-#include "scheduler.hpp"
+#include "OS/scheduler.hpp"
 
 /// Operating System handles: fetch/decode/execute cycle, memory simulator, and warrior processes
 namespace OS {
 
-Scheduler::Scheduler(ASM::WarriorVec *_warriors, int _cycles, int _processes)
+Scheduler::Scheduler(ASM::WarriorVec *_warriors, int _max_cycles, int _max_processes)
 {
-    ini_max_cycles     = _cycles;
-    ini_max_processes  = _processes;
-    cycles_counter     = 0;
+    ini_max_cycles     = _max_cycles;
+    ini_max_processes  = _max_processes;
+    m_cycles           = 0;
+
     schedules_tbl.reserve(_warriors->size());
 
     // create a queue for each warrior
     for (int i = 0; i < _warriors->size(); i++)
     {
-        int UUID_ = (*_warriors)[i].get()->uuid();
-        RR.push_back(UUID_);
+        UUID uuid_ = (*_warriors)[i].get()->uuid();
+        RR.push_back(uuid_);
 
         // create a  schedule for the warrior with an initial process
-        schedules_tbl[UUID_] = PrcsQueue();
-        this->add_process(UUID_, (*_warriors)[i].get()->address());
+        schedules_tbl[uuid_] = PrcsQueue();
+        this->add_process(uuid_, (*_warriors)[i].get()->address());
     }
 
     #ifdef SCHEDULER_DEBUG
@@ -30,7 +31,7 @@ Scheduler::Scheduler(ASM::WarriorVec *_warriors, int _cycles, int _processes)
 }
 Scheduler::Scheduler()  = default;
 
-void Scheduler::add_process(int _parent, int _pc_initial)
+void Scheduler::add_process(UUID _parent, int _pc_initial)
 {
     PCB process_(_parent, _pc_initial);
         process_.set_status(Status::NEW);
@@ -51,51 +52,49 @@ void Scheduler::add_process(int _parent, int _pc_initial)
     #endif
 }
 
-void Scheduler::kill_process(PCB& _process)
+void Scheduler::kill_process(PCB* _process)
 {
-    int _UUID = _process.parent_id();
-                _process.set_status(Status::TERMINATED);
+    if (_process == nullptr)
+        return;
 
-    // check warrior queue exists
-    if (schedules_tbl.count(_UUID))
-    {   
-        // remove warrior if defeated
-        if (processes(_UUID) < 1)
+    UUID _uuid = _process->parent_id();
+                 _process->set_status(Status::TERMINATED);
+
+    // check parent queue exists
+    if (schedules_tbl.count(_uuid))
+    {
+        // remove parent if depleted
+        if (processes(_uuid) < 1)
         {
-            auto itr = schedules_tbl.find(_UUID);
-            schedules_tbl.erase(itr);
-            RR.remove(RR.prev());
+            RR.remove(_process->parent_id());
         }
     }
-    else printf("ERROR: scheduler kill_process failed... Warrior:[%d] \n", _UUID);
+    else printf("ERROR: scheduler failed to kill process... UUID:[%d] \n", _uuid);
 
     #ifdef SCHEDULER_DEBUG_KILL_PCB
     printf("\nScheduler::kill_process:\t Warrior:[%d] \t PCBs:|%d| \n",
-                _UUID, processes(_process.parent_id()));
+                _uuid, processes(_process.parent_id()));
     #endif
 }
 
 PCB Scheduler::fetch_next()
 {
     PCB process_;
-    schedules_tbl[RR.i()].dequeue(&process_);
+    schedules_tbl[RR.next()].dequeue(&process_);
 
     process_.set_status(Status::ACTIVE);
 
     // hault OS to notify of draw
-    if (++cycles_counter > max_cycles())
+    if (++m_cycles > max_cycles())
     {
         process_.set_status(Status::HAULTED);
     }
-    // OS exit, all other warriors have been killed (victory)
-    if (schedules_tbl.size() < 2) 
+    // OS exit, all processes executed
+    if (RR.is_running() == false)
     {
         process_.set_status(Status::EXIT);
     }
 
-    // schedules_tbl[RR.i()].push(process_); // add process to back of queue
-    RR.next();                         // move to next round robin sequance
-    
     #ifdef SCHEDULER_DEBUG
     printf("\nScheduler::fetch_next: \t Warrior:[%d] \t Processes:|%d| \n",
            process_.parent_id(), processes(process_.parent_id()) );
@@ -104,17 +103,18 @@ PCB Scheduler::fetch_next()
     return process_;
 }
 
-void Scheduler::return_process(PCB _process)
+void Scheduler::return_process(PCB *_process)
 {
-    int _UUID = _process.parent_id();
-    if (_process.status() == Status::TERMINATED)
+    if (_process == nullptr || _process->status() == Status::TERMINATED)
         return;
-    
-    if (schedules_tbl.count(_UUID))
+
+    UUID _uuid = _process->parent_id();
+
+    if (schedules_tbl.count(_uuid))
     {
-        if (processes(_UUID) < max_processes())
+        if (processes(_uuid) < max_processes())
         {
-            schedules_tbl[_UUID].enqueue(_process);
+            schedules_tbl[_uuid].enqueue(*_process);
         }
     }
 }

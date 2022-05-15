@@ -1,10 +1,9 @@
 /// Control Unit handles registers and decoding using the program counter
 
-#include "ctrl_unit.hpp"
+#include "OS/ctrl_unit.hpp"
 
 namespace OS
 {
-
 Register::Register(int _index, Inst *_inst)
 {
     address = _index;

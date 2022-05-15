@@ -11,7 +11,7 @@ struct C_RAM
 
  public:
     /// Creates an array of memory addresses of type <T>
-    C_RAM(int _size) 
+    C_RAM(int const _size) 
     {
         m_size = _size;
         m_ram = RAM_PTR(new T[m_size]);
@@ -25,10 +25,12 @@ struct C_RAM
         // loop address until it is within the 
         while (address < 0 || address >= m_size)
         {
-            // address to upper core section
-            if (address < 0)  address += m_size;
-            // address to lower core (> core_size)
-            else address -= m_size;
+            
+            if (address < 0)        // address -> upper bounds (m_size)
+            {
+                address += m_size;
+            }
+            else address -= m_size; // address -> lower bounds (0)
         }
         return address;
     }
