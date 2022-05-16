@@ -3,10 +3,10 @@
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #~~HEADERS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-include_directories ( ${PROJECT_SOURCE_DIR}/${__SRC_HEADERS}   )
+include_directories ( ${PROJECT_SOURCE_DIR}/${__HEADERS}       )
 include_directories ( ${PROJECT_SOURCE_DIR}/${__TEST_HEADERS}  )
 
-link_libraries ( ${__SRC_COREWAR_ALL_CPP}  )
+link_libraries ( ${__COREWAR_SOURCE}  )
 
 #~~SOURCE~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 set ( __TEST_PARSER       parser.tester     )

@@ -13,12 +13,12 @@ set ( CMAKE_CXX_STANDARD       17  )
 set ( CXX_STANDARD_REQUIRED    ON  )
 
 #~~CONSTANTS-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-set ( __SRC_HEADERS    inc               )
+set ( __HEADERS        include           )
 set ( __SRC            src               )
 set ( __OS             OS                )
 set ( __SRC_OS         ${__SRC}/${__OS}  )
 
-set ( __SRC_COREWAR_ALL_CPP    __src_corewar_all_cpp  )
+set ( __COREWAR_SOURCE    __corewar_source  )
 
 #~~TEST-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 if (BUILD_TESTING)

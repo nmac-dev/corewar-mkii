@@ -3,10 +3,10 @@
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #~~HEADERS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-include_directories ( ${PROJECT_SOURCE_DIR}/${__SRC_HEADERS}  )
+include_directories ( ${PROJECT_SOURCE_DIR}/${__HEADERS}  )
 
 #~~SOURCE~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-add_library ( ${__SRC_COREWAR_ALL_CPP}
+add_library ( ${__COREWAR_SOURCE}
     parser.cpp
     corewar.cpp
     ${__OS}/assembly.cpp
@@ -18,7 +18,7 @@ add_library ( ${__SRC_COREWAR_ALL_CPP}
     ${__OS}/cpu.cpp
     )
 
-link_libraries ( ${__SRC_COREWAR_ALL_CPP}  )
+link_libraries ( ${__COREWAR_SOURCE}  )
 
 #~~EXECUTABLE~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 set ( EXECUTABLE_OUTPUT_PATH    ${CMAKE_BINARY_DIR}  )
