@@ -11,26 +11,26 @@
 class Settings
 {
  private:
-    inline static const std::string INI_SECTION = "[Match Parameters]";
-    inline static const std::string FILENAME    = "corewar.ini";
-    inline static const char        COMMENT     = '#';
-    inline static const int         N_SETTINGS  = 5;
+    inline static char const ini_section[]  = "[Match Parameters]";
+    inline static char const ini_filename[] = "corewar.ini";
+    inline static char const ini_comment    = '#';
+    inline static int  const ini_total_vals = 5;
 
     /// .ini setting names
-    inline static const std::string INI_NAMES[N_SETTINGS] {
+    inline static char const INI_NAMES[ini_total_vals][32] {
         "max_rounds",
         "max_cycles",
         "max_processes",
-        "max_warrior_len",
+        "max_program_insts",
         "min_separation"
-        };
+    };
 
     /// default values for the .ini settings, used if parameters are missing
-    inline static const int INI_DEFAULT_VALUES[N_SETTINGS] {
+    inline static const int INI_DEFAULT_VALUES[ini_total_vals] {
         3,  // max_rounds
         8,  // max_cycles
         8,  // max_processes
-        12, // max_warrior_len
+        12, // max_program_insts
         8   // min_separation
         };
 
@@ -43,15 +43,15 @@ class Settings
     /// Uses File_Loader:: to read match_settings.ini, then processes the contents into the hash table
     inline void load_ini()
     {
-        std::vector<std::string> data = File_Loader::load_file_data(FILENAME, COMMENT);
+        std::vector<std::string> data = File_Loader::load_file_data(ini_filename, ini_comment);
         std::string name; int value; // Map<key, value>
         ini_values.clear();
 
         // validate data is from correct file
-        if (data[0] != INI_SECTION)
+        if (data[0] != ini_section)
         {
             printf("Error: expected '%s' but found '%s' in config file |%s|\n",
-                    INI_SECTION.c_str(), data[0].c_str(), FILENAME.c_str()
+                    ini_section, data[0].c_str(), ini_filename
             );
             throw std::exception(); // begin stack unwind to main()
         }
@@ -74,7 +74,7 @@ class Settings
         }
 
         // add default value for any missing parameters
-        for (int i = 0; i < N_SETTINGS; i++)
+        for (int i = 0; i < ini_total_vals; i++)
         {
             if (!ini_values.count(INI_NAMES[i]))
             {
@@ -110,22 +110,22 @@ class Settings
     void operator= (Settings const &) = delete;
 
     
-    /// FILENAME of the .ini configuration file containing the settings values
-    inline const std::string file_name() const {return get().FILENAME;}
+    /// ini_filename of the .ini configuration file containing the settings values
+    inline char const *file_name() const { return get().ini_filename; }
 
     /// Max number of rounds before the game is concluded
-    inline int max_rounds()              const {return get().ini_values.at(INI_NAMES[0]);}
+    inline int max_rounds()        const { return get().ini_values.at(INI_NAMES[0]); }
 
     /// Max number of cycles before the round has been concluded
-    inline int max_cycles()              const {return get().ini_values.at(INI_NAMES[1]);}
+    inline int max_cycles()        const { return get().ini_values.at(INI_NAMES[1]); }
 
-    /// Max number of processes a single warrior can create
-    inline int max_processes()           const {return get().ini_values.at(INI_NAMES[2]);}
+    /// Max number of processes a single program can create
+    inline int max_processes()     const { return get().ini_values.at(INI_NAMES[2]); }
 
-    /// Max instructions a warrior can consist of
-    inline int max_warrior_len()         const {return get().ini_values.at(INI_NAMES[3]);}
+    /// Max instructions a program can consist of
+    inline int max_program_insts() const { return get().ini_values.at(INI_NAMES[3]); }
 
-    /// Min distance between warriors at the start of a round
-    inline int min_separation()          const {return get().ini_values.at(INI_NAMES[4]);}
+    /// Min distance between programs at the start of a round
+    inline int min_separation()    const { return get().ini_values.at(INI_NAMES[4]); }
 
 }; /* ::Settings */
