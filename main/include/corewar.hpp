@@ -27,7 +27,7 @@ class Game
 {
  private:
     static char constexpr warriors_dir[] = "warriors/";
-    static int  constexpr max_players    = 4;
+    static int  constexpr max_players    = 6;
 
     int      m_round;              // current round number
     State    m_state;              // current game state
@@ -42,7 +42,7 @@ class Game
     /// Restore operating system to default 
     inline void restore_os()
     {
-        os_memory = OS::Memory(
+        os_memory = OS::Memory(     /* Always before scheduler (needs program counter addresses) */
             &asm_warriors, 
             Settings::get().min_separation()
         );
@@ -81,28 +81,44 @@ class Game
     /// @param _buffer recieves a copy of the program information
     void next_turn(Program *_buffer);
 
- /* Utility */
-
     /// Return the current round
-    inline int round() const { return m_round; }
+    inline int const round() const { return m_round; }
 
     /// Return the max rounds
-    inline int max_rounds() const { return Settings::get().max_rounds(); }
-    
+    inline int const max_rounds() const { return Settings::get().max_rounds(); }
+
+    /* Player */
+
+
+ /* OS::Report */
+
     /// Return the game state
-    inline State state() const { return m_state; }
+    inline State const state() const { return m_state; }
 
     /// Returns report containing operating system details of the FDE cycle
     inline OS::Report const report() const { return os_report; }
+ 
+ /* OS::Scheduler */
 
     /// Returns number of executed cycles
-    inline int const cycles() { return os_sched.cycles(); }
+    inline int const cycles() const { return os_sched.cycles(); }
 
     /// Returns active programs in execution
-    inline int const active_programs() { return os_sched.active(); }
+    inline int const active_programs() const { return os_sched.active(); }
 
     /// Returns total processes executing
-    inline int const total_processes() { return os_sched.processes(); }
+    inline int const total_processes() const { return os_sched.processes(); }
+
+ /* OS::Memory */
+
+    /// Returns the size of the OS's RAM
+    inline int constexpr core_size() const { return os_memory.size(); }
+
+    /// Returns a string of the assembly instruction at the address
+    inline std::string const assembly_at(int _pos) const
+    { 
+        return os_memory[os_report.exe.address].to_assembly();
+    }
 
 }; /* Game */
 
