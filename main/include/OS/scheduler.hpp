@@ -69,16 +69,16 @@ class Scheduler
     inline int const cycles() const { return m_cycles; }
 
     /// Returns number of active queues
-    inline int const active() { return RR.len(); }
+    inline int const active() const { return RR.len(); }
 
     /// Returns the total number of processes
-    inline int const processes() 
+    inline int const processes() const
     {  
         int total_ = 0;
         
         for (int i = 0; i < active(); i++)
         {
-            total_ += schedules_tbl[RR.next()].size();
+            total_ += schedules_tbl.at(RR.next()).size();
         }
         return total_;
     }

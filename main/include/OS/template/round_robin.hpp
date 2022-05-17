@@ -5,9 +5,19 @@ template<typename T>
 class RoundRobin
 {
  private:
-    int m_pos;                  // position of current round robin sequance
+    int mutable m_pos;          // position of current round robin sequance
     int m_length;               // length of iterations before rotating to 0
     std::vector<T> m_sequance;  // collection containing of elements rotating in a sequance
+
+    /// Returns current position address
+    inline int pos() const
+    { 
+        if (m_pos < 0 || m_pos >= m_length)
+        {
+            m_pos = 0;
+        }
+        return m_pos;
+    }
 
  public:
     /// Create a round robin system with a position & length of 0
@@ -17,30 +27,20 @@ class RoundRobin
         m_length =  0;
     }
 
-    /// Returns current position address
-    inline int const pos() 
-    { 
-        if (m_pos < 0 || m_pos >= m_length)
-        {
-            m_pos = 0;
-        }
-        return m_pos;
-    } 
-
     /// Returns length of the round robin sequance
     inline int const len() const { return m_length; }
 
     /// Return the iteration element in the sequance WITHOUT moving to the next
-    inline T i() { return m_sequance[pos()]; }
+    inline T i() const { return m_sequance.at(pos()); }
 
     /// Move to next position in the sequance, and return the data
-    inline T next()
+    inline T next() const
     {
         if (is_running())
         {
             m_pos++;
         }
-        return m_sequance[pos()];
+        return m_sequance.at(pos());
     }
 
     /// Returns true if the sequance has been depleted to one or zero
