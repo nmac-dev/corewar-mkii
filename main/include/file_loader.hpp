@@ -1,4 +1,4 @@
-/// Handles loading files for corewar (match settings, warriors)
+/// Handles loading files
 #pragma once
 
 // #define FILE_LOADER_DEBUG
@@ -57,7 +57,9 @@ inline std::vector<std::string> load_file_data(std::string filename, const char 
                 file_data.push_back(line);
 
             #ifdef FILE_LOADER_DEBUG
-            std::cout << "File_Loader::load_file_data: \t" << !blank ? "Added: " : "Ignored: " << line << std::endl;
+            std::cout << "File_Loader::load_file_data: \t" 
+                << (!blank ? "Added: " : "Ignored: ") 
+                << line << std::endl;
             #endif
         }
     else 
