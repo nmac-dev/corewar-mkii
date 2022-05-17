@@ -1,7 +1,7 @@
 /// Collection of enumerations representing assembly code
 #pragma once
 
-namespace ASM
+namespace Asm
 {
 /// Assembly Instruction Opcode (specifies operation to perform)
 enum class Opcode
@@ -80,4 +80,4 @@ enum class Admo
 /// Instruction operand field ( [A], [B] )
 enum class InstField { A, B };
 
-} /* ::ASM */
+} /* ::Asm */

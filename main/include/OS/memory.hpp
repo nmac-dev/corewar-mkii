@@ -1,10 +1,11 @@
 /// Memory using circular RAM with assembly instruction objects and decoding functions
 #pragma once
 
-//#define MEMORY_DEBUG
+// #define MEMORY_DEBUG
 
 #include <stdint.h>
 #include <time.h>
+#include "assembly.hpp"
 #include "ctrl_unit.hpp"
 #include "template/c_ram.hpp"
 
@@ -15,16 +16,16 @@ class Memory
 {
  private:
     static int constexpr ram_size = 8000;   // number of memory addresses within the core 
-    int ini_min_seperation;                 // min distance between warriors at the start of a round (config.ini) 
+    int ini_min_seperation;                 // min distance between programs at the start of a round (config.ini) 
 
     C_RAM<Inst> RAM;                        // Array of instruction objects (circular)
 
  public:
     /// Initialises the simulator by loading a default asm instruction (dat #0, #0) into every address,
-    /// then places each warrior at a random location in accordance with the 'min_seperation' setting
-    /// @param _warriors collection of warriors to be loaded into the core
-    /// @param _min_seperation minimum seperation between warriors in the simulator
-    Memory(WarriorVec *_warriors, int _min_seperation);
+    /// then places each program at a random location in accordance with the 'min_seperation' setting
+    /// @param _programs collection of programs to be loaded into the core
+    /// @param _min_seperation minimum seperation between programs in the simulator
+    Memory(ProgramVec *_programs, int _min_seperation);
     Memory();
     
  /* Decode */

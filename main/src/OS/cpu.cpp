@@ -1,4 +1,4 @@
-/// Pushes fetch/decode/execute cycles to Memory and selects warrior processes from the scheduler
+/// Pushes fetch/decode/execute cycles to Memory and selects program processes from the scheduler
 
 #include "OS/cpu.hpp"
 
@@ -23,7 +23,7 @@ Report CPU::run_fde_cycle()
     ctrl        = os_memory->generate_ctrl(exe_pc); // generate control unit
 
     #ifdef CPU_DEBUG
-    printf("\nCore::run_fde_cycle:\t Cycle:[%d]\t Warrior:[%d] Index:[%d] Inst:'%s' \n",
+    printf("\nCore::run_fde_cycle:\t Cycle:[%d]\t Program:[%d] Index:[%d] Inst:'%s' \n",
         os_sched->cycles(), exe_process.parent_id(), 
         ctrl.EXE.address, (*os_memory)[ctrl.EXE.address].to_assembly().c_str());
     #endif

@@ -1,22 +1,23 @@
-/// Executes fetch/decode/execute cycles to Memory and selects warrior processes from the scheduler
+/// Executes fetch/decode/execute cycles to Memory and selects program processes from the scheduler
 #pragma once
 
 // #define CPU_DEBUG
 // #define CPU_DEBUG_CODES
 
+#include "assembly.hpp"
 #include "memory.hpp"
 #include "scheduler.hpp"
 #include "report.hpp"
 
-/// Operating System handles: fetch/decode/execute cycle, memory simulator, and warrior processes
+/// Operating System handles: fetch/decode/execute cycle, memory simulator, and program processes
 namespace OS 
 {
-/// Handles the fetch/decode/execute cycle, memory array of assembly instructions, and warrior processes
+/// Handles the fetch/decode/execute cycle, memory array of assembly instructions, and program processes
 class CPU
 {
  private:
     Memory    *os_memory;       // memory array simulator
-    Scheduler *os_sched;        // process scheduler (sched) for warriors
+    Scheduler *os_sched;        // process scheduler (sched) for programs
 
     ControlUnit ctrl;           // Control Unit from Memory, used in executiom
     PCB         exe_process;    // process executing the instruction

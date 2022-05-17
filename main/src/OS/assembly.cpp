@@ -2,7 +2,7 @@
 
 #include "OS/assembly.hpp"
 
-namespace ASM
+namespace Asm
 {
 Inst::Inst(Operation _OP, Operand _A, Operand _B)
 {
@@ -136,24 +136,22 @@ std::string Inst::to_assembly()
     return code_;
 } /* ::toAsmCode() */
 
-Warrior::Warrior(std::string _name, const int _length, int _max_warrior_inst)
+Program::Program(std::string _name, const int _length)
 {
-    ini_max_warrior_inst = _max_warrior_inst;
-
     m_uuid         = create_uuid();
     m_name         = _name;
     m_length       = _length;
     m_address      = -1;                    // m_address (late init)
-    m_insts.reserve(ini_max_warrior_inst);
+    m_insts.reserve(m_length);
 }
 
-void Warrior::push(Inst _inst)
+void Program::push(Inst _inst)
 {
     if (m_insts.size() != m_length) 
         m_insts.push_back(_inst);
 }
 
-Inst  Warrior::operator[](int address) const { return m_insts[address]; }
-Inst &Warrior::operator[](int address)       { return m_insts[address]; }
+Inst  Program::operator[](int address) const { return m_insts[address]; }
+Inst &Program::operator[](int address)       { return m_insts[address]; }
 
-} /* ::ASM */
+} /* ::Asm */

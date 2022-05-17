@@ -15,10 +15,10 @@ struct Report
         Event event;    // instruction event
     };
 
-    UUID warrior_id,    // executing warrior UUID
-         next_pc;       // next program counter to be executed
+    UUID program_id;    // executing program UUID
     Status status;      // m_status of the execution
 
+    int next_pc;
     Log exe,            // executing instruction    (EXE)
         src,            // EXE: source instruction
         dest;           // EXE: destination instruction

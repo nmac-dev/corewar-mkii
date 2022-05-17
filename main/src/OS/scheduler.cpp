@@ -1,32 +1,31 @@
-/// Handles warrior processes in a round robin system, ensures one process each per cycle
+/// Handles program processes in a round robin system, ensures one process each per cycle
 
 #include "OS/scheduler.hpp"
 
-/// Operating System handles: fetch/decode/execute cycle, memory simulator, and warrior processes
+/// Operating System handles: fetch/decode/execute cycle, memory simulator, and program processes
 namespace OS {
 
-Scheduler::Scheduler(ASM::WarriorVec *_warriors, int _max_cycles, int _max_processes)
+Scheduler::Scheduler(Asm::ProgramVec *_programs, int _max_cycles, int _max_processes)
 {
     ini_max_cycles     = _max_cycles;
     ini_max_processes  = _max_processes;
     m_cycles           = 0;
 
-    schedules_tbl.reserve(_warriors->size());
+    schedules_tbl.reserve(_programs->size());
 
-    // create a queue for each warrior
-    for (int i = 0; i < _warriors->size(); i++)
+    // create a queue for each program
+    for (int i = 0; i < _programs->size(); i++)
     {
-        UUID uuid_ = (*_warriors)[i].get()->uuid();
+        UUID uuid_ = (*_programs)[i].get()->uuid();
         RR.push_back(uuid_);
 
-        // create a  schedule for the warrior with an initial process
+        // create a  schedule for the program with an initial process
         schedules_tbl[uuid_] = PrcsQueue();
-        this->add_process(uuid_, (*_warriors)[i].get()->address());
+        this->add_process(uuid_, (*_programs)[i].get()->address());
     }
 
     #ifdef SCHEDULER_DEBUG
-    printf("\nScheduler::Scheduler: initialised with |%d| processes \n",
-            size());
+    printf("\nScheduler::Scheduler: initialised with |%d| processes \n", processes());
     #endif
 }
 Scheduler::Scheduler()  = default;
@@ -47,7 +46,7 @@ void Scheduler::add_process(UUID _parent, int _pc_initial)
 
     #ifdef SCHEDULER_DEBUG_ADD_PCB
     schedules_tbl[_parent].back() >> _pc_initial;
-    printf("\nScheduler::add_process: \t PC:|%d| \t Warrior:[%d] \n",
+    printf("\nScheduler::add_process: \t PC:|%d| \t Program:[%d] \n",
             _pc_initial, _parent);
     #endif
 }
@@ -72,8 +71,8 @@ void Scheduler::kill_process(PCB* _process)
     else printf("ERROR: scheduler failed to kill process... UUID:[%d] \n", _uuid);
 
     #ifdef SCHEDULER_DEBUG_KILL_PCB
-    printf("\nScheduler::kill_process:\t Warrior:[%d] \t PCBs:|%d| \n",
-                _uuid, processes(_process.parent_id()));
+    printf("\nScheduler::kill_process:\t Program:[%d] \t PCBs:|%d| \n",
+            _uuid, processes(_process->parent_id()));
     #endif
 }
 
@@ -96,7 +95,7 @@ PCB Scheduler::fetch_next()
     }
 
     #ifdef SCHEDULER_DEBUG
-    printf("\nScheduler::fetch_next: \t Warrior:[%d] \t Processes:|%d| \n",
+    printf("\nScheduler::fetch_next: \t Program:[%d] \t Processes:|%d| \n",
            process_.parent_id(), processes(process_.parent_id()) );
     #endif
 

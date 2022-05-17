@@ -7,13 +7,13 @@
 #include "assembly_enums.hpp"
 #include "uuid.hpp"
 
-namespace ASM
+namespace Asm
 {
-class Warrior;
+class Program;
 struct Inst;
 
-using UniqWarrior = std::unique_ptr<Warrior>;
-using WarriorVec  = std::vector<UniqWarrior>;
+using UniqProgram = std::unique_ptr<Program>;
+using ProgramVec  = std::vector<UniqProgram>;
 using InstVec     = std::vector<Inst>;
 
 /// ArgType: operation code and modifier argument types
@@ -54,59 +54,54 @@ struct Inst
 
 };  /* Inst */
 
-/// Represents a warrior (player) containing assembly code instruction
-class Warrior
+/// Represents a program containing assembly code instruction
+class Program
 {
  private:
-    int ini_max_warrior_inst;   // max insts a warrior can consist of
-
-    std::string m_name;         // warrior's name (filename)
+    std::string m_name;         // program's name (filename)
     UUID m_uuid;                // universally unique identifier
-    int  m_length,              // length of the warrior (lines of instructions) 
-         m_address;             // location of the first warrior instruction in the core (late init) 
-    InstVec m_insts;            // contains all the warriors instructions
+    int  m_length,              // length of the program (lines of instructions) 
+         m_address;             // location of the first program instruction in the core (late init) 
+    InstVec m_insts;            // contains all the programs instructions
 
  public:
-    /// Creates a warrior
-    /// @param _name   warrior's name (filename)
-    /// @param _length number (lines) of asm instructions
-    /// @param _max_warrior_len [static] max length of a warrior (corewar.ini) 
-    Warrior(std::string _name, const int _length, int _max_warrior_len);
+    /// Creates a program
+    /// @param _name   program's name (filename)
+    /// @param _length number (lines) of assembly instructions
+    Program(std::string _name, const int _length);
 
-    /// Adds an instruction to the warriors collection
+    /// Adds an instruction to the programs collection
     /// @param _inst instruction object to add
     void push(Inst _inst);
 
  /* Utility */
 
-    /// Returns the name (file) of the warrior
-    inline std::string name() const { return m_name; }
+    /// Returns the name (file) of the program
+    inline std::string name()   const { return m_name;    }
     
-    /// Returns the UUID to identify the warrior
-    inline UUID uuid() const { return m_uuid; }
+    /// Returns the UUID to identify the program
+    inline UUID uuid()          const { return m_uuid;    }
 
-    /// Returns length (number of instructions) of the warrior
-    inline int len() const { return m_length; }
+    /// Returns length (number of instructions) of the program
+    inline int len()            const { return m_length;  }
 
-    /// Returns the warriors posistion within the core
-    inline int address() const { return m_address; }
+    /// Returns the programs posistion within the core
+    inline int address()        const { return m_address; }
 
-    /// Sets the warriors posistion within the core
-    inline void set_address(int val) { m_address = val; }
+    /// Sets the programs posistion within the core
+    inline void set_address(int val)  { m_address = val;  }
 
-    /// returns the start address of the warrior within the core
-    inline int begin() const { return m_address; }
+    /// returns the start address of the program within the core
+    inline int begin() const { return m_address;            }
 
-    /// returns the end address of the warrior within the core (address + length -1)
-    inline int end() const { return m_address + m_length; }
+    /// returns the end address of the program within the core (address + length -1)
+    inline int end()   const { return m_address + m_length; }
 
-
-
-    /// Access address of warrior's instruction array
+    /// Access address of program's instruction array
     Inst  operator[](int address) const;
-    /// Modify address of warrior's instruction array
+    /// Modify address of program's instruction array
     Inst &operator[](int address);
 
-}; /* Warrior */
+}; /* Program */
 
-} /* ::ASM */
+} /* ::Asm */

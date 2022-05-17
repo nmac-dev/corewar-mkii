@@ -4,17 +4,17 @@
 
 namespace OS
 {
-Memory::Memory(WarriorVec *_warriors, int _min_seperation)
+Memory::Memory(ProgramVec *_programs, int _min_seperation)
 {
     ini_min_seperation = _min_seperation;
 
     // populate RAM with (dat #0, #0) asm instructions
     RAM = C_RAM<Inst>(ram_size);
 
-    // place warriors in core at random positions
-    for (int i = 0; i < _warriors->size(); i++)
+    // place programs in core at random positions
+    for (int i = 0; i < _programs->size(); i++)
     {
-        Warrior warrior_i = *(*_warriors)[i].get();
+        Program program_i = *(*_programs)[i].get();
         uint32_t rnd_pos  = random_int(ram_size);
 
         // validate position meets minimum seperation requirements
@@ -23,7 +23,7 @@ Memory::Memory(WarriorVec *_warriors, int _min_seperation)
             // get upper & lower limits for seperation boundry
             int upper   = RAM.loop_index(rnd_pos + ini_min_seperation),
                 lower   = RAM.loop_index(rnd_pos - ini_min_seperation);
-            int w_index = warrior_i.address();
+            int w_index = program_i.address();
 
             if (w_index > lower && w_index < upper)
             {
@@ -32,19 +32,19 @@ Memory::Memory(WarriorVec *_warriors, int _min_seperation)
                 k = 0;
             }
         }
-        (*_warriors)[i].get()->set_address(rnd_pos);
+        (*_programs)[i].get()->set_address(rnd_pos);
 
-        // add each warrior instruction into the core
-        for (int j = 0; j < warrior_i.len(); j++)
+        // add each program instruction into the core
+        for (int j = 0; j < program_i.len(); j++)
         {
-            *RAM[rnd_pos++] = warrior_i[j];
+            *RAM[rnd_pos++] = program_i[j];
         }
 
         #ifdef MEMORY_DEBUG
         if (i == 0) printf("\n Memory::Memory: \n");
         printf("\tAdded |%d| instructions @ address [%d] \t...from: [%d] '%s'\n",
-                warrior_i.len(), (*_warriors)[i].get()->address(),
-                warrior_i.uuid(), warrior_i.name().c_str());
+                program_i.len(), (*_programs)[i].get()->address(),
+                program_i.uuid(), program_i.name().c_str());
         #endif
     }
 }

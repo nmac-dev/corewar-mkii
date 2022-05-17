@@ -2,7 +2,7 @@
 
 #include "OS/pcb.hpp"
 
-/// Operating System handles: fetch/decode/execute cycle, memory simulator, and warrior processes
+/// Operating System handles: fetch/decode/execute cycle, memory simulator, and program processes
 namespace OS {
 
 PCB::PCB(UUID _parent_id, int _pc_initial)

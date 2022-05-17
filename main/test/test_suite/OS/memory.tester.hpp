@@ -9,7 +9,7 @@ namespace TS { namespace _Memory_
 namespace /* {anonymous} */
 {
     using namespace OS;
-    using namespace ASM;
+    using namespace Asm;
 
 Info suite_info(Info _info)
 {
@@ -17,17 +17,16 @@ Info suite_info(Info _info)
     return _info;
 }
 
-#define TS__MEMORY__SET_TEST_ENV()                                              \
-    constexpr int max_warrior_len = 12,                                         \
-                  min_seperation  = 12;                                         \
-                                                                                \
-    ASM::WarriorVec warriors;                                                   \
-    warriors.push_back(                                                         \
-        ASM::UniqWarrior ( new ASM::Warrior("example", 1, max_warrior_len) )    \
-    );                                                                          \
-    warriors[0].get()->push(Inst());                                            \
-                                                                                \
-    Memory mars_(&warriors, min_seperation);
+#define TS__MEMORY__SET_TEST_ENV()                           \
+    constexpr int min_seperation = 12;                       \
+                                                             \
+    Asm::ProgramVec programs;                                \
+    programs.push_back(                                      \
+        Asm::UniqProgram ( new Asm::Program("example", 1) )  \
+    );                                                       \
+    programs[0].get()->push(Inst());                         \
+                                                             \
+    Memory mars_(&programs, min_seperation);
     /* TS__MEMORY__SET_TEST_ENV() */
 
 BoolInt OUT_OF_BOUNDS(); /** TEST: out of bounds (lower | upper)                        */

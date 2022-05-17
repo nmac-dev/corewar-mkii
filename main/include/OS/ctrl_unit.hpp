@@ -5,7 +5,7 @@
 
 namespace OS
 {
-namespace /* {anonymous} */ { using namespace ASM; }
+namespace /* {anonymous} */ { using namespace Asm; }
 
 enum class Event{ NOOP, READ, WRITE, EXECUTE }; // Defines event types applied to the core
 

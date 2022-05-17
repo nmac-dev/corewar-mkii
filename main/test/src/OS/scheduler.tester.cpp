@@ -26,8 +26,8 @@ namespace /* {anonymous} */
 /** TEST: round robin loop */
 BoolInt ROUND_ROBIN_LOOP()
 {
-    int constexpr n_warriors = 12;
-    TS__SCHEDULER__SET_TEST_ENV(n_warriors)
+    int constexpr n_programs = 12;
+    TS__SCHEDULER__SET_TEST_ENV(n_programs)
 
  /** SUITE: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     Header HDR_ (suite_info( {"RoundRobin", "ROUND_ROBIN_LOOP()", ""} ));
@@ -38,7 +38,7 @@ BoolInt ROUND_ROBIN_LOOP()
 
     E_ = UUID_;
 
-    n_queues = sched_.active();
+    n_queues = sched_.programs();
     for (int i = 0; i < (n_queues * n_queues); i++)
     {
         process_ = sched_.fetch_next();
@@ -51,25 +51,25 @@ BoolInt ROUND_ROBIN_LOOP()
 
     E_ = 1;
 
-    sched_ = Scheduler(&warriors, max_cycles, max_processes);
+    sched_ = Scheduler(&programs, max_cycles, max_processes);
 
-    n_queues = sched_.active();
+    n_queues = sched_.programs();
     for (int i = 0; i < n_queues; i++)
     {
         process_ = sched_.fetch_next();
                    sched_.kill_process(&process_);
                    sched_.return_process(&process_);
     }
-    A_ = sched_.active();
+    A_ = sched_.programs();
     RUN_TEST(E_, A_, HDR_);
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
  HDR_.info.test_desc = "Exit on Last UUID";
 
     E_ = (int) Status::EXIT;
 
-    sched_ = Scheduler(&warriors, max_cycles, max_processes);
+    sched_ = Scheduler(&programs, max_cycles, max_processes);
 
-    n_queues = sched_.active();
+    n_queues = sched_.programs();
     for (int i = 0; i < n_queues; i++)
     {
         process_ = sched_.fetch_next();
@@ -86,8 +86,8 @@ BoolInt ROUND_ROBIN_LOOP()
 /** TEST: add processes */
 BoolInt ADD_PRCS()
 {
-    int constexpr n_warriors = 3;
-    TS__SCHEDULER__SET_TEST_ENV(n_warriors)
+    int constexpr n_programs = 3;
+    TS__SCHEDULER__SET_TEST_ENV(n_programs)
 
  /** SUITE: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     Header HDR_ (suite_info( {"add_process()", "ADD_PRCS()", ""} ));
@@ -110,8 +110,8 @@ BoolInt ADD_PRCS()
 /** TEST: kill processes */
 BoolInt KILL_PRCS()
 {
-    int constexpr n_warriors = 3;
-    TS__SCHEDULER__SET_TEST_ENV(n_warriors)
+    int constexpr n_programs = 3;
+    TS__SCHEDULER__SET_TEST_ENV(n_programs)
 
     while (sched_.processes(UUID_) != sched_.max_processes())
     {
@@ -144,8 +144,8 @@ BoolInt KILL_PRCS()
 /** TEST: adding process over max */
 BoolInt MAX_PROCESSES_LIMIT()
 {
-    int constexpr n_warriors = 3;
-    TS__SCHEDULER__SET_TEST_ENV(n_warriors)
+    int constexpr n_programs = 3;
+    TS__SCHEDULER__SET_TEST_ENV(n_programs)
 
     int test_limit = sched_.max_processes() + 5;
 

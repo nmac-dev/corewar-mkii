@@ -3,7 +3,7 @@
 
 #include "uuid.hpp"
 
-/// Operating System handles: fetch/decode/execute cycle, memory simulator, and warrior processes
+/// Operating System handles: fetch/decode/execute cycle, memory simulator, and program processes
 namespace OS {
 
 /// Denotes the status of execution

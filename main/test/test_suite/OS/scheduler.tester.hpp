@@ -16,30 +16,29 @@ Info suite_info(Info _info)
     return _info;
 }
 
-#define TS__SCHEDULER__SET_TEST_ENV(N_WARRIORS)                     \
-    int constexpr max_warrior_len = 1,                              \
-                  max_cycles      = 200000,                         \
-                  max_processes   = 200,                            \
-                  program_counter = 1;                              \
-                                                                    \
-    ASM::WarriorVec warriors;                                       \
-    warriors.reserve(N_WARRIORS);                                   \
-                                                                    \
-    for (int i = 0; i < N_WARRIORS; i++)                            \
-    {                                                               \
-        warriors.push_back(                                         \
-            ASM::UniqWarrior (                                      \
-                new ASM::Warrior("example", 1, max_warrior_len)     \
-            )                                                       \
-        );                                                          \
-        warriors[i].get()->set_address(program_counter + i);        \
-    }                                                               \
-    Scheduler sched_(&warriors, max_cycles, max_processes);         \
-                                                                    \
-    PCB process_ = sched_.fetch_next();                             \
-                   sched_.return_process(&process_);                \
-                                                                    \
-    int UUID_      = process_.parent_id();                          \
+#define TS__SCHEDULER__SET_TEST_ENV(N_PROGRAMS)               \
+    int constexpr max_cycles      = 200000,                   \
+                  max_processes   = 200,                      \
+                  program_counter = 1;                        \
+                                                              \
+    Asm::ProgramVec programs;                                 \
+    programs.reserve(N_PROGRAMS);                             \
+                                                              \
+    for (int i = 0; i < N_PROGRAMS; i++)                      \
+    {                                                         \
+        programs.push_back(                                   \
+            Asm::UniqProgram (                                \
+                new Asm::Program("example", 1)                \
+            )                                                 \
+        );                                                    \
+        programs[i].get()->set_address(program_counter + i);  \
+    }                                                         \
+    Scheduler sched_(&programs, max_cycles, max_processes);   \
+                                                              \
+    PCB process_ = sched_.fetch_next();                       \
+                   sched_.return_process(&process_);          \
+                                                              \
+    int UUID_      = process_.parent_id();                    \
     int processes_ = sched_.processes(UUID_);
     /* TS__SCHEDULER__SET_TEST_ENV() */
 
