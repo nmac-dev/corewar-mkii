@@ -11,15 +11,15 @@ Game::Game()
     m_state = State::WAITING;
 }
 
-enum State Game::new_game(ProgramFiles _filenames)
+enum State Game::new_game(WarriorFiles _filenames)
 {
     int n_warriors = (_filenames.size() > max_players) ? max_players
                                                        : _filenames.size();
     m_round = 0;
     m_state = State::WAITING;
-    m_programs.clear();
-    asm_warriors.clear();
-    asm_warriors.reserve(n_warriors);
+    m_warriors.clear();
+    asm_programs.clear();
+    asm_programs.reserve(n_warriors);
 
     /* Load Settings */
     try
@@ -32,7 +32,7 @@ enum State Game::new_game(ProgramFiles _filenames)
     printf("\n Corewar::Game::init: loaded settings: 'config.ini' \n");
     #endif
 
-    /* Load Programs */
+    /* Load Warriors */
     Player player_;
     UUID   warrior_id;
     for (int i = 0; i < n_warriors; i++)
@@ -45,27 +45,30 @@ enum State Game::new_game(ProgramFiles _filenames)
                 File_Loader::load_file_data(warriors_dir + filename, ASSEMBLY_COMMENT)
             );
 
-            asm_warriors.push_back(
-                ASM::UniqWarrior(
-                    Parser::create_warrior(filename, asm_code, Settings::get().max_warrior_len())
+            asm_programs.push_back(
+                Asm::UniqProgram(
+                    Parser::create_program(filename, asm_code, Settings::get().max_program_insts())
                 )
             );
         } catch (const std::exception e) { return State::ERR_WARRIORS; }
+        warrior_id = asm_programs[i].get()->uuid();
 
-        warrior_id = asm_warriors[i].get()->uuid();
+        // select player
         switch (i)
         {
             case 0: player_ = Player::P1; break;
             case 1: player_ = Player::P2; break;
             case 2: player_ = Player::P3; break;
             case 3: player_ = Player::P4; break;
+            case 4: player_ = Player::P5; break;
+            case 5: player_ = Player::P6; break;
             default: break;
         }
 
-        // set program info
-        m_programs[warrior_id] = Program(
+        // set warrior info
+        m_warriors[warrior_id] = Warrior(
             warrior_id,
-            asm_warriors[i].get()->name(),
+            asm_programs[i].get()->name(),
             player_
         );
 
@@ -77,23 +80,33 @@ enum State Game::new_game(ProgramFiles _filenames)
     restore_os();
 
     return m_state = State::RUNNING;
-} /* ::init(ProgramFiles ) */
+} /* init() */
 
-void Game::next_turn(Program *_buffer)
+void Game::next_turn(Warrior *_buffer)
 {
     /* Next Turn */
     os_report         = os_cpu.run_fde_cycle();
-    Program *program_ = &m_programs[os_report.warrior_id];
+    Warrior *warrior_ = &m_warriors[os_report.program_id];
 
     // update processes
-    (*program_).set_prcs(os_sched.processes( (*program_).id() ));
+    warrior_->update_prcs(os_sched);
 
     /* Round End */
     if (m_round == 0 || os_report.status >= OS::Status::HAULTED)
     {
-        /* Program Won */
+        /* Warrior Win/Draw */
         if (os_report.status == OS::Status::EXIT)
-            (*program_).add_win();
+        {
+            warrior_->update_game_results(os_report);
+        }
+        else if (os_report.status == OS::Status::HAULTED)
+        {
+            for (int i = 0; i < m_warriors.size(); i++)
+            {
+                if (m_warriors[i].is_alive())
+                    m_warriors[i].update_game_results(os_report);
+            }
+        }
 
         /* Game Complete  */
         if (m_round >= Settings::get().max_rounds())
@@ -113,11 +126,11 @@ void Game::next_turn(Program *_buffer)
             #ifdef COREWAR_DEBUG
             printf("\n Corewar::Game::next:\t Round |%d| complete\t winner '%s' \n", 
                     m_round, 
-                    os_report.status == OS::Status::EXIT ? program_.name().c_str() : "Draw");
+                    os_report.status == OS::Status::EXIT ? warrior_->name().c_str() : "Draw");
             #endif
         }
     }
-    (*_buffer) = (*program_);
+    (*_buffer) = (*warrior_);
 }
 
 } /* ::Corewar */

@@ -3,6 +3,8 @@
 
 #include <string>
 #include "OS/uuid.hpp"
+#include "OS/scheduler.hpp"
+#include "OS/report.hpp"
 
 namespace Corewar
 {
@@ -18,13 +20,13 @@ enum class Player
     P6      // Orange
 };
 
-/// Contains information for a corewar program (warrior)
-class Program
+/// Contains information for a corewar warrior (warrior)
+class Warrior
 {
  private:
     UUID        m_id;     // unique id
     std::string m_name;   // name (without directory)
-    Player      m_player; // enum representing the program
+    Player      m_player; // enum representing the warrior
 
     /* Game Stats */
     int  m_prcs,          // number of running procrsses
@@ -32,28 +34,28 @@ class Program
          m_draws;         // Total draws
  public:
 
-    /// Create new program info
+    /// Create new warrior info
     /// @param _uuid   warrior's uuid
     /// @param _name   warrior's name
-    /// @param _player enum representing program
-    Program(UUID _uuid, std::string _name, Player _player)
+    /// @param _player enum representing warrior
+    Warrior(UUID _uuid, std::string _name, Player _player)
     {
         m_id     = _uuid;
         m_name   = _name;
         m_player = _player;
         clear_stats();
     }
-    Program() = default;
+    Warrior() = default;
 
  /* Utility */
 
-    /// Returns programs unique ID
+    /// Returns warriors unique ID
     inline UUID const id()          const { return m_id;        }
 
-    /// Returns program's name
+    /// Returns warrior's name
     inline std::string const name() const { return m_name;      }
 
-    /// Returns enum of the program's play
+    /// Returns enum of the warrior's play
     inline Player const player()    const { return m_player;    }
     
     /// Returns current number of processes
@@ -65,7 +67,7 @@ class Program
     /// Returns total draws
     inline int const draws()        const { return m_draws;     }
 
-    /// Returns false: when all the program's processes have been killed
+    /// Returns false: when all the warrior's processes have been killed
     inline bool const is_alive()    const { return m_prcs > 0;  }
 
     /// Updates the processes using the Game's scheduler
@@ -85,7 +87,7 @@ class Program
         }
     }
 
-    /// Clears the programs stats ready for a new game
+    /// Clears the warriors stats ready for a new game
     inline void clear_stats()
     { 
         m_prcs = m_draws = m_wins = 0;

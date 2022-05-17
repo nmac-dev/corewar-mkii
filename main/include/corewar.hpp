@@ -1,17 +1,19 @@
 /// Initialise & Run a game of corewar
 #pragma once
 
-// #define COREWAR_DEBUG
+#define COREWAR_DEBUG
 
 #include "settings.hpp"
 #include "parser.hpp"
+#include "OS/memory.hpp"
+#include "OS/scheduler.hpp"
 #include "OS/cpu.hpp"
-#include "player.hpp"
+#include "warrior.hpp"
 
 namespace Corewar
 {
-using ProgramFiles = std::vector<std::string>;
-using Programs     = std::unordered_map<UUID, Program>;
+using WarriorFiles = std::vector<std::string>;
+using Warriors     = std::unordered_map<UUID, Warrior>;
 
 /// Initialisation Status: used to report exceptions back to the caller
 enum class State
@@ -20,7 +22,7 @@ enum class State
     RUNNING,        // no errors to report
     COMPLETE,       // game somplete
     ERR_INI,        // "corewar.ini" failed to load
-    ERR_WARRIORS    // failed to load specified warriors from "warriors/"
+    ERR_WARRIORS    // failed to load specified warriors
 };
 
 class Game
@@ -31,9 +33,9 @@ class Game
 
     int      m_round;              // current round number
     State    m_state;              // current game state
-    Programs m_programs;           // hash table of player programs 
+    Warriors m_warriors;           // hash table of warriors 
 
-    ASM::WarriorVec asm_warriors;  // contains all warriors assembly
+    Asm::ProgramVec asm_programs;  // contains all assembly programs
     OS::Memory      os_memory;     // memory array simulator
     OS::Scheduler   os_sched;      // process scheduler
     OS::CPU         os_cpu;        // cpu of the operating system
@@ -43,11 +45,11 @@ class Game
     inline void restore_os()
     {
         os_memory = OS::Memory(     /* Always before scheduler (needs program counter addresses) */
-            &asm_warriors, 
+            &asm_programs, 
             Settings::get().min_separation()
         );
         os_sched  = OS::Scheduler(
-            &asm_warriors,
+            &asm_programs,
             Settings::get().max_cycles(), 
             Settings::get().max_processes()
         );
@@ -61,15 +63,15 @@ class Game
 
  /* Functions */
 
-    /// Creates a new game using the program files (wipes previous game state)
-    /// @param _filenames warrior (program) filenames to load ("warriors/")
-    enum State new_game(ProgramFiles _filenames);
+    /// Creates a new game using the warrior files (wipes previous game state)
+    /// @param _filenames warrior (program) filenames to load ("warrior/")
+    enum State new_game(WarriorFiles _filenames);
 
-    /// Resets the game, ready to run again using the same programs
+    /// Resets the game, ready to run again using the same warriors
     inline void reset_game()
     {
         m_round = 0;
-        for (auto itr : m_programs)
+        for (auto itr : m_warriors)
         {
             itr.second.clear_stats();
         }
@@ -78,8 +80,8 @@ class Game
     }
 
     /// Runs the next turn in the game, updates the report with the new information
-    /// @param _buffer recieves a copy of the program information
-    void next_turn(Program *_buffer);
+    /// @param _buffer recieves a copy of the warrior information
+    void next_turn(Warrior *_buffer);
 
     /// Return the current round
     inline int const round() const { return m_round; }
@@ -103,8 +105,8 @@ class Game
     /// Returns number of executed cycles
     inline int const cycles() const { return os_sched.cycles(); }
 
-    /// Returns active programs in execution
-    inline int const active_programs() const { return os_sched.active(); }
+    /// Returns active warriors in execution
+    inline int const active_warriors() const { return os_sched.programs(); }
 
     /// Returns total processes executing
     inline int const total_processes() const { return os_sched.processes(); }
