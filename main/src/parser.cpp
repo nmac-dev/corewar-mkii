@@ -251,24 +251,24 @@ Inst assembly_to_inst(std::string &_line, LabelLinker &_linker, int _index)
 
 } /* ::assembly_to_inst() */
 
-Warrior *create_warrior(std::string _warrior_name, AssemblyCode &_assembly, int _max_warrior_inst)
+Program *create_program(std::string _program_name, AssemblyCode &_assembly, int _max_program_insts)
 {
     LabelLinker linker_;             // stores label positions
-    int _length = _assembly.size();  // number of warrior instruction
+    int _length = _assembly.size();  // number of program instruction
 
     // validate number of instructions is within configuration bounds
-    if (_length > _max_warrior_inst)
+    if (_length > _max_program_insts)
     {
         printf("Warning: '%s' has a length greater than the max (%d) and will be truncated."
-                "\n\tEdit corewar config file to increase '_max_warrior_inst'\n",
-                _warrior_name.c_str(), _max_warrior_inst
+                "\n\tEdit corewar config file to increase '_max_program_insts'\n",
+                _program_name.c_str(), _max_program_insts
         );
         // truncate length
-        _length = _max_warrior_inst;
+        _length = _max_program_insts;
     }
 
-    // construct warrior w/ default arguments
-    Warrior *warrior_ = new Warrior(_warrior_name.c_str(), _length, _max_warrior_inst);
+    // construct program w/ default arguments
+    Program *program_ = new Program(_program_name.c_str(), _length);
 
     // clean asm code to correct format
     for (int i = 0; i < _length; i++)
@@ -282,19 +282,19 @@ Warrior *create_warrior(std::string _warrior_name, AssemblyCode &_assembly, int 
     // parse all asm code lineing instructions to a instruction object (Inst)
     for (int i = 0; i < _length; i++)
     {
-        // replace default warrior instructions
-        (*warrior_).push(assembly_to_inst(_assembly[i], linker_, i));
+        // replace default program instructions
+        (*program_).push(assembly_to_inst(_assembly[i], linker_, i));
 
         #ifdef ASM_PARSER_DEBUG
-        if (i == 0) printf("\nparser::create_warrior: '%s'\n" , _warrior_name.c_str());
+        if (i == 0) printf("\nparser::create_program: '%s'\n" , _program_name.c_str());
         printf(" line:[%d] \n\t I::|%s| \n\t O::|%s|\n",
                 i + 1,
                 _assembly[i].c_str(),
-                (*warrior_)[i].to_assembly().c_str());
+                (*program_)[i].to_assembly().c_str());
         #endif
     }
-    return warrior_;
+    return program_;
 
-} /* ::create_warrior() */
+} /* ::create_program() */
 
 } /* ::Parser */

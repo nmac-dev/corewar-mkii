@@ -1,4 +1,4 @@
-/// Parses assembly instructions from a warrior file into a warrior class 
+/// Parses assembly instructions from a program file into a program class 
 #pragma once
 
 // #define ASM_PARSER_DEBUG
@@ -14,7 +14,7 @@ using AssemblyCode = std::vector<std::string>;
 
 namespace /* {anonymous} */
 {
-    using namespace ASM;
+    using namespace Asm;
 
 /* Lookup HashTables */
 using LabelLinker  = std::unordered_map<std::string, int>;  // stores label name and address
@@ -117,10 +117,10 @@ LabelLinker generate_label_linker(AssemblyCode &_assembly);
 /// @param address instruction address (line number) in asm code
 Inst assembly_to_inst(std::string &_line, LabelLinker &_linker, int _index);
 
-/// Create a warrior object by parsing assembly code  
-/// @param warrior_name (file)name of the warrior
-/// @param _assembly collection containing the warriors assembly code
-/// @param max_warrior_len max instructions a warrior can consist of
-Warrior *create_warrior(std::string warrior_name, AssemblyCode &_assembly, int _max_warrior_inst);
+/// Create a program object by parsing assembly code  
+/// @param _program_name filename of the program
+/// @param _assembly collection containing the programs assembly code
+/// @param max_program_insts max instructions a program can consist of
+Program *create_program(std::string program_name, AssemblyCode &_assembly, int _max_program_insts);
 
 } /* ::Parser */
