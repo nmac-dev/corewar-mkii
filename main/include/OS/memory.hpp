@@ -15,7 +15,7 @@ namespace OS
 class Memory
 {
  private:
-    static int constexpr ram_size = 8000;   // number of memory addresses within the core 
+    static int constexpr ram_size = 8192;   // number of memory addresses within the core 
     int ini_min_seperation;                 // min distance between programs at the start of a round (config.ini) 
 
     C_RAM<Inst> RAM;                        // Array of instruction objects (circular)

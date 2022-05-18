@@ -15,7 +15,7 @@ Memory::Memory(ProgramVec *_programs, int _min_seperation)
     for (int i = 0; i < _programs->size(); i++)
     {
         Program program_i = *(*_programs)[i].get();
-        uint32_t rnd_pos  = random_int(ram_size);
+        uint32_t rnd_pos  = random_int(ram_size -1);
 
         // validate position meets minimum seperation requirements
         for (int k = 0; k < i; k++)
@@ -23,16 +23,17 @@ Memory::Memory(ProgramVec *_programs, int _min_seperation)
             // get upper & lower limits for seperation boundry
             int upper   = RAM.loop_index(rnd_pos + ini_min_seperation),
                 lower   = RAM.loop_index(rnd_pos - ini_min_seperation);
-            int w_index = program_i.address();
+
+            int w_index = (*_programs)[k].get()->address();
 
             if (w_index > lower && w_index < upper)
             {
                 // failed; generate new position, restart loop
-                rnd_pos = random_int(ram_size);
+                rnd_pos = random_int(ram_size -1);
                 k = 0;
             }
         }
-        (*_programs)[i].get()->set_address(rnd_pos);
+        (*_programs)[i].get()->set_address(RAM.loop_index(rnd_pos));
 
         // add each program instruction into the core
         for (int j = 0; j < program_i.len(); j++)
@@ -132,7 +133,7 @@ Register Memory::decode_admo(ControlUnit *_ctrl, InstField const exe_select)
         }
         main_i += (*fetch_operand(main_i, indirect_select));        // indirect
     }
-    return Register(main_i, RAM[main_i]);;
+    return Register(RAM.loop_index(main_i), RAM[main_i]);
 } /* decode_admo() */
 
 void Memory::decode_modifier(ControlUnit *_ctrl)
