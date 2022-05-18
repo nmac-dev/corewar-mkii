@@ -4,7 +4,7 @@
 namespace Asm
 {
 /// Assembly Instruction Opcode (specifies operation to perform)
-enum class Opcode
+enum class Opcode : int
 {
     /* System */
     NOP, // Literally does nothing
@@ -32,7 +32,7 @@ enum class Opcode
 };
 
 /// Types of opcode arguments 
-enum class OpcodeType
+enum class OpcodeType : int
 {
     SYSTEM,         // NOP, DAT, MOV, SPL
     COMPARISION,    // SEQ, SNE, SLT
@@ -41,7 +41,7 @@ enum class OpcodeType
 };
 
 /// Assembly Instruction Modifier: determines opcode behaviour for source and destination targets
-enum class Modifier
+enum class Modifier : int
 {
     A,  // (src) A -> A (dest)
     B,  // (src) B -> B (dest)
@@ -53,7 +53,7 @@ enum class Modifier
 };
 
 /// Types of modifier arguments 
-enum class ModifierType
+enum class ModifierType : int
 {
     SINGLE, // A, B, AB, BA
     DOUBLE, // F, X
@@ -61,7 +61,7 @@ enum class ModifierType
 };
 
 /// Assembly Instruction Addressing Mode (determines source and destination)
-enum class Admo
+enum class Admo : int
 {
     IMMEDIATE,  // "#" stores an immediate value (address evaluated as 0)
     DIRECT,     // "$" [default] relative from the program counter
@@ -78,6 +78,10 @@ enum class Admo
 };
 
 /// Instruction operand field ( [A], [B] )
-enum class InstField { A, B };
+enum class InstField : int 
+{ 
+    A, // Inst Filed [A]
+    B  // Inst Filed [B]
+};
 
 } /* ::Asm */

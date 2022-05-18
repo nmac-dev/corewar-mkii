@@ -91,12 +91,6 @@ class Program
     /// Sets the programs posistion within the core
     inline void set_address(int val)  { m_address = val;  }
 
-    /// returns the start address of the program within the core
-    inline int begin() const { return m_address;            }
-
-    /// returns the end address of the program within the core (address + length -1)
-    inline int end()   const { return m_address + m_length; }
-
     /// Access address of program's instruction array
     Inst  operator[](int address) const;
     /// Modify address of program's instruction array
