@@ -64,8 +64,12 @@ Report CPU::run_fde_cycle()
                 break;
             }
         }
+        if (ctrl.EXE.event == Event::ILLEGAL)
+            os_sched->kill_process(&exe_process);
     }
     os_sched->return_process(&exe_process);
+
+    
 
     // SPL request new process
     if(exe_process.status() == Status::NEW)
@@ -95,7 +99,7 @@ void CPU::execute_system()
         }
         case Opcode::DAT:
         {
-            os_sched->kill_process(&exe_process);
+            ctrl.EXE.event  = Event::ILLEGAL;
             SRC_.event  = Event::NOOP;
             DEST_.event = Event::NOOP;
             break;
@@ -256,9 +260,9 @@ void CPU::execute_arithmetic()
 
         if (zero_div) // kill process
         {
-            os_sched->kill_process(&exe_process);
-            SRC_.event  = Event::NOOP;
-            DEST_.event = Event::NOOP;
+            ctrl.EXE.event = Event::ILLEGAL;
+            SRC_.event     = Event::NOOP;
+            DEST_.event    = Event::NOOP;
             return;
         }
     }
