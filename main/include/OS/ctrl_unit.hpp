@@ -2,12 +2,11 @@
 #pragma once
 
 #include "assembly.hpp"
+#include "system_enums.hpp"
 
 namespace OS
 {
 namespace /* {anonymous} */ { using namespace Asm; }
-
-enum class Event{ NOOP, READ, WRITE, EXECUTE }; // Defines event types applied to the core
 
 /// Register: Instruction register for the control unit decoding
 struct Register 

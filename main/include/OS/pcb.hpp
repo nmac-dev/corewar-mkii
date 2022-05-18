@@ -2,12 +2,10 @@
 #pragma once
 
 #include "uuid.hpp"
+#include "system_enums.hpp"
 
 /// Operating System handles: fetch/decode/execute cycle, memory simulator, and program processes
 namespace OS {
-
-/// Denotes the status of execution
-enum class Status { NEW, ACTIVE, TERMINATED, HAULTED, EXIT };
 
 /// Process Control Block: represents a process with a parent ID, status, and program counter
 class PCB
