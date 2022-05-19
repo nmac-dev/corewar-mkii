@@ -59,7 +59,7 @@ class Program
 {
  private:
     std::string m_name;         // program's name (filename)
-    UUID m_uuid;                // universally unique identifier
+    OS::UUID    m_uuid;         // universally unique identifier
     int  m_length,              // length of the program (lines of instructions) 
          m_address;             // location of the first program instruction in the core (late init) 
     InstVec m_insts;            // contains all the programs instructions
@@ -80,7 +80,7 @@ class Program
     inline std::string name()   const { return m_name;    }
     
     /// Returns the UUID to identify the program
-    inline UUID uuid()          const { return m_uuid;    }
+    inline OS::UUID uuid()      const { return m_uuid;    }
 
     /// Returns length (number of instructions) of the program
     inline int len()            const { return m_length;  }

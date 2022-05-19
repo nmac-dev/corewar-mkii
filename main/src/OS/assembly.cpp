@@ -138,7 +138,7 @@ std::string Inst::to_assembly()
 
 Program::Program(std::string _name, const int _length)
 {
-    m_uuid         = create_uuid();
+    m_uuid         = OS::create_uuid();
     m_name         = _name;
     m_length       = _length;
     m_address      = -1;                    // m_address (late init)

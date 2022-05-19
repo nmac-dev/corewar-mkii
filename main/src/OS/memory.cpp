@@ -33,12 +33,14 @@ Memory::Memory(ProgramVec *_programs, int _min_seperation)
                 k = 0;
             }
         }
-        (*_programs)[i].get()->set_address(RAM.loop_index(rnd_pos));
+        rnd_pos = RAM.loop_index(rnd_pos);
+        (*_programs)[i].get()->set_address(rnd_pos);
 
         // add each program instruction into the core
         for (int j = 0; j < program_i.len(); j++)
         {
-            *RAM[rnd_pos++] = program_i[j];
+            *RAM[rnd_pos] = program_i[j];
+            rnd_pos++;
         }
 
         #ifdef MEMORY_DEBUG
