@@ -67,15 +67,15 @@ Report CPU::run_fde_cycle()
         if (ctrl.EXE.event == Event::ILLEGAL)
             os_sched->kill_process(&exe_process);
     }
-    os_sched->return_process(&exe_process);
-
-    
+    os_sched->return_process(&exe_process);   
 
     // SPL request new process
     if(exe_process.status() == Status::NEW)
     {
         os_sched->add_process(exe_process.parent_id(), ctrl.SRC.address);
     }
+
+    os_memory->decode_modifier(&ctrl);
     os_memory->apply_post_inc(ctrl);
 
     return Report(exe_process, ctrl);
