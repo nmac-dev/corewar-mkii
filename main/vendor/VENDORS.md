@@ -5,7 +5,7 @@ Ref | Name | Version | Use
 :-: | :--  | :-- | :--
 `"imgui"` | [Dear ImGui](https://github.com/ocornut/imgui/tree/docking)                | 1.8 (Docking) | Corewar GUI
 `<GLFW>`  | [Graphics Library Framework](https://github.com/glfw/glfw/tree/3.3-stable) | 3.3 (Stable)  | `OpenGL` Library for Dear ImGui
-`<GLAD>`  | [GLAD](https://github.com/Dav1dde/glad)                                   | 3.2           | Function loader for `OpenGL`
+`<GLAD>`  | [GLAD](https://github.com/Dav1dde/glad)                                    | 3.3           | Function loader for `OpenGL`
 
 * `GLAD` was generated [here!](https://glad.dav1d.de/)
 ___
