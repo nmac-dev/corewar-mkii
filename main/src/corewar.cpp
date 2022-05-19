@@ -7,19 +7,23 @@ namespace Corewar
 
 Game::Game()
 {
-    m_round = 0;
     m_state = State::WAITING;
 }
 
 enum State Game::new_game(WarriorFiles _filenames)
 {
-    int n_warriors = (_filenames.size() > max_players) ? max_players
-                                                       : _filenames.size();
-    m_round = 0;
-    m_state = State::WAITING;
+    int total_warriors = (_filenames.size() > max_players) ? max_players
+                                                           : _filenames.size();
+    reset_game();
+
+    uuid_tbl.clear();
+    uuid_tbl.reserve(max_players);
+
     m_warriors.clear();
+    m_warriors.reserve(max_players);
+
     asm_programs.clear();
-    asm_programs.reserve(n_warriors);
+    asm_programs.reserve(max_players);
 
     /* Load Settings */
     try
@@ -33,9 +37,9 @@ enum State Game::new_game(WarriorFiles _filenames)
     #endif
 
     /* Load Warriors */
-    Player player_;
-    UUID   warrior_id;
-    for (int i = 0; i < n_warriors; i++)
+    Player    player_;
+    OS::UUID  warrior_id;
+    for (int i = 0; i < total_warriors; i++)
     {
         // load + parse warrior files
         std::string filename = _filenames[i];
@@ -53,7 +57,7 @@ enum State Game::new_game(WarriorFiles _filenames)
         } catch (const std::exception e) { return State::ERR_WARRIORS; }
         warrior_id = asm_programs[i].get()->uuid();
 
-        // select player
+        // player select
         switch (i)
         {
             case 0: player_ = Player::P1; break;
@@ -62,15 +66,22 @@ enum State Game::new_game(WarriorFiles _filenames)
             case 3: player_ = Player::P4; break;
             case 4: player_ = Player::P5; break;
             case 5: player_ = Player::P6; break;
+            case 6: player_ = Player::P7; break;
+            case 7: player_ = Player::P8; break;
+            case 8: player_ = Player::P9; break;
             default: break;
         }
+        /* Create Warrior */
+        m_warriors[player_] = 
+            Warrior(
+                warrior_id,
+                asm_programs[i].get()->name(),
+                player_
+            );
 
-        // set warrior info
-        m_warriors[warrior_id] = Warrior(
-            warrior_id,
-            asm_programs[i].get()->name(),
-            player_
-        );
+        /* Set UUID table to Warrior */
+        uuid_tbl[warrior_id] = &m_warriors[player_];
+
 
         #ifdef COREWAR_DEBUG
         if (i == 0) printf("\n Corewar::Game::init: loaded warriors: \n");
@@ -82,34 +93,35 @@ enum State Game::new_game(WarriorFiles _filenames)
     return m_state = State::RUNNING;
 } /* init() */
 
-void Game::next_turn(Warrior *_buffer)
+void Game::next_turn()
 {
     /* Next Turn */
     os_report         = os_cpu.run_fde_cycle();
-    Warrior *warrior_ = &m_warriors[os_report.program_id];
 
-    // update processes
+    Warrior *warrior_ = uuid_tbl[os_report.program_id];
     warrior_->update_prcs(os_sched);
 
     /* Round End */
-    if (m_round == 0 || os_report.status >= OS::Status::HAULTED)
+    if (os_report.status >= OS::Status::HAULTED)
     {
         /* Warrior Win/Draw */
         if (os_report.status == OS::Status::EXIT)
         {
+            m_results[m_round] = warrior_->player();
             warrior_->update_game_results(os_report);
         }
         else if (os_report.status == OS::Status::HAULTED)
         {
-            for (int i = 0; i < m_warriors.size(); i++)
+            m_results[m_round] = Player::NONE;
+            for (int i = 1; i >= m_warriors.size(); i++)
             {
-                if (m_warriors[i].is_alive())
-                    m_warriors[i].update_game_results(os_report);
+                if (m_warriors[ (Player) i ].is_alive())
+                    m_warriors[ (Player) i ].update_game_results(os_report);
             }
         }
 
         /* Game Complete  */
-        if (m_round >= Settings::get().max_rounds())
+        if (m_round == Settings::get().max_rounds())
         {
             m_state = State::COMPLETE;
 
@@ -130,7 +142,6 @@ void Game::next_turn(Warrior *_buffer)
             #endif
         }
     }
-    (*_buffer) = (*warrior_);
 }
 
 } /* ::Corewar */

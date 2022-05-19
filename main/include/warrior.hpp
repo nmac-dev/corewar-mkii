@@ -9,22 +9,25 @@
 namespace Corewar
 {
 /// Enum to represent each player
-enum class Player
+enum class Player : int
 { 
-    NONE,   // (blank)
+    NONE,   // Grey
     P1,     // Red
-    P2,     // Green
-    P3,     // Blue
+    P2,     // Blue
+    P3,     // Green
     P4,     // Pink
     P5,     // Cyan
-    P6      // Orange
+    P6,     // Orange
+    P7,     // Teal
+    P8,     // Yellow
+    P9,     // Purple
 };
 
 /// Contains information for a corewar warrior (warrior)
 class Warrior
 {
  private:
-    UUID        m_id;     // unique id
+    OS::UUID    m_id;     // unique id
     std::string m_name;   // name (without directory)
     Player      m_player; // enum representing the warrior
 
@@ -38,7 +41,7 @@ class Warrior
     /// @param _uuid   warrior's uuid
     /// @param _name   warrior's name
     /// @param _player enum representing warrior
-    Warrior(UUID _uuid, std::string _name, Player _player)
+    Warrior(OS::UUID _uuid, std::string _name, Player _player)
     {
         m_id     = _uuid;
         m_name   = _name;
@@ -50,7 +53,7 @@ class Warrior
  /* Utility */
 
     /// Returns warriors unique ID
-    inline UUID const id()          const { return m_id;        }
+    inline OS::UUID const id()      const { return m_id;        }
 
     /// Returns warrior's name
     inline std::string const name() const { return m_name;      }
