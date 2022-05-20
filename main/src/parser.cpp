@@ -230,6 +230,7 @@ Inst assembly_to_inst(std::string &_line, LabelLinker &_linker, int _index)
                     // calculate labels relative reference for operand address
                     if      (lbl_i < _index) lbl_i -= _index;
                     else if (lbl_i > _index) lbl_i  = std::abs(_index - lbl_i);
+                    else     lbl_i = 0;
                     
                     *val_ptr = lbl_i;
                 }
