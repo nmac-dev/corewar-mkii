@@ -55,7 +55,7 @@ ImGuiConfigFlags constexpr global_config_flags
     ImGuiConfigFlags_None
     | ImGuiConfigFlags_NavEnableKeyboard
     | ImGuiConfigFlags_DockingEnable
-    // | ImGuiConfigFlags_ViewportsEnable
+    | ImGuiConfigFlags_ViewportsEnable
 );
 
 using PlayerColors = std::unordered_map<Player, ImVec4>;   
