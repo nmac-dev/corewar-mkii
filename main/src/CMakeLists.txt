@@ -1,14 +1,13 @@
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#   CMAKE ---> __SRC
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#   CMAKE ---> PROJECT/__SRC
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#~~HEADERS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~HEADERS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 include_directories ( ${PROJECT_SOURCE_DIR}/${__HEADERS}  )
 
-#~~SOURCE~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-add_library ( ${__COREWAR_SOURCE}
-    parser.cpp
-    corewar.cpp
+#~~SOURCE~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#~~ OS
+add_library ( ${__OS_SOURCE}
     ${__OS}/assembly.cpp
     ${__OS}/pcb.cpp
     ${__OS}/scheduler.cpp
@@ -18,9 +17,13 @@ add_library ( ${__COREWAR_SOURCE}
     ${__OS}/cpu.cpp
     )
 
-link_libraries ( ${__COREWAR_SOURCE}  )
+#~~ Corewar
+add_library ( ${__COREWAR_SOURCE}
+    parser.cpp
+    corewar.cpp
+    )
 
-#~~EXECUTABLE~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-set ( EXECUTABLE_OUTPUT_PATH    ${CMAKE_BINARY_DIR}  )
+target_link_libraries( ${__COREWAR_SOURCE}    ${__OS_SOURCE}  )
 
-add_executable ( ${PROJECT_NAME}    cli_debug.cpp  )
+#~~EXECUTABLE~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+target_link_libraries( ${PROJECT_NAME}    ${__COREWAR_SOURCE}  )
