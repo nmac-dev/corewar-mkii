@@ -75,7 +75,7 @@ Report CPU::run_fde_cycle()
         os_sched->add_process(exe_process.parent_id(), ctrl.SRC.address);
     }
 
-    os_memory->decode_modifier(&ctrl);
+    os_memory->encode_ctrl(&ctrl);
     os_memory->apply_post_inc(ctrl);
 
     return Report(exe_process, ctrl);

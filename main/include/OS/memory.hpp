@@ -44,13 +44,23 @@ class Memory
 
     /// Applies the post-increment if the pointer target exists 
     /// @param _ctrl control unit containing Registers to be incremented
-    inline void apply_post_inc(ControlUnit & _ctrl)
+    inline void apply_post_inc(ControlUnit &_ctrl)
     {
         if (_ctrl.post_A != nullptr)
             (*_ctrl.post_A)++;
 
         if (_ctrl.post_B != nullptr)
             (*_ctrl.post_B)++;
+    }
+
+    /// Reverts the modifiers and loops the address after the decoding process
+    /// @param _ctrl buffer for the encode after decoding
+    inline void encode_ctrl(ControlUnit *_ctrl)
+    {
+        decode_modifier(_ctrl);
+         _ctrl->EXE.address = RAM.loop_index(_ctrl->EXE.address );
+         _ctrl->SRC.address = RAM.loop_index(_ctrl->SRC.address );
+        _ctrl->DEST.address = RAM.loop_index(_ctrl->DEST.address);
     }
 
  /* Utility */
