@@ -1,13 +1,17 @@
-;;; name: Scanner (Scissors example)
+;;; name:   Scanner (Scissors example)
 ;;; syntax: <label> [opcode].<modifier> <admo>[A], <admo>[B]
 
-scanner:  add.ab  #3,      target  ;; adds 9 to the target search address
-target:   sne.i   c_bomb,  3       ;; if the target is not a copy of c-bomb, deploy c-bomb
-          jmp     scanner          ;; no target found, run next scan
+scanner:  add.ab  #6,       target    ;; increase scanning address
+target:   sne.a   c_bomb,   16        ;; skip jump if target address [A] field is not equal to 'c_bomb:'
+          jmp     scanner             ;; no target found, run next scan
 
-deploy:   mov.i   c_bomb,  >target ;; deploy the cluster bomb at the target address, then post-inc target
-          jmn     deploy,  <reset  ;; loop until reset B == 0
-reset:    mov.ab  #3,      #3      ;; set B back to 3
-          jmp     scanner          ;; move back to scanner
+          sub.ab  #7,       target    ;; shift target address back for better deployment coverage
+deploy:   mov.i   c_bomb,   >target   ;; target found deploy cluster bomb [dat] + [spl]
+          mov.i   @c_bomb,  >target   ;; [spl]
+          djn     deploy,   counter   ;; decrement 'counter:', then jump to 'deploy:' until [B] = 0
 
-c_bomb:   dat     #0       #0      ;; cluster bomb for address
+counter:  mov.ab  #7,       #7        ;; sets number of cluster bombs deployed, resets [B] on execution
+          jmp     scanner             ;; return to address scanner
+
+c_bomb:   dat     #0,       $1        ;; [dat] kills process, [spl] traps process in loop
+          spl     #0
