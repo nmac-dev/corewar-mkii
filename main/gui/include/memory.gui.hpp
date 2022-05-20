@@ -1,11 +1,11 @@
 /// GUI display for the operating systems memory
 #pragma once
 
-#include "imgui_required.h"
+#include "imgui_required.hpp"
 
 namespace Corewar { namespace GUI
 {
-
+/// Stores information for a single memory address within the operating system
 struct Cell
 {
     Player      owner    = Player::NONE;              // owner of the cell
@@ -18,6 +18,13 @@ struct Cell
 class Memory
 {
  private:
+    /* Display */
+    static inline float  constexpr PAD = 8.f;
+    static inline ImVec2 constexpr disp_window_size = ImVec2(1024.f + PAD, 540.f);
+    static inline ImVec2 constexpr disp_window_pos  = ImVec2(0.f, 0.f);
+    static inline ImVec2 constexpr disp_cell_size   = ImVec2(7.f, 7.f);  // size of a single cell
+
+    /* Data */
     static inline std::vector<Cell> m_cells;    // collections of cells in the display
     static inline Corewar::Game    *ptr_corewar;  // pointer to the running corewar game
 
@@ -41,6 +48,12 @@ class Memory
 
     /// Draw the memory display on the GUI
     static void draw();
+
+    /// Updates the assembly string for the cell at the address given
+    static inline void update_cell_assembly(int _adr)
+    {
+        m_cells[_adr].assembly = ptr_corewar->assembly_at(_adr);
+    }
 };
 
 }}/* ::Corewar::GUI */
