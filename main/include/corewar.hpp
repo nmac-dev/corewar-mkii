@@ -107,7 +107,7 @@ class Game
             winner_ = m_results[_round];
         }
         return winner_;
-    } 
+    }
 
     /// Returns the player who won the game overall, or None if the game has no finished
     inline Player const match_winner() const 
@@ -133,10 +133,25 @@ class Game
             }
         }
         return winner_;
-    } 
+    }
+
+    inline std::string player_to_str(Player _player)
+    {
+        std::string str_ = "Player[";
+
+        str_ += std::to_string( (int) _player );
+        str_.append( "] '" );
+        if (_player == Player::NONE)
+        {
+            str_.append("None");
+        }
+        else str_.append(m_warriors[_player].name());
+
+        return str_ += "'";
+    }
 
     /// Return the current round
-    inline int const round() const { return m_round; }
+    inline int const round()      const { return m_round; }
 
     /// Return the max rounds
     inline int const max_rounds() const { return Settings::get().max_rounds(); }
@@ -192,9 +207,31 @@ class Game
     inline int constexpr core_size() const { return os_memory.size(); }
 
     /// Returns a string of the assembly instruction at the address
-    inline std::string const assembly_at(int _pos) const
+    inline std::string const assembly_at(int _adr) const
     { 
-        return os_memory[os_report.exe.address].to_assembly();
+        return os_memory[_adr].to_assembly();
+    }
+
+    /// Returns the warrior's program address
+    inline int const program_address(Player _player)
+    {
+        int adr_ = -1;
+        if (_player != Player::NONE)
+        {
+            adr_ = asm_programs[(int) _player - 1].get()->address();
+        }
+        return adr_;
+    }
+    
+    /// Returns the warrior's program length
+    inline int const program_length(Player _player)
+    {
+        int len_ = -1;
+        if (_player != Player::NONE)
+        {
+            len_ = asm_programs[(int) _player - 1].get()->len();
+        }
+        return len_;
     }
 
 }; /* Game */
