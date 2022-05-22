@@ -41,7 +41,7 @@ add_executable( ${PROJECT_NAME}    # PROJECT EXE
         ${PROJECT_SOURCE_DIR}/${__IMGUI_BACKEND_DIR}/imgui_impl_glfw.cpp
         ${PROJECT_SOURCE_DIR}/${__IMGUI_BACKEND_DIR}/imgui_impl_opengl3.cpp
 
-        ${__GUI}/${__SRC}/memory.${__GUI}.cpp
+        ${__GUI}/${__SRC}/memory_viewer.${__GUI}.cpp
         ${__GUI}/${__SRC}/control_panel_sections.${__GUI}.cpp
         ${__GUI}/${__SRC}/control_panel.${__GUI}.cpp
 
