@@ -77,16 +77,16 @@ class Program
  /* Utility */
 
     /// Returns the name (file) of the program
-    inline std::string name()   const { return m_name;    }
+    inline std::string const &name() const { return m_name;    }
     
     /// Returns the UUID to identify the program
-    inline OS::UUID uuid()      const { return m_uuid;    }
+    inline OS::UUID const &uuid()    const { return m_uuid;    }
 
     /// Returns length (number of instructions) of the program
-    inline int len()            const { return m_length;  }
+    inline int const &len()          const { return m_length;  }
 
     /// Returns the programs posistion within the core
-    inline int address()        const { return m_address; }
+    inline int const &address()      const { return m_address; }
 
     /// Sets the programs posistion within the core
     inline void set_address(int val)  { m_address = val;  }

@@ -27,6 +27,7 @@ class Scheduler
     int ini_max_cycles,         // max number of cycles before the round has been concluded
         ini_max_processes;      // max number of processes a single program can create
     int m_cycles;               // cycles executed
+    int mutable m_total_prcs;   // total running processes
 
     Schedules schedules_tbl;    // hosts a queue of processes for each program
     RoundRobin<UUID> RR;        // A Round Robin System which manages its position rotation
@@ -60,37 +61,36 @@ class Scheduler
  /* Utility */
 
     /// Returns max number of cycles before the round has been concluded
-    inline int const max_cycles() const { return ini_max_cycles; }
+    inline int const &max_cycles() const { return ini_max_cycles; }
 
     /// Returns max number of processes a single parent can create
-    inline int const max_processes() const { return ini_max_processes; }
+    inline int const &max_processes() const { return ini_max_processes; }
 
     /// Returns cycles executed
-    inline int const cycles() const { return m_cycles; }
+    inline int const &cycles()   const { return m_cycles; }
 
     /// Returns number of programs program
-    inline int const programs() const { return RR.len(); }
+    inline int const &programs() const { return RR.len(); }
 
     /// Returns the total number of processes
-    inline int const processes() const
-    {  
-        int total_ = 0;
-        
+    inline int const &processes() const
+    {
+        m_total_prcs = 0;
         for (int i = 0; i < programs(); i++)
         {
-            total_ += schedules_tbl.at(RR.next()).size();
+            m_total_prcs += schedules_tbl.at(RR.next()).size();
         }
-        return total_;
+        return m_total_prcs;
     }
 
     /// Returns the number of processes for a specific UUID
     /// @param _uuid parents's ID
-    inline int const processes(UUID _uuid)
+    inline int const processes(UUID _uuid) const
     { 
         int processes_ = 0;
         if (schedules_tbl.count(_uuid))
         {
-            processes_ = schedules_tbl[_uuid].size();
+            processes_ = schedules_tbl.at(_uuid).size();
         }
         return processes_;
     }

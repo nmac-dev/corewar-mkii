@@ -10,6 +10,7 @@ Scheduler::Scheduler(Asm::ProgramVec *_programs, int _max_cycles, int _max_proce
     ini_max_cycles     = _max_cycles;
     ini_max_processes  = _max_processes;
     m_cycles           = 0;
+    m_total_prcs       = 0;
 
     schedules_tbl.reserve(_programs->size());
 

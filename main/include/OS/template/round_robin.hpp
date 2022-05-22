@@ -28,7 +28,7 @@ class RoundRobin
     }
 
     /// Returns length of the round robin sequance
-    inline int const len() const { return m_length; }
+    inline int const &len() const { return m_length; }
 
     /// Return the iteration element in the sequance WITHOUT moving to the next
     inline T i() const { return m_sequance.at(pos()); }
