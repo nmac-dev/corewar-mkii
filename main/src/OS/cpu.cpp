@@ -12,7 +12,7 @@ CPU::CPU(Memory *_memory, Scheduler *_sched)
 }
 CPU::CPU() = default;
 
-Report CPU::run_fde_cycle()
+Report const CPU::run_fde_cycle()
 {
  /* Fetch */
     int exe_pc;                               // instruction register program counter

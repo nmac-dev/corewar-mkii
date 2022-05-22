@@ -30,7 +30,7 @@ class CPU
  /* Execute */
 
     /// run the next fetch/decode/execute cycle, then returns an operating system report
-    Report run_fde_cycle();
+    Report const run_fde_cycle();
 
  private:
     /// Executes a (NOP, DAT, MOV)
