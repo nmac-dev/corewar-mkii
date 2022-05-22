@@ -18,13 +18,13 @@ set ( __OS_SOURCE             os.source           )    #~~ OS
 set ( __COREWAR_SOURCE        corewar.source      )    #~~ COREWAR
 set ( __COREWAR_GUI_SOURCE    corewar.gui.source  )    #~~ GUI
 
-set ( __SRC        src               )    #~~ SOURCE
+set ( __SRC        src               )      #~~ SOURCE
 set ( __HEADERS    include           )
 set ( __OS         OS                )
 set ( __SRC_OS     ${__SRC}/${__OS}  )
 set ( __GUI        gui               )
 
-set ( __VENDOR      vendor    )    #~~ VENDOR
+set ( __VENDOR      vendor    )             #~~ VENDOR
 set ( __IMGUI       imgui     )
 set ( __BACKENDS    backends  )
 set ( __GLAD        glad      )
@@ -42,6 +42,8 @@ add_executable( ${PROJECT_NAME}    # PROJECT EXE
         ${PROJECT_SOURCE_DIR}/${__IMGUI_BACKEND_DIR}/imgui_impl_opengl3.cpp
 
         ${__GUI}/${__SRC}/memory.${__GUI}.cpp
+        ${__GUI}/${__SRC}/control_panel_sections.${__GUI}.cpp
+        ${__GUI}/${__SRC}/control_panel.${__GUI}.cpp
 
         ${__GUI}/${__SRC}/corewar.${__GUI}.cpp
     )
@@ -62,26 +64,35 @@ endif ()
 add_subdirectory ( ${__SRC}  )
 
 #~~RESOURCES~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-set ( __WARRIORS       warriors     )
-set ( __COREWAR_INI    corewar.ini  )
+set ( __WARRIORS            warriors         )
+set ( __COREWAR_INI         corewar.ini      )
+set ( __COREWAR_GUI_INI     corewar.gui.ini  )
 
-add_custom_target ( ${__WARRIORS}    ALL    #~~ 'warriors/'
+add_custom_target ( ${__WARRIORS}    ALL            #~~ 'warriors/'
     COMMAND ${CMAKE_COMMAND}    -E copy_directory
     ${PROJECT_SOURCE_DIR}/${__WARRIORS}
     ${CMAKE_BINARY_DIR}/${__WARRIORS}
     COMMENT "Added \"${__WARRIORS}/\""
     )
 
-add_custom_target ( ${__COREWAR_INI}    ALL    #~~ 'corewar.ini'
+add_custom_target ( ${__COREWAR_INI}    ALL         #~~ 'corewar.ini'
     COMMAND ${CMAKE_COMMAND}    -E copy
     ${PROJECT_SOURCE_DIR}/${__COREWAR_INI}
     ${CMAKE_BINARY_DIR}/${__COREWAR_INI}
     COMMENT "Added \"${__COREWAR_INI}\""
     )
 
+add_custom_target ( ${__COREWAR_GUI_INI}    ALL     #~~ 'corewar.gui.ini'
+    COMMAND ${CMAKE_COMMAND}    -E copy
+    ${PROJECT_SOURCE_DIR}/${__COREWAR_GUI_INI}
+    ${CMAKE_BINARY_DIR}/${__COREWAR_GUI_INI}
+    COMMENT "Added \"${__COREWAR_GUI_INI}\""
+    )
+
 #~~DEPENDENCIES~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-add_dependencies ( ${PROJECT_NAME}   ${__WARRIORS}     )    #~~ 'warriors/'
-add_dependencies ( ${PROJECT_NAME}   ${__COREWAR_INI}  )    #~~ 'corewar.ini'
+add_dependencies ( ${PROJECT_NAME}   ${__WARRIORS}     )        #~~ 'warriors/'
+add_dependencies ( ${PROJECT_NAME}   ${__COREWAR_INI}  )        #~~ 'corewar.ini'
+add_dependencies ( ${PROJECT_NAME}   ${__COREWAR_GUI_INI}  )    #~~ 'corewar.gui.ini'
 
 #~~VENDOR~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
