@@ -141,7 +141,7 @@ void MemoryViewer::draw()
                 if (cell_->event == OS::Event::READ || cell_->event == OS::Event::WRITE)
                 {
                     color_ = PLR_COLORS.at(cell_->editor);
-                    adjust_color(color_, 0.f, 0.65f);
+                    adjust_color(color_, 0.f, 0.55f);
                 }
                 else
                 {
