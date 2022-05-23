@@ -64,9 +64,11 @@ endif ()
 add_subdirectory ( ${__SRC}  )
 
 #~~RESOURCES~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-set ( __WARRIORS            warriors         )
-set ( __COREWAR_INI         corewar.ini      )
-set ( __GUI_INI             .gui.ini  )
+set ( __WARRIORS            warriors     )
+set ( __COREWAR_INI         corewar.ini  )
+set ( __GUI_INI             .gui.ini     )
+set ( __DOCS                docs         )
+set ( __README              README.md    )
 
 add_custom_target ( ${__WARRIORS}    ALL            #~~ 'warriors/'
     COMMAND ${CMAKE_COMMAND}    -E copy_directory
@@ -82,17 +84,33 @@ add_custom_target ( ${__COREWAR_INI}    ALL         #~~ 'corewar.ini'
     COMMENT "Added \"${__COREWAR_INI}\""
     )
 
-add_custom_target ( ${__GUI_INI}    ALL     #~~ 'corewar.gui.ini'
+add_custom_target ( ${__GUI_INI}    ALL             #~~ 'corewar.gui.ini'
     COMMAND ${CMAKE_COMMAND}    -E copy
     ${PROJECT_SOURCE_DIR}/${__GUI_INI}
     ${CMAKE_BINARY_DIR}/${__GUI_INI}
     COMMENT "Added \"${__GUI_INI}\""
     )
 
+add_custom_target ( ${__README}    ALL              #~~ 'README.md'
+    COMMAND ${CMAKE_COMMAND}    -E copy
+    ${PROJECT_SOURCE_DIR}/${__README}
+    ${CMAKE_BINARY_DIR}/${__README}
+    COMMENT "Added \"${__README}\""
+    )
+
+add_custom_target ( ${__DOCS}    ALL                #~~ 'docs/'
+    COMMAND ${CMAKE_COMMAND}    -E copy_directory
+    ${PROJECT_SOURCE_DIR}/${__DOCS}
+    ${CMAKE_BINARY_DIR}/${__DOCS}
+    COMMENT "Added \"${__DOCS}/\""
+    )
+
 #~~DEPENDENCIES~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 add_dependencies ( ${PROJECT_NAME}   ${__WARRIORS}     )        #~~ 'warriors/'
 add_dependencies ( ${PROJECT_NAME}   ${__COREWAR_INI}  )        #~~ 'corewar.ini'
-add_dependencies ( ${PROJECT_NAME}   ${__GUI_INI}  )            #~~ '.gui.ini'
+add_dependencies ( ${PROJECT_NAME}   ${__GUI_INI}      )        #~~ '.gui.ini'
+add_dependencies ( ${PROJECT_NAME}   ${__README}       )        #~~ 'README.md'
+add_dependencies ( ${PROJECT_NAME}   ${__DOCS}         )        #~~ 'docs/'
 
 #~~VENDOR~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
