@@ -9,5 +9,5 @@ Ref | Name | Version | Use
 
 * `GLAD` was generated [here!](https://glad.dav1d.de/)
 ___
-[Back to README](../../README.md)
+[Back to README](../README.md)
 ___
