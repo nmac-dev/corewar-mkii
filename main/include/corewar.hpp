@@ -3,6 +3,7 @@
 
 // #define COREWAR_DEBUG
 
+#include <list>
 #include "settings.hpp"
 #include "parser.hpp"
 #include "OS/memory.hpp"
@@ -12,33 +13,37 @@
 
 namespace Corewar
 {
-using WarriorFiles = std::vector<std::string>;
-using UUIDTable    = std::unordered_map<OS::UUID, Warrior *>;
-using Warriors     = std::unordered_map<Player,   Warrior>;
+using WarriorFiles     = std::vector<std::string>;
+using WarriorFilesList = std::list<std::string>;
+using UUIDTable        = std::unordered_map<OS::UUID, Warrior *>;
+using Warriors         = std::unordered_map<Player,   Warrior>;
 
-/// Initialisation Status: used to report exceptions back to the caller
+/// Used to report exceptions and game state
 enum class State : int
 { 
-    WAITING,        // waiting to be initialised
-    RUNNING,        // no errors to report
-    COMPLETE,       // game somplete
+    ERR_WARRIORS,   // failed to load specified warriors
     ERR_INI,        // "corewar.ini" failed to load
-    ERR_WARRIORS    // failed to load specified warriors
+    WAITING,        // waiting for command
+    RESET,          // game has been reset
+    READY,          // game is ready to play
+    NEW_ROUND,      // a new round has started
+    RUNNING,        // no errors to report
+    COMPLETE,       // game complete, requires restart
 };
 
 class Game
 {
  private:
-    static char constexpr warriors_dir[] = "warriors/";
-    static int  constexpr max_players    = 9;
+    static char constexpr warriors_path[] = "warriors/";
+    static int  constexpr max_players_cap = 9;  // max players capacity
 
     /* Hash Tables */
-    UUIDTable uuid_tbl;      // maps OS uuids to warrior references
-    Warriors  m_warriors;    // maps players to warriors
+    UUIDTable uuid_tbl;   // maps OS uuids to warrior references
+    Warriors  m_warriors; // maps players to warriors
 
     /* Stats */
-    int      m_round;              // current round number
-    State    m_state;              // current game state
+    int   m_round;                 // current round number
+    State m_state;                 // current game state
     std::vector<Player> m_results; // tracks each rounds results
 
     /* Operating System */
@@ -49,177 +54,113 @@ class Game
     OS::Report      os_report;     // operating system details of the FDE cycle
 
     /// Restore operating system to default 
-    inline void restore_os()
-    {
-        os_memory = OS::Memory(     /* Always before scheduler (needs program counter addresses) */
-            &asm_programs, 
-            Settings::get().min_separation()
-        );
-        os_sched  = OS::Scheduler(
-            &asm_programs,
-            Settings::get().max_cycles(), 
-            Settings::get().max_processes()
-        );
-        os_cpu    = OS::CPU(&os_memory, &os_sched);
-        
-        // leave report untouched, used after game complete, overridden on next turn
-    }
+    void restore_os();
 
  public:
     Game();
 
- /* Functions */
+    static inline char const *warriors_directory() { return warriors_path;   }
+    static inline int  constexpr max_players()     { return max_players_cap; }
+
+ /* Game State */
+
+    /// Sets the game state to running, if inititalised
+    void play_game();
+
+    /// Pause the game by setting the state to ready
+    void pause_game();
+
+    /// Sets the game state to complete, requires new game or reset after
+    void end_game();
+
+    /// Haults the game, same as pause but the state is set to waiting
+    void hault_game();
 
     /// Creates a new game using the warrior files (wipes previous game state)
     /// @param _filenames warrior (program) filenames to load ("warrior/")
-    State new_game(WarriorFiles _filenames);
+    State new_game(WarriorFiles &_filenames);
 
     /// Resets the game, ready to run again using the same warriors
-    inline void reset_game()
-    {
-        m_round = 1;
-        m_results.clear();
-        m_results.resize( m_round + max_rounds() );
-        m_results[m_round] = Player::NONE;            // round 0 is none
-        for (auto &itr : m_warriors)
-        {
-            itr.second.clear_stats();
-        }
-        restore_os();
-        m_state = State::RUNNING;
-    }
+    void restart_game();
 
     /// Runs the next turn in the game, updates the OS report with the new information
-    void next_turn();
-
-    /// Returns the player who won the last round, or the round specified
-    /// @param _round override which round to return, else defaults to last round
-    inline Player const round_winner(int _round = -1) const 
-    {
-        Player winner_ = Player::NONE;
-        // default to last round
-        if (_round < 0)
-            _round = m_round -1;
-
-        // bounds
-        if (_round > 0  && _round <= m_round && m_round <= max_rounds())
-        {
-            winner_ = m_results[_round];
-        }
-        return winner_;
-    }
-
-    /// Returns the player who won the game overall, or None if the game has no finished
-    inline Player const match_winner() const 
-    {
-        Player winner_ = Player::NONE;
-        // game concluded
-        if (m_round == max_rounds())
-        {
-            Warrior const *warrior_i; 
-            int high_score = -1;
-            int points     =  0;
-            for ( int i = 1; i <= m_warriors.size(); i++ )
-            {
-                warrior_i = &m_warriors.at( (Player) i );
-
-                points = (warrior_i->wins() * 2) + warrior_i->draws();
-                if (points > high_score)
-                {
-                    high_score = points;
-                    winner_ = warrior_i->player();
-                }
-                
-            }
-        }
-        return winner_;
-    }
-
-    inline std::string player_to_str(Player _player)
-    {
-        std::string str_ = "Player[";
-
-        str_ += std::to_string( (int) _player );
-        str_.append( "] '" );
-        if (_player == Player::NONE)
-        {
-            str_.append("None");
-        }
-        else str_.append(m_warriors[_player].name());
-
-        return str_ += "'";
-    }
+    State next_turn();
 
     /// Return the current round
-    inline int const round()      const { return m_round; }
+    inline int const &round() const { return m_round; }
 
     /// Return the max rounds
-    inline int const max_rounds() const { return Settings::get().max_rounds(); }
+    inline int const &max_rounds() const { return Settings::max_rounds(); }
 
- /* Warrior/Player */
-    
+ /* Warrior Utility */
+
     /// [default] Returns the executing warrior
-    inline Warrior const &warrior() const
-    {
-        return *uuid_tbl.at(os_report.program_id);
-    }
+    inline Warrior const &warrior() const { return *uuid_tbl.at(os_report.program_id); }
 
     /// Returns the warrior requested
     /// @param _uuid warrior's ID
-    inline Warrior const &warrior(OS::UUID _uuid) const
-    {
-        return *uuid_tbl.at(_uuid);
-    }
+    inline Warrior const &warrior(OS::UUID _uuid) const { return *uuid_tbl.at(_uuid); }
 
     /// Returns the warrior associated with the UUID
     /// @param _player warrior's player enum
-    inline Warrior const &warrior(Player _player) const
-    {
-        return m_warriors.at(_player);
+    inline Warrior const &warrior(Player _player) const { return m_warriors.at(_player); }
+
+    /// Returns the full string of the warrior
+    inline std::string warrior_string(Player _player) const  
+    { 
+        return (_player != Player::NONE) ? m_warriors.at(_player).to_string()
+                                         : "P0 '/None/'"; 
     }
+
+ /* Player Utility */
 
     /// Returns the total number of players
     inline int const players() const { return m_warriors.size(); }
 
+    /// Returns the player who won the last round, or the round specified
+    /// @param _round override which round to return, else defaults to last round
+    Player const round_winner(int _round = -1) const;
+
+    /// Returns the player who won the game overall, or None if the game has no finished
+    Player const match_winner() const;
 
  /* OS::Report */
 
     /// Return the game state
-    inline State const state() const { return m_state; }
+    inline State const &state() const { return m_state; }
 
     /// Returns report containing operating system details of the FDE cycle
     inline OS::Report const &report() const { return os_report; }
- 
+
  /* OS::Scheduler */
 
-    /// Returns number of executed cycles
-    inline int const cycles() const { return os_sched.cycles(); }
+    /// Returns active programs in execution
+    inline int const &active_programs() const { return os_sched.programs();  }
 
-    /// Returns active warriors in execution
-    inline int const active_warriors() const { return os_sched.programs(); }
+    /// Returns number of executed cycles
+    inline int const &cycles()     const { return os_sched.cycles(); }
+
+    /// Returns max allowed execution cycles (.ini)
+    inline int const &max_cycles() const { return os_sched.max_cycles(); }
 
     /// Returns total processes executing
-    inline int const total_processes() const { return os_sched.processes(); }
+    inline int const &total_processes() const { return os_sched.processes(); }
+
+    /// Returns max allowed processes for a single programs (.ini)
+    inline int const &max_processes()   const { return os_sched.max_processes(); }
 
  /* OS::Memory */
 
-    /// Returns the size of the OS's RAM
-    inline int constexpr core_size() const { return os_memory.size(); }
-
     /// Returns a string of the assembly instruction at the address
-    inline std::string const assembly_at(int _adr) const
-    { 
-        return os_memory[_adr].to_assembly();
-    }
+    inline std::string const assembly_at(int _adr) const { return os_memory[_adr].to_assembly(); }
 
     /// Returns the warrior's program address
     inline int const program_address(Player _player)
     {
         int adr_ = -1;
         if (_player != Player::NONE)
-        {
             adr_ = asm_programs[(int) _player - 1].get()->address();
-        }
+
         return adr_;
     }
     
@@ -228,11 +169,19 @@ class Game
     {
         int len_ = -1;
         if (_player != Player::NONE)
-        {
             len_ = asm_programs[(int) _player - 1].get()->len();
-        }
+
         return len_;
     }
+    
+    /// Returns the size of the OS's RAM
+    static inline int constexpr memory_size()   { return OS::Memory::size();            }
+    
+    /// Returns min seperation between programs in memory (.ini)
+    inline int const &min_separation()    const { return Settings::min_separation();    }
+
+    /// Returns max instructions allows in a single programs (.ini)
+    inline int const &max_program_insts() const { return Settings::max_program_insts(); }
 
 }; /* Game */
 
