@@ -12,7 +12,7 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow *window = glfwCreateWindow(1440.f, 556.f, "Corewar", nullptr, nullptr);
+    GLFWwindow *window = glfwCreateWindow(1440.f, 556.f, "Corewar MKII", nullptr, nullptr);
 
     /* Errors */
     if (window == nullptr) {
