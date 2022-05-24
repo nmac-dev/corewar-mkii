@@ -1,5 +1,4 @@
 <H2> Redcode Tutorial </H2>
-
 ___
 - [1. Glosary](#1-glosary)
   - [1.1. Acronyms / Abbreviations Dictionary](#11-acronyms--abbreviations-dictionary)
@@ -55,6 +54,12 @@ You can find an example in the `warriors/` folder under `imp.asm`
 
 For this project, the full `Redcode 94` standard has not been implemented.
  * This is to keep the learning assembly code process as simple as possible
+
+**Important!**  
+
+The Redcode standard for `corewar-mkii` is a **minimal** version of the `Redcode 94` standard.  
+ * Only assembly instructions are allowed in the minimal version and NOT the higher-level nuances
+ * If it is not part of the syntax diagram below, it is not allowed  
 
 <BR/>
 
