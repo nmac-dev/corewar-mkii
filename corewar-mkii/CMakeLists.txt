@@ -4,7 +4,7 @@
 cmake_minimum_required (VERSION 3.20)
 
 #~~PROJECT~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-project (corewar)
+project (corewar-mkii)
 
 include (CTest)    #~~ BUILD_TESTING = TRUE
 # set ( BUILD_TESTING    OFF  )
