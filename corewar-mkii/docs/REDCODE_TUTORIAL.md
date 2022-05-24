@@ -1,4 +1,5 @@
 <H2> Redcode Tutorial </H2>
+
 ___
 - [1. Glosary](#1-glosary)
   - [1.1. Acronyms / Abbreviations Dictionary](#11-acronyms--abbreviations-dictionary)
