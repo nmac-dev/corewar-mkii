@@ -113,43 +113,7 @@ add_dependencies ( ${PROJECT_NAME}   ${__README}       )        #~~ 'README.md'
 add_dependencies ( ${PROJECT_NAME}   ${__DOCS}         )        #~~ 'docs/'
 
 #~~VENDOR~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-#~~GLAD
-set( __VENDOR_GLAD   ${__VENDOR}/glad  )
-
-add_library( ${__GLAD}      ${__VENDOR_GLAD}/${__SRC}/glad.c  )
-target_include_directories( ${__GLAD}        PRIVATE  ${__VENDOR_GLAD}/${__HEADERS}  )
-
-target_include_directories( ${PROJECT_NAME}  PRIVATE  ${__VENDOR_GLAD}/${__HEADERS}  )
-target_link_libraries(      ${PROJECT_NAME}           ${__GLAD} ${CMAKE_DL_LIBS}     )
-
-#~~GLFW
-set( __VENDOR_GLFW   ${__VENDOR}/glfw  )
-
-set(GLFW_BUILD_EXAMPLES OFF CACHE INTERNAL "Build the GLFW example programs"  )
-set(GLFW_BUILD_TESTS    OFF CACHE INTERNAL "Build the GLFW test programs"     )
-set(GLFW_BUILD_DOCS     OFF CACHE INTERNAL "Build the GLFW documentation"     )
-set(GLFW_INSTALL        OFF CACHE INTERNAL "Generate installation target"     )
-
-add_subdirectory( ${__VENDOR_GLFW}  )
-
-target_link_libraries(     ${PROJECT_NAME}  ${__GLFW}   ${GLFW_LIBRARIES}             )
-target_include_directories(${PROJECT_NAME}  PRIVATE     ${__VENDOR_GLFW}/${__HEADERS} )
-target_compile_definitions(${PROJECT_NAME}  PRIVATE     "GLFW_INCLUDE_NONE"           )
-
-#~~IMGUI
-set( __VENDOR_IMGUI    ${__VENDOR}/imgui  )
-
-add_library( ${__IMGUI}
-    ${__VENDOR_IMGUI}/imgui.cpp
-    ${__VENDOR_IMGUI}/imgui_draw.cpp
-    ${__VENDOR_IMGUI}/imgui_tables.cpp
-    ${__VENDOR_IMGUI}/imgui_widgets.cpp
-    )
-target_include_directories( ${__IMGUI}       PRIVATE     ${__VENDOR_IMGUI}  )
-
-target_include_directories( ${PROJECT_NAME}  PRIVATE     ${__VENDOR_IMGUI}  )
-target_link_libraries(      ${PROJECT_NAME}  ${__IMGUI}  ${CMAKE_DL_LIBS}   )
+add_subdirectory(${__VENDOR})
 
 #~~BUILD-STEPS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # $: = command line
