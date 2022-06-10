@@ -97,8 +97,8 @@ class ControlPanel
     /// Section for the game state display
     static inline void section_game_state();
 
-    /// Section for the simulation controls display
-    static inline void section_sim_controls();
+    /// Section for the game controls display
+    static inline void section_game_controls();
 };
 
 }}/* ::Corewar::GUI */

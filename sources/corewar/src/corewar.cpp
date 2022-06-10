@@ -19,7 +19,7 @@ void Game::restore_os()
         Settings::max_processes()
     );
     os_cpu    = OS::CPU(&os_memory, &os_sched);
-    
+
     // leave report untouched, used after game complete, overridden on next turn
 }
 

@@ -282,14 +282,14 @@ System | |_
 `spl` | Split        | But create a `new process`, and the current `EXE` moves to next
 
 <!-- Comparision -->
-Comparision |             | `Action` --> Skip Next `EXE` ( `ADR` +2 ) `IF`: . . .
+Comparision |             | `Action` --> Skip Next `EXE` ( `ADR` +2 ) `IF` . . .
 :-: | :--  | :--
 `seq` | Skip IF Equal     | `SRC` == `DEST`
 `sne` | Skip IF NOT Equal | `SRC` != `DEST`
 `slt` | Skip if Less Than | `A` < `B`
 
 <!-- Arithmatic -->
-Arithmatic | | ¬ `B` = ?
+Arithmatic | | `Action` --> `B` = . . .
 :-:      | :--   | :--
 `add` | Add      | `A` + `B`
 `sub` | Subtract | `A` - `B`

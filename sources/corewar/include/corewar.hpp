@@ -18,16 +18,16 @@ using WarriorFilesList = std::list<std::string>;
 using UUIDTable        = std::unordered_map<OS::UUID, Warrior *>;
 using Warriors         = std::unordered_map<Player,   Warrior>;
 
-/// Used to report exceptions and game state
+/// Used to automate handling, reporting exceptions and game state
 enum class State : int
 { 
-    ERR_WARRIORS,   // failed to load specified warriors
-    ERR_INI,        // "corewar.ini" failed to load
-    WAITING,        // waiting for command
+    ERR_WARRIORS,   // failed to load specified warrior programs
+    ERR_INI,        // failed to load configuration file
+    WAITING,        // waiting for command (OS is not initialised)
     RESET,          // game has been reset
-    READY,          // game is ready to play
-    NEW_ROUND,      // a new round has started
-    RUNNING,        // no errors to report
+    READY,          // game paused and ready to run
+    NEW_ROUND,      // a new round has started (Reset -> Ready)
+    RUNNING,        // game running, OS is reporting data
     COMPLETE,       // game complete, requires restart
 };
 

@@ -31,7 +31,7 @@ inline void ControlPanel::section_master_controls()
             ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
             ImGui::TextUnformatted(
                 "Be careful with these controls!\n"
-                " * Restart: Resets the simulation (warriors must be loaded)\n"
+                " * Restart: Resets the game to round 1 (warriors must be loaded)\n"
                 " * Reload:  Select files to use from the 'warriors/' folder\n"
             );
             ImGui::PopTextWrapPos();
@@ -169,7 +169,7 @@ inline void ControlPanel::section_warriors_data()
         ImGui::TableSetupColumn("Prcs\t",  ImGuiTableColumnFlags_WidthFixed,   -1.f );
         ImGui::TableSetupColumn("Score\t", ImGuiTableColumnFlags_WidthFixed,   -1.f );
 
-        ImVec4 color_;
+        static ImVec4 color_;
 
         ImGui::TableHeadersRow();
         for (int row = 0; row < ptr_corewar->players(); row++)
@@ -406,23 +406,23 @@ inline void ControlPanel::section_game_state()
     ImGui::EndTable();
 }
 
-inline void ControlPanel::section_sim_controls()
+inline void ControlPanel::section_game_controls()
 {
     ImVec2 item_size   = ImGui::GetContentRegionAvail();
            item_size.y = 40.f;
 
-    ImGui::Text("Simulation Controls");       ImGui::SameLine();
+    ImGui::Text("Game Controls");       ImGui::SameLine();
         ImGui::TextDisabled("(Help?)");
     if (ImGui::IsItemHovered())
     {
         ImGui::BeginTooltip();
         ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
         ImGui::TextUnformatted(
-            "Allows you to control the simulation\n"
+            "Allows you to control the game\n"
             " * Warriors must be loaded\n"
             " * On 'COMPLETE', 'restart' or 'reload' is required\n"
-            " * Play:  start/resume the simulation\n"
-            " * Pause: freeze the simulation\n"
+            " * Play:  start/resume the game\n"
+            " * Pause: freeze the game\n"
             "   * You can browse memory while paused\n"
         );
         ImGui::PopTextWrapPos();
@@ -534,7 +534,7 @@ void ControlPanel::draw()
             section_game_state();       ImGui::Separator();
 
         /** SIM:CONTROLS: ~~~// Play | Pause //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-            section_sim_controls();
+            section_game_controls();
         }
         ImGui::EndChild();
     }
