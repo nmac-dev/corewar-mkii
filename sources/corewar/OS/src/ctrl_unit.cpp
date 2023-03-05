@@ -1,6 +1,6 @@
 /// Control Unit handles registers and decoding using the program counter
 
-#include "OS/ctrl_unit.hpp"
+#include "ctrl_unit.hpp"
 
 namespace OS
 {

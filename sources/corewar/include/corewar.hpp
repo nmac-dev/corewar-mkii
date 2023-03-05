@@ -6,9 +6,9 @@
 #include <list>
 #include "settings.hpp"
 #include "parser.hpp"
-#include "OS/memory.hpp"
-#include "OS/scheduler.hpp"
-#include "OS/cpu.hpp"
+#include "memory.hpp"
+#include "scheduler.hpp"
+#include "cpu.hpp"
 #include "warrior.hpp"
 
 namespace Corewar
@@ -20,7 +20,7 @@ using Warriors         = std::unordered_map<Player,   Warrior>;
 
 /// Used to automate handling, reporting exceptions and game state
 enum class State : int
-{ 
+{
     ERR_WARRIORS,   // failed to load specified warrior programs
     ERR_INI,        // failed to load configuration file
     WAITING,        // waiting for command (OS is not initialised)
@@ -53,7 +53,7 @@ class Game
     OS::CPU         os_cpu;        // cpu of the operating system
     OS::Report      os_report;     // operating system details of the FDE cycle
 
-    /// Restore operating system to default 
+    /// Restore operating system to default
     void restore_os();
 
  public:
@@ -106,10 +106,10 @@ class Game
     inline Warrior const &warrior(Player _player) const { return m_warriors.at(_player); }
 
     /// Returns the full string of the warrior
-    inline std::string warrior_string(Player _player) const  
-    { 
+    inline std::string warrior_string(Player _player) const
+    {
         return (_player != Player::NONE) ? m_warriors.at(_player).to_string()
-                                         : "P0 '/None/'"; 
+                                         : "P0 '/None/'";
     }
 
  /* Player Utility */
@@ -163,7 +163,7 @@ class Game
 
         return adr_;
     }
-    
+
     /// Returns the warrior's program length
     inline int const program_length(Player _player)
     {
@@ -173,10 +173,10 @@ class Game
 
         return len_;
     }
-    
+
     /// Returns the size of the OS's RAM
     static inline int constexpr memory_size()   { return OS::Memory::size();            }
-    
+
     /// Returns min seperation between programs in memory (.ini)
     inline int const &min_separation()    const { return Settings::min_separation();    }
 

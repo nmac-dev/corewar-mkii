@@ -2,7 +2,7 @@
 #include "template/test_suite.hpp"
 /** SCHEDULER: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-#include "OS/scheduler.hpp"
+#include "scheduler.hpp"
 
 namespace TS { namespace _Scheduler_
 {

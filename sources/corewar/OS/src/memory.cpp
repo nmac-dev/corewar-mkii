@@ -1,6 +1,6 @@
 // memory array assembly simulator containts array of instruction objects and decoding functions
 
-#include "OS/memory.hpp"
+#include "memory.hpp"
 
 namespace OS
 {
@@ -156,7 +156,7 @@ void Memory::decode_modifier(ControlUnit *_ctrl)
         case Opcode::DAT:
         case Opcode::JMP:
         case Opcode::SPL:
-        {   
+        {
             /* ignore modifier */
             return;
         }
@@ -190,7 +190,7 @@ void Memory::decode_modifier(ControlUnit *_ctrl)
     switch (_mod)
     {
         /* Single [default] */
-        case Modifier::A:  break; 
+        case Modifier::A:  break;
         case Modifier::AB:
         {
             swap_dest = true;
@@ -206,19 +206,19 @@ void Memory::decode_modifier(ControlUnit *_ctrl)
             swap_src = swap_dest = true;
             break;
         }
-        /* Double */ 
+        /* Double */
         case Modifier::F:
         {
-            _ctrl->TYPE.mod = ModifierType::DOUBLE; 
+            _ctrl->TYPE.mod = ModifierType::DOUBLE;
             break;
         }
         case Modifier::X:
         {
             swap_dest = true;
-            _ctrl->TYPE.mod = ModifierType::DOUBLE; 
+            _ctrl->TYPE.mod = ModifierType::DOUBLE;
             break;
         }
-        /* Full */ 
+        /* Full */
         case Modifier::I:
         {
             if (full_type)
@@ -275,7 +275,7 @@ ControlUnit Memory::generate_ctrl(int const _pc)
         case Opcode::SUB:
         case Opcode::MUL:
         case Opcode::DIV:
-        case Opcode::MOD: 
+        case Opcode::MOD:
         {
             ctrl_.TYPE.code = OpcodeType::ARITHMETIC;
             break;
@@ -284,7 +284,7 @@ ControlUnit Memory::generate_ctrl(int const _pc)
         case Opcode::JMP:
         case Opcode::JMZ:
         case Opcode::JMN:
-        case Opcode::DJN: 
+        case Opcode::DJN:
         {
             ctrl_.TYPE.code = OpcodeType::JUMP;
             break;
@@ -306,5 +306,5 @@ ControlUnit Memory::generate_ctrl(int const _pc)
 
 Inst &Memory::operator[](int address) const { return *RAM[address]; }
 Inst &Memory::operator[](int address)       { return *RAM[address]; }
-    
+
 } /* ::OS */

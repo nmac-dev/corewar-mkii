@@ -1,6 +1,6 @@
 /// Defines elements and entities in relation to assembly instructions
 
-#include "OS/assembly.hpp"
+#include "assembly.hpp"
 
 namespace Asm
 {
@@ -20,7 +20,7 @@ Modifier Inst::find_default_mod(Opcode _code, Admo _A, Admo _B)
     switch (_code)
     {
     // [dat]
-    case Opcode::DAT: 
+    case Opcode::DAT:
         return Modifier::F;
     // [mov, seq, sne]
     case Opcode::MOV:
@@ -37,7 +37,7 @@ Modifier Inst::find_default_mod(Opcode _code, Admo _A, Admo _B)
         {
             return Modifier::AB;
         }
-        // A != ['#','*'] && B == '#' 
+        // A != ['#','*'] && B == '#'
         else if (_A != Admo::IMMEDIATE && _B == Admo::IMMEDIATE)
         {
             return Modifier::B;
@@ -129,7 +129,7 @@ std::string Inst::to_assembly()
 
         /* val */
         code_.append(std::to_string(opr->val));
-        
+
         if (i == 1) code_.append(",");
         opr = &B; // swap A -> B
     }
@@ -147,7 +147,7 @@ Program::Program(std::string _name, const int _length)
 
 void Program::push(Inst _inst)
 {
-    if (m_insts.size() != m_length) 
+    if (m_insts.size() != m_length)
         m_insts.push_back(_inst);
 }
 

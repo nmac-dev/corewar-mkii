@@ -2,15 +2,15 @@
 #pragma once
 
 #include <string>
-#include "OS/uuid.hpp"
-#include "OS/scheduler.hpp"
-#include "OS/report.hpp"
+#include "uuid.hpp"
+#include "scheduler.hpp"
+#include "report.hpp"
 
 namespace Corewar
 {
 /// Enum to represent each player
 enum class Player : int
-{ 
+{
     NONE,   // Grey
     P1,     // Red
     P2,     // Blue
@@ -63,7 +63,7 @@ class Warrior
 
     /// Returns current number of processes
     inline int const &prcs()         const { return m_prcs;      }
-    
+
     /// Returns current number of points scored
     inline Score const &score()      const { return m_score;      }
 
@@ -71,11 +71,11 @@ class Warrior
     inline bool const is_alive()     const { return m_prcs > 0;  }
 
     /// Returns the player as a string
-    inline std::string player_string() const 
+    inline std::string player_string() const
     {
         return std::string ("P" + std::to_string( (int) m_player ));
     }
-    
+
     inline std::string to_string() const
     {
         return std::string( player_string() + " '" + name() + "'" );
@@ -96,8 +96,8 @@ class Warrior
     }
 
     /// Clears the warriors stats ready for a new game
-    inline void clear_stats() 
-    { 
+    inline void clear_stats()
+    {
         m_prcs = m_score = 0;
     }
 };

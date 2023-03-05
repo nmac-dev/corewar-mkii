@@ -1,18 +1,18 @@
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#   CMAKE ---> ./SOURCE/COREWAR
+#   CMAKE ---> ./SOURCE/OS
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #~~SOURCE~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-add_subdirectory(OS)
-
-add_library ( ${SOURCE_COREWAR}
-${__SRC}/parser.cpp
-${__SRC}/corewar.cpp
-)
-target_include_directories( ${SOURCE_COREWAR} PUBLIC ${__HEADERS} )
-target_link_libraries( ${SOURCE_COREWAR} ${SOURCE_OS} )
-
-add_dependencies( ${SOURCE_COREWAR} ${SOURCE_OS} )
+add_library( ${SOURCE_OS}
+    src/assembly.cpp
+    src/pcb.cpp
+    src/scheduler.cpp
+    src/ctrl_unit.cpp
+    src/memory.cpp
+    src/report.cpp
+    src/cpu.cpp
+    )
+target_include_directories( ${SOURCE_OS} PUBLIC include )
 
 #~~EXECUTABLE~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-target_link_libraries( ${PROJECT_NAME}    ${SOURCE_COREWAR}  )
+target_link_libraries( ${PROJECT_NAME} ${SOURCE_OS} )

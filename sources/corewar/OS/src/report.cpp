@@ -1,6 +1,6 @@
 /// Stores the details of the CPU's FDE cycle
 
-#include "OS/report.hpp"
+#include "report.hpp"
 
 namespace OS
 {
