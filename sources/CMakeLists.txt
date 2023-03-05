@@ -3,13 +3,14 @@
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #~~COREWAR~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-add_subdirectory ( ${__COREWAR}  )  #~~SOURCE
-add_subdirectory ( ${__GUI}      )  #~~GUI
+add_subdirectory(OS)
+add_subdirectory(corewar)
+add_subdirectory(gui)
 
 #~~TEST-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 if (BUILD_TESTING)
-    set ( __TEST_HEADERS    ${__TEST}/test_suite  )
-    add_subdirectory ( ${__TEST}  )
+    set( __TEST_HEADERS ${__TEST}/test_suite  )
+    add_subdirectory( ${__TEST}  )
 endif ()
 
 #~~VENDOR~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
