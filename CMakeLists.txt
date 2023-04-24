@@ -14,12 +14,10 @@ set ( CMAKE_CXX_STANDARD       17  )
 set ( CXX_STANDARD_REQUIRED    ON  )
 
 #~~SETUP~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-set ( SOURCE_COREWAR_GUI  source.corewar.gui  )
 
 set ( __SOURCES    sources           )
 set ( __SRC        src               )
 set ( __HEADERS    include           )
-set ( __GUI        gui               )
 
 if (BUILD_TESTING)
     set ( TESTER    tester  )                               #~~ TESTER file
@@ -104,7 +102,7 @@ add_custom_target ( ${__LICENSE}    ALL              #~~ 'LICENSE'
 add_dependencies ( ${PROJECT_NAME}         ${__DOCS}         )        #~~ 'docs/'
 add_dependencies ( ${PROJECT_NAME}         ${__WARRIORS}     )        #~~ 'warriors/'
 add_dependencies ( ${PROJECT_NAME}         ${__COREWAR_INI}  )        #~~ 'corewar.ini'
-add_dependencies ( ${SOURCE_COREWAR_GUI}   ${__GUI_INI}      )        #~~ '.gui.ini'
+add_dependencies ( source.gui              ${__GUI_INI}      )        #~~ '.gui.ini'
 add_dependencies ( ${PROJECT_NAME}         ${__README}       )        #~~ 'README.md'
 add_dependencies ( ${PROJECT_NAME}         ${__LICENSE}      )        #~~ 'LICENSE'
 
