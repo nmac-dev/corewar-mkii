@@ -1,8 +1,8 @@
-﻿/// Runs the game of corewar
+﻿/// Runs the game of core
 
-#include "corewar.hpp"
+#include "core.hpp"
 
-namespace Corewar
+namespace Core
 {
 
 Game::Game() { m_state = State::WAITING; }
@@ -10,12 +10,12 @@ Game::Game() { m_state = State::WAITING; }
 void Game::restore_os()
 {
     os_memory = OS::Memory(     /* Always before scheduler (needs program counter addresses) */
-        &asm_programs, 
+        &asm_programs,
         Settings::min_separation()
     );
     os_sched  = OS::Scheduler(
         &asm_programs,
-        Settings::max_cycles(), 
+        Settings::max_cycles(),
         Settings::max_processes()
     );
     os_cpu    = OS::CPU(&os_memory, &os_sched);
@@ -83,8 +83,8 @@ State Game::new_game(WarriorFiles &_filenames)
     }
     catch (const std::exception e) { return State::ERR_INI; }
 
-    #ifdef COREWAR_DEBUG
-    printf("\n Corewar::Game::init: loaded settings: 'config.ini' \n");
+    #ifdef CORE_DEBUG
+    printf("\n Core::Game::init: loaded settings: 'config.ini' \n");
     #endif
 
     /* Load Warriors */
@@ -109,7 +109,7 @@ State Game::new_game(WarriorFiles &_filenames)
         OS::UUID const &warrior_id = asm_programs[i].get()->uuid();
 
         /* Create Warrior */
-        m_warriors[player_] = 
+        m_warriors[player_] =
             Warrior(
                 warrior_id,
                 asm_programs[i].get()->name(),
@@ -119,8 +119,8 @@ State Game::new_game(WarriorFiles &_filenames)
         /* Set UUID table to Warrior */
         uuid_tbl[warrior_id] = &m_warriors[player_];
 
-        #ifdef COREWAR_DEBUG
-        if (i == 0) printf("\n Corewar::Game::init: loaded warriors: \n");
+        #ifdef CORE_DEBUG
+        if (i == 0) printf("\n Core::Game::init: loaded warriors: \n");
         printf("\t [%d] '%s%s' \n", i, warriors_path, filename.c_str());
         #endif
     }
@@ -142,7 +142,7 @@ State Game::next_turn()
 
     if (m_state != State::RUNNING)
         return m_state;
-    
+
     /* Next Turn */
     os_report          = os_cpu.run_fde_cycle();
     OS::Status status_ = os_report.status;
@@ -174,8 +174,8 @@ State Game::next_turn()
         {
             m_state = State::COMPLETE;
 
-            #ifdef COREWAR_DEBUG
-            printf("\n Corewar::Game::next_turn:\t GAME OVER \n");
+            #ifdef CORE_DEBUG
+            printf("\n Core::Game::next_turn:\t GAME OVER \n");
             #endif
         }
         /* New Round */
@@ -183,15 +183,15 @@ State Game::next_turn()
         {
             m_state = State::NEW_ROUND;
 
-            #ifdef COREWAR_DEBUG
-            printf("\n Corewar::Game::next:\t Round |%d| complete \n", m_round);
+            #ifdef CORE_DEBUG
+            printf("\n Core::Game::next:\t Round |%d| complete \n", m_round);
             #endif
         }
     }
     return m_state;
 } /* next_turn() */
 
-Player const Game::round_winner(int _round) const 
+Player const Game::round_winner(int _round) const
 {
     Player winner_ = Player::NONE;
     // default to last round
@@ -206,7 +206,7 @@ Player const Game::round_winner(int _round) const
     return winner_;
 }
 
-Player const Game::match_winner() const 
+Player const Game::match_winner() const
 {
     Player winner_ = Player::NONE;
     Warrior const *warrior_i;
@@ -230,4 +230,4 @@ Player const Game::match_winner() const
     return winner_;
 }
 
-} /* ::Corewar */
+} /* ::Core */

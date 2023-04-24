@@ -1,7 +1,7 @@
-/// Initialise & Run a game of corewar
+/// Initialise & Run a game of core
 #pragma once
 
-// #define COREWAR_DEBUG
+// #define CORE_DEBUG
 
 #include <list>
 #include "settings.hpp"
@@ -11,7 +11,7 @@
 #include "cpu.hpp"
 #include "warrior.hpp"
 
-namespace Corewar
+namespace Core
 {
 using WarriorFiles     = std::vector<std::string>;
 using WarriorFilesList = std::list<std::string>;
@@ -185,4 +185,4 @@ class Game
 
 }; /* Game */
 
-} /* ::Corewar */
+} /* ::Core */

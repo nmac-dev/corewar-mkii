@@ -3,9 +3,9 @@
 
 #include "imgui_required.hpp"
 
-namespace Corewar { namespace GUI
+namespace Core { namespace GUI
 {
-/// A static class to display the memory of the corewar operating system
+/// A static class to display the memory of the core operating system
 class MemoryViewer
 {
  public:
@@ -21,13 +21,13 @@ class MemoryViewer
     /* Display */
     static inline float  constexpr PAD = 9.f;
     static inline bool m_init_flag     = false, // true when the display is initialised
-                       m_reset_flag    = false; // true when the display needs to be reset 
+                       m_reset_flag    = false; // true when the display needs to be reset
     static inline ImVec2 constexpr disp_window_size = ImVec2(1024.f + PAD, 540.f);
     static inline ImVec2 constexpr disp_cell_size   = ImVec2(7.f, 7.f);  // size of a single cell
 
     /* Data */
     static inline std::vector<Cell> memory_cells;   // collection of cells in the viewer
-    static inline Corewar::Game     *ptr_corewar;   // pointer to the running corewar game
+    static inline Core::Game       *ptr_core;       // pointer to the running core game
 
     MemoryViewer() = default;                      /// Constructor blocked
  public:
@@ -37,8 +37,8 @@ class MemoryViewer
  /* Functions */
 
     /// Inititalises the memory viewer, must be called before use
-    /// @param _corewar pointer to a running corewar game
-    static void init(Corewar::Game *_corewar);
+    /// @param _core pointer to a running core game
+    static void init(Core::Game *_core);
 
     /// Returns true if the memory display has been initialised
     static inline bool &init_flag() { return m_init_flag; }
@@ -55,8 +55,8 @@ class MemoryViewer
     /// Updates the assembly string for the cell at the address given
     static inline void update_cell_assembly(int _adr)
     {
-        memory_cells[_adr].assembly = ptr_corewar->assembly_at(_adr);
+        memory_cells[_adr].assembly = ptr_core->assembly_at(_adr);
     }
 };
 
-}}/* ::Corewar::GUI */
+}}/* ::Core::GUI */

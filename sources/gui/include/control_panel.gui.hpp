@@ -8,10 +8,10 @@
 
 namespace FileSys = std::filesystem;
 
-namespace Corewar { namespace GUI
+namespace Core { namespace GUI
 {
 
-/// A static class to display a control panel for corewar
+/// A static class to display a control panel for core
 class ControlPanel
 {
  public:
@@ -37,7 +37,7 @@ class ControlPanel
     static inline WarriorFiles       dir_files;       // collection of all files in the 'warriors/' directory
     static inline std::vector<int>   select_indexes;  // counter for each selected file from the 'warriors/' directory
     static inline std::vector<Stats> warrior_stats;   // Collection of warrior stats
-    static inline Corewar::Game      *ptr_corewar;    // pointer to the running corewar game
+    static inline Core::Game        *ptr_core;        // pointer to the running core game
 
     ControlPanel() = default;                       /// Constructor blocked
  public:
@@ -46,22 +46,22 @@ class ControlPanel
 
  /* Functions */
 
-    /// Inititalises the Warriors display, must be called before use but after corewar game is running
-    /// @param _corewar pointer to a running corewar game
-    static void init(Game *_corewar);
-    
+    /// Initialises the Warriors display, must be called before use but after core game is running
+    /// @param _core pointer to a running core game
+    static void init(Game *_core);
+
     /// Returns true if the memory display has been initialised
     static inline bool &init_flag() { return m_init_flag; }
 
-    /// Runs the game of corewar and its displays
-    static void run_corewar_systems();
+    /// Runs the game of core and its displays
+    static void run_core_systems();
 
-    // resets the game of corewar and memory display
+    // resets the game of core and memory display
     static void reset();
 
     /// Reloads all the warrior files in 'warriors/'
     static void reload_files();
-    
+
     /// Selects the warrior file
     static inline void select_file(int _index);
 
@@ -101,4 +101,4 @@ class ControlPanel
     static inline void section_game_controls();
 };
 
-}}/* ::Corewar::GUI */
+}}/* ::Core::GUI */

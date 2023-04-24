@@ -6,7 +6,7 @@
 #include "scheduler.hpp"
 #include "report.hpp"
 
-namespace Corewar
+namespace Core
 {
 /// Enum to represent each player
 enum class Player : int
@@ -24,7 +24,7 @@ enum class Player : int
 };
 using Score = int;
 
-/// Contains information for a corewar warrior (warrior)
+/// Contains information for a core warrior (warrior)
 class Warrior
 {
  private:
@@ -102,4 +102,4 @@ class Warrior
     }
 };
 
-} /* ::Corewar */
+} /* ::Core */

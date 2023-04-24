@@ -1,16 +1,16 @@
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-#   CMAKE ---> ./SOURCE/COREWAR
+#   CMAKE ---> ./SOURCE/CORE
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #~~SOURCE~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-add_library( ${SOURCE_COREWAR}
+add_library( source.core
     src/parser.cpp
-    src/corewar.cpp
+    src/core.cpp
     )
-target_include_directories( ${SOURCE_COREWAR} PUBLIC include )
-target_link_libraries( ${SOURCE_COREWAR} source.os )
+target_include_directories( source.core PUBLIC include )
+target_link_libraries(      source.core source.os      )
 
-add_dependencies( ${SOURCE_COREWAR} source.os )
+add_dependencies( source.core source.os )
 
 #~~EXECUTABLE~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-target_link_libraries( ${PROJECT_NAME} ${SOURCE_COREWAR} )
+target_link_libraries( ${PROJECT_NAME} source.core )

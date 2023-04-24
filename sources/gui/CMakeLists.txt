@@ -10,7 +10,7 @@ add_library ( ${SOURCE_COREWAR_GUI}       #~~ Corewar GUI
     )
 target_include_directories ( ${SOURCE_COREWAR_GUI}    PUBLIC  ${__HEADERS}  )
 target_link_libraries      ( ${SOURCE_COREWAR_GUI}
-    ${SOURCE_COREWAR}
+    source.core
 
     ${VENDOR_IMGUI_BACKENDS}
     ${VENDOR_GLAD}

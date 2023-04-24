@@ -4,7 +4,7 @@
 
 #~~HEADERS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 include_directories ( ${__HEADERS}  )
-link_libraries ( ${SOURCE_COREWAR}  )
+link_libraries ( source.core  )
 
 #~~SRC~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 set ( TEST_PARSER       parser.${TESTER}     )

@@ -14,11 +14,9 @@ set ( CMAKE_CXX_STANDARD       17  )
 set ( CXX_STANDARD_REQUIRED    ON  )
 
 #~~SETUP~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-set ( SOURCE_COREWAR      source.corewar      )
 set ( SOURCE_COREWAR_GUI  source.corewar.gui  )
 
 set ( __SOURCES    sources           )
-set ( __COREWAR    corewar           )
 set ( __SRC        src               )
 set ( __HEADERS    include           )
 set ( __GUI        gui               )
