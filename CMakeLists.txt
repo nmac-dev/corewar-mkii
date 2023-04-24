@@ -15,12 +15,8 @@ set ( CXX_STANDARD_REQUIRED    ON  )
 
 #~~SETUP~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-set ( __SOURCES    sources           )
-set ( __SRC        src               )
-set ( __HEADERS    include           )
-
 if (BUILD_TESTING)
-    set ( TESTER    tester  )                               #~~ TESTER file
+    set ( TESTER    tester  )  #~~ TESTER file
     set ( __TEST    test    )
 
     enable_testing ()
@@ -46,7 +42,7 @@ if (WIN32)
 endif (WIN32)
 
 #~~SOURCES~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-add_subdirectory( ${__SOURCES}  )
+add_subdirectory( sources )
 
 #~~RESOURCES~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 set ( __WARRIORS       warriors     )

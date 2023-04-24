@@ -3,7 +3,7 @@
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #~~HEADERS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-include_directories ( ${__HEADERS}  )
+include_directories ( include  )
 link_libraries ( source.core  )
 
 #~~SRC~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -12,7 +12,7 @@ set ( TEST_SCHEDULER    scheduler.${TESTER}  )
 set ( TEST_MEMORY       memory.${TESTER}     )
 set ( TEST_CPU          cpu.${TESTER}        )
 
-add_executable ( ${TEST_PARSER}       ${__SRC}/${TEST_PARSER}.cpp        )
+add_executable ( ${TEST_PARSER}       src/${TEST_PARSER}.cpp        )
 add_executable ( ${TEST_SCHEDULER}    src/OS/${TEST_SCHEDULER}.cpp  )
 add_executable ( ${TEST_MEMORY}       src/OS/${TEST_MEMORY}.cpp     )
 add_executable ( ${TEST_CPU}          src/OS/${TEST_CPU}.cpp        )
@@ -28,9 +28,9 @@ set ( TEST_WARRIORS    warriors.${TESTER}  )
 
 add_custom_target ( ${TEST_WARRIORS}    ALL    #~~ 'warriors.tester'
     COMMAND ${CMAKE_COMMAND}    -E copy_directory
-    ${PROJECT_SOURCE_DIR}/${__SOURCES}/${__TEST}/${TEST_WARRIORS}
-    ${CMAKE_BINARY_DIR}/${__SOURCES}/${__TEST}/${TEST_WARRIORS}
-    COMMENT "Added \"${__SOURCES}/${__TEST}/${TEST_WARRIORS}/\""
+    ${PROJECT_SOURCE_DIR}/sources/${__TEST}/${TEST_WARRIORS}
+    ${CMAKE_BINARY_DIR}/sources/${__TEST}/${TEST_WARRIORS}
+    COMMENT "Added \"sources/${__TEST}/${TEST_WARRIORS}/\""
     )
 
 #~~DEPENDENCIES~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

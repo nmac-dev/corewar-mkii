@@ -4,8 +4,8 @@
 set( BUILD_SHARED_LIBS    OFF  ) # build static vendor libraries
 
 #~~GLAD~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-add_library                ( ${VENDOR_GLAD}    ${__GLAD}/${__SRC}/glad.c       )
-target_include_directories ( ${VENDOR_GLAD}    PUBLIC  ${__GLAD}/${__HEADERS}  )
+add_library                ( ${VENDOR_GLAD}    ${__GLAD}/src/glad.c       )
+target_include_directories ( ${VENDOR_GLAD}    PUBLIC  ${__GLAD}/include  )
 
 #~~GLFW~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 set( GLFW_HEADERS_DIR    ${__GLFW}/${__HEADERS}  )
