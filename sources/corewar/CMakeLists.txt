@@ -8,9 +8,9 @@ add_library( ${SOURCE_COREWAR}
     src/corewar.cpp
     )
 target_include_directories( ${SOURCE_COREWAR} PUBLIC include )
-target_link_libraries( ${SOURCE_COREWAR} ${SOURCE_OS} )
+target_link_libraries( ${SOURCE_COREWAR} source.os )
 
-add_dependencies( ${SOURCE_COREWAR} ${SOURCE_OS} )
+add_dependencies( ${SOURCE_COREWAR} source.os )
 
 #~~EXECUTABLE~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 target_link_libraries( ${PROJECT_NAME} ${SOURCE_COREWAR} )

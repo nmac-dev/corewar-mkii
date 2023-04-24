@@ -13,9 +13,9 @@ set ( TEST_MEMORY       memory.${TESTER}     )
 set ( TEST_CPU          cpu.${TESTER}        )
 
 add_executable ( ${TEST_PARSER}       ${__SRC}/${TEST_PARSER}.cpp        )
-add_executable ( ${TEST_SCHEDULER}    ${__SRC_OS}/${TEST_SCHEDULER}.cpp  )
-add_executable ( ${TEST_MEMORY}       ${__SRC_OS}/${TEST_MEMORY}.cpp     )
-add_executable ( ${TEST_CPU}          ${__SRC_OS}/${TEST_CPU}.cpp        )
+add_executable ( ${TEST_SCHEDULER}    src/OS/${TEST_SCHEDULER}.cpp  )
+add_executable ( ${TEST_MEMORY}       src/OS/${TEST_MEMORY}.cpp     )
+add_executable ( ${TEST_CPU}          src/OS/${TEST_CPU}.cpp        )
 
 #~~TEST~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 add_test ( ${TEST_PARSER}       ${TEST_PARSER}     )
