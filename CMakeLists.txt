@@ -23,17 +23,6 @@ if (BUILD_TESTING)
     message ("\n\t . . . Testing enabled . . . \n")
 endif ()
 
-set ( VENDOR_IMGUI             vendor.imgui           )     #~~ VENDOR Libraries
-set ( VENDOR_IMGUI_BACKENDS    vendor.imgui.backends  )
-set ( VENDOR_GLAD              vendor.glad            )
-set ( VENDOR_GLFW              glfw                   ) # named by GLFW
-
-set ( __VENDOR      vendor    )
-set ( __IMGUI       imgui     )
-set ( __BACKENDS    backends  )
-set ( __GLAD        glad      )
-set ( __GLFW        glfw      )
-
 #~~EXECUTABLE~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 add_executable( ${PROJECT_NAME}    sources/gui/src/corewar.gui.cpp  )
 
@@ -42,7 +31,7 @@ if (WIN32)
 endif (WIN32)
 
 #~~SOURCES~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-add_subdirectory( sources )
+add_subdirectory(sources)
 
 #~~RESOURCES~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 set ( __WARRIORS       warriors     )

@@ -14,4 +14,4 @@ if (BUILD_TESTING)
 endif ()
 
 #~~VENDOR~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-add_subdirectory( ${__VENDOR}  )
+add_subdirectory(vendor)

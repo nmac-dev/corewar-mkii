@@ -4,42 +4,40 @@
 set( BUILD_SHARED_LIBS    OFF  ) # build static vendor libraries
 
 #~~GLAD~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-add_library                ( ${VENDOR_GLAD}    ${__GLAD}/src/glad.c       )
-target_include_directories ( ${VENDOR_GLAD}    PUBLIC  ${__GLAD}/include  )
+add_library               ( vendor.glad    glad/src/glad.c       )
+target_include_directories( vendor.glad    PUBLIC  glad/include  )
 
 #~~GLFW~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-set( GLFW_HEADERS_DIR    ${__GLFW}/${__HEADERS}  )
-
 set( GLFW_BUILD_EXAMPLES    OFF  )  # set extra build options
 set( GLFW_BUILD_TESTS       OFF  )
 set( GLFW_BUILD_DOCS        OFF  )
 set( GLFW_INSTALL           OFF  )
 
-add_subdirectory ( ${__GLFW}  )
+add_subdirectory( glfw  )
 
-target_include_directories ( ${VENDOR_GLFW}    PUBLIC  ${GLFW_HEADERS_DIR}  )
+# target_include_directories ( glfw    PUBLIC  glfw/include  )
 
 #~~IMGUI~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-add_library ( ${VENDOR_IMGUI}
-    ${__IMGUI}/imgui.cpp
-    ${__IMGUI}/imgui_draw.cpp
-    ${__IMGUI}/imgui_tables.cpp
-    ${__IMGUI}/imgui_widgets.cpp
+add_library( vendor.imgui
+    imgui/imgui.cpp
+    imgui/imgui_draw.cpp
+    imgui/imgui_tables.cpp
+    imgui/imgui_widgets.cpp
     )
-target_include_directories ( ${VENDOR_IMGUI}    PUBLIC  ${__IMGUI}  )
+target_include_directories( vendor.imgui    PUBLIC  imgui  )
 
 #~~IMGUI BACKEND~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-set( IMGUI_BACKEND_DIR    ${__IMGUI}/${__BACKENDS}  )
+set( IMGUI_BACKEND_DIR    imgui/backends  )
 
-add_library ( ${VENDOR_IMGUI_BACKENDS}
+add_library( vendor.imgui.backends
     ${IMGUI_BACKEND_DIR}/imgui_impl_glfw.cpp
     ${IMGUI_BACKEND_DIR}/imgui_impl_opengl3.cpp
     )
-target_include_directories ( ${VENDOR_IMGUI_BACKENDS}    PUBLIC  ${IMGUI_BACKEND_DIR}     )
-target_link_libraries      ( ${VENDOR_IMGUI_BACKENDS}    ${VENDOR_IMGUI}  ${VENDOR_GLFW}  )
+target_include_directories( vendor.imgui.backends    PUBLIC        ${IMGUI_BACKEND_DIR} )
+target_link_libraries     ( vendor.imgui.backends    vendor.imgui  glfw                 )
 
 #~~EXECUTABLE~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-target_link_libraries      ( ${PROJECT_NAME}    ${VENDOR_GLAD}  ${CMAKE_DL_LIBS}  )
-target_link_libraries      ( ${PROJECT_NAME}    ${VENDOR_GLFW}                    )
-target_link_libraries      ( ${PROJECT_NAME}    ${VENDOR_IMGUI}                   )
-target_link_libraries      ( ${PROJECT_NAME}    ${VENDOR_IMGUI_BACKENDS}          )
+target_link_libraries( ${PROJECT_NAME}    vendor.glad     ${CMAKE_DL_LIBS}  )
+target_link_libraries( ${PROJECT_NAME}    glfw                              )
+target_link_libraries( ${PROJECT_NAME}    vendor.imgui                      )
+target_link_libraries( ${PROJECT_NAME}    vendor.imgui.backends             )
