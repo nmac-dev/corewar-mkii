@@ -1,4 +1,4 @@
-#include "OS/memory.tester.hpp"
+#include "OS/tester-memory.hpp"
 
 int main(int argc, char const *argv[])
 {
@@ -26,10 +26,10 @@ namespace /* {anonymous} */
 BoolInt OUT_OF_BOUNDS()
 {
     TS__MEMORY__SET_TEST_ENV()
-    
+
     int  const  lower_bounds = 0,
                 upper_bounds = mars_.size() - 1;
-    
+
     int test_index;
     Inst  &lower_ = mars_[lower_bounds],
           &upper_ = mars_[upper_bounds];
@@ -56,7 +56,7 @@ BoolInt OUT_OF_BOUNDS()
     OUT_OF_BOUNDS__TEST(lower_.OP.code, lower_bounds -1)
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
  HDR_.info.test_desc = "Upper Bounds ( RAM[size()] )";
-    
+
     OUT_OF_BOUNDS__TEST(upper_.OP.code, upper_bounds +1)
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     return HDR_.result;
@@ -86,9 +86,9 @@ BoolInt ALL_ADMOS()
                         [0]: dat (?)1, (?)2    |           [EXE]
                         [1]: dat   #5,   #0    | (--|++)   [SRC]
                         [2]: dat   #0,   #9    | (--|++)   [DEST]
-                        [3]: dat   #0,   #0    |               
+                        [3]: dat   #0,   #0    |
                         [4]: dat   #0,   #0    | indirect  (SRC)
-                        [5]: dat   #0,   #0    |       
+                        [5]: dat   #0,   #0    |
                         [6]: dat   #0,   #0    | indirect  (DEST)
  *//** SUITE: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     Header HDR_ (suite_info( {"decode_admo()", "ALL_ADMOS()", ""} ));
@@ -140,7 +140,7 @@ BoolInt ALL_ADMOS()
                                     // [DEST + A]
     ALL_ADMOS__SET_TEST(_exe.A.val +  _src.A.val,
                             _exe.B.val + _dest.A.val)
-    ALL_ADMOS__RUN_TEST(ctrl.SRC.address, 
+    ALL_ADMOS__RUN_TEST(ctrl.SRC.address,
                             ctrl.DEST.address)
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
  HDR_.info.test_desc = "INDIRECT_B ( '@' )";
@@ -149,7 +149,7 @@ BoolInt ALL_ADMOS()
                                     // [DEST + B]
     ALL_ADMOS__SET_TEST(_exe.A.val +  _src.B.val,
                             _exe.B.val + _dest.B.val)
-    ALL_ADMOS__RUN_TEST(ctrl.SRC.address, 
+    ALL_ADMOS__RUN_TEST(ctrl.SRC.address,
                             ctrl.DEST.address)
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
  HDR_.info.test_desc = "PRE_DEC_A ( '{' )";
@@ -160,7 +160,7 @@ BoolInt ALL_ADMOS()
     ALL_ADMOS__RUN_TEST(_src.A.val,     _dest.A.val)
  /*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
  HDR_.info.test_desc = "PRE_DEC_B ( '<' )";
- 
+
     test_admo = Admo::PRE_DEC_B;    // (@) + (--B)
 
     ALL_ADMOS__SET_TEST(_src.B.val - 1, _dest.B.val - 1)

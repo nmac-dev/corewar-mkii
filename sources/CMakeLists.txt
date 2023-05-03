@@ -9,8 +9,7 @@ add_subdirectory(gui)
 
 #~~TEST-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 if (BUILD_TESTING)
-    set( __TEST_HEADERS ${__TEST}/test_suite  )
-    add_subdirectory( ${__TEST}  )
+    add_subdirectory(test)
 endif ()
 
 #~~VENDOR~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

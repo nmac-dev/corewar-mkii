@@ -1,4 +1,4 @@
-#include "parser.tester.hpp"
+#include "tester-parser.hpp"
 
 int main(int argc, char const *argv[])
 {
@@ -33,7 +33,7 @@ BoolInt CLEAN_ASSEMBLY()
         "label_name: add.ab #0, $0",
         "mov 0, 0"
     };
-    std::string raw_lines[n_tests] 
+    std::string raw_lines[n_tests]
     {
         "dat 0,0            ;; COMMENT",
         "label_name: add.ab   #0,   $0",
@@ -101,10 +101,10 @@ BoolInt LABEL_LINKER()
 /** TEST: parsed assembly file */
 BoolInt PARSE_ASSEMBLY()
 {
-    char constexpr test_file[]     = "warriors.tester/parser.tester.asm",
-                   defaults_file[] = "warriors.tester/syntax_defaults.asm";
+    char constexpr test_file[]     = "tester-warriors/tester-parser.asm",
+                   defaults_file[] = "tester-warriors/syntax_defaults.asm";
 
-    AssemblyCode assembly_, // clean 
+    AssemblyCode assembly_, // clean
                  defaults_; // DO NOT clean
     try
     {

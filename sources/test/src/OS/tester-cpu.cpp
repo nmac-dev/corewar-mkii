@@ -1,4 +1,4 @@
-#include "OS/cpu.tester.hpp"
+#include "OS/tester-cpu.hpp"
 
 int main(int argc, char const *argv[])
 {
@@ -27,7 +27,7 @@ namespace /* {anonymous} */
 BoolInt SYSTEM_CODES()
 {
     TS__CPU__CONST_OPRS()
-    
+
     Inst::Operand djn_zero  {Admo::IMMEDIATE, 1};
 
     int constexpr n_inst = 6;
@@ -254,7 +254,7 @@ BoolInt JUMP_CODES()
  *//** SUITE: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     Header HDR_ (suite_info( {"execute_jump()", "JUMP_CODES()", ""} ));
     int E_,  A_;
-    
+
     #define JUMP_CODES__RUN_TEST()               \
         test_rpt = core_.run_fde_cycle();        \
         E_ = test_rpt.exe.address + jump_f.val;  \

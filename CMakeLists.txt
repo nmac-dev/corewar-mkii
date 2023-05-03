@@ -4,30 +4,28 @@
 cmake_minimum_required (VERSION 3.20)
 
 #~~PROJECT~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-project (corewar-mkii)
+project(corewar-mkii)
 
+include(cmake/utils.cmake)
+
+set( CMAKE_CXX_STANDARD       17 )
+set( CXX_STANDARD_REQUIRED    ON )
+
+#~~TEST~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 include (CTest)    #~~ BUILD_TESTING = ON
 # set ( BUILD_TESTING    OFF  )
 
-#~~COMPILER~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-set ( CMAKE_CXX_STANDARD       17  )
-set ( CXX_STANDARD_REQUIRED    ON  )
-
-#~~SETUP~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-if (BUILD_TESTING)
-    set ( TESTER    tester  )  #~~ TESTER file
-    set ( __TEST    test    )
-
+if(BUILD_TESTING)
     enable_testing ()
     message ("\n\t . . . Testing enabled . . . \n")
-endif ()
+endif()
 
 #~~EXECUTABLE~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 add_executable( ${PROJECT_NAME}    sources/gui/src/corewar.gui.cpp  )
 
 if (WIN32)
-    set_target_properties( ${PROJECT_NAME} PROPERTIES WIN32_EXECUTABLE true  ) # create exe instance without console
+    # create exe instance without console
+    set_target_properties( ${PROJECT_NAME} PROPERTIES WIN32_EXECUTABLE true )
 endif (WIN32)
 
 #~~SOURCES~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

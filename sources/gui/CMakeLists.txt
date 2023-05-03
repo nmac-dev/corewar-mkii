@@ -3,7 +3,7 @@
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 #~~GUI~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-add_library( source.gui       #~~ Corewar GUI
+add_library( source.gui
     src/memory_viewer.gui.cpp
     src/control_panel_sections.gui.cpp
     src/control_panel.gui.cpp
@@ -11,7 +11,6 @@ add_library( source.gui       #~~ Corewar GUI
 target_include_directories( source.gui    PUBLIC  include  )
 target_link_libraries     ( source.gui
     source.core
-
     vendor.imgui.backends
     vendor.glad
     glfw
