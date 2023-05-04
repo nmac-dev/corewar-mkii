@@ -34,7 +34,7 @@ int main() {
     /* Set Config */ // must be set before backend is initialised
     ImGuiIO& io = ImGui::GetIO(); (void)io;
 
-    io.IniFilename = ".gui.ini";
+    io.IniFilename =  "gui.ini";
     io.ConfigFlags |= Core::GUI::GLOBAL_CONFIG_FLAGS;
 
     /* Tweaks for Viewport */

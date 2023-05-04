@@ -13,7 +13,7 @@ class Settings
  using ConfigINI = std::unordered_map<std::string, int>;
  private:
     static char constexpr ini_section[]  = "[Match Parameters]";
-    static char constexpr ini_filename[] = "corewar.ini";
+    static char constexpr ini_filename[] = "core.ini";
     static char constexpr ini_comment    = '#';
     static int  constexpr ini_total_vals = 5;
     static inline bool    flag_loaded    = false; // true when the '.ini' file has been loaded
