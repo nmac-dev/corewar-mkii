@@ -2,36 +2,28 @@
 #   CMAKE ---> ./SOURCES/TEST
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#~~HEADERS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-include_directories ( ${__HEADERS}  )
-link_libraries ( ${SOURCE_COREWAR}  )
+#~~TESTERS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+include_directories( include )
 
-#~~SRC~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-set ( TEST_PARSER       parser.${TESTER}     )
-set ( TEST_SCHEDULER    scheduler.${TESTER}  )
-set ( TEST_MEMORY       memory.${TESTER}     )
-set ( TEST_CPU          cpu.${TESTER}        )
+add_executable( tester-parser     src/tester-parser.cpp       )
+add_executable( tester-scheduler  src/OS/tester-scheduler.cpp )
+add_executable( tester-memory     src/OS/tester-memory.cpp    )
+add_executable( tester-cpu        src/OS/tester-cpu.cpp       )
 
-add_executable ( ${TEST_PARSER}       ${__SRC}/${TEST_PARSER}.cpp        )
-add_executable ( ${TEST_SCHEDULER}    ${__SRC_OS}/${TEST_SCHEDULER}.cpp  )
-add_executable ( ${TEST_MEMORY}       ${__SRC_OS}/${TEST_MEMORY}.cpp     )
-add_executable ( ${TEST_CPU}          ${__SRC_OS}/${TEST_CPU}.cpp        )
+target_link_libraries( tester-parser     source.core )
+target_link_libraries( tester-scheduler  source.os   )
+target_link_libraries( tester-memory     source.os   )
+target_link_libraries( tester-cpu        source.os   )
 
 #~~TEST~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-add_test ( ${TEST_PARSER}       ${TEST_PARSER}     )
-add_test ( ${TEST_SCHEDULER}    ${TEST_SCHEDULER}  )
-add_test ( ${TEST_MEMORY}       ${TEST_MEMORY}     )
-add_test ( ${TEST_CPU}          ${TEST_CPU}        )
+add_test( test.parser     tester-parser    )
+add_test( test.scheduler  tester-scheduler )
+add_test( test.memory     tester-memory    )
+add_test( test.cpu        tester-cpu       )
 
 #~~RESOURCES~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-set ( TEST_WARRIORS    warriors.${TESTER}  )
-
-add_custom_target ( ${TEST_WARRIORS}    ALL    #~~ 'warriors.tester'
-    COMMAND ${CMAKE_COMMAND}    -E copy_directory
-    ${PROJECT_SOURCE_DIR}/${__SOURCES}/${__TEST}/${TEST_WARRIORS}
-    ${CMAKE_BINARY_DIR}/${__SOURCES}/${__TEST}/${TEST_WARRIORS}
-    COMMENT "Added \"${__SOURCES}/${__TEST}/${TEST_WARRIORS}/\""
+func_add_target_dir( tester-parser
+    tester-warriors
+        ${CMAKE_SOURCE_DIR}/sources/test
+        ${CMAKE_BINARY_DIR}/sources/test
     )
-
-#~~DEPENDENCIES~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-add_dependencies ( ${TEST_PARSER}    ${TEST_WARRIORS}  )    #~~ parser.tester.cpp

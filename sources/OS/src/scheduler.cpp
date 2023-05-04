@@ -1,6 +1,6 @@
 /// Handles program processes in a round robin system, ensures one process each per cycle
 
-#include "OS/scheduler.hpp"
+#include "scheduler.hpp"
 
 /// Operating System handles: fetch/decode/execute cycle, memory simulator, and program processes
 namespace OS {

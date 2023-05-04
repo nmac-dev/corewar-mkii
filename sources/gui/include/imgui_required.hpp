@@ -1,4 +1,4 @@
-/// 'Dear ImGui' requirements and corewar global GUI members
+/// 'Dear ImGui' requirements and core global GUI members
 #pragma once
 
 /** IMGUI:REQUIRED: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -16,15 +16,15 @@
 
 #define GLSL_VERSION "#version 330"
 
-/** COREWAR:GUI:REQUIRED: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/** CORE:GUI:REQUIRED: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 #include <unordered_map>
 #include <vector>
-#include "corewar.hpp"
+#include "core.hpp"
 
-namespace Corewar { namespace GUI
+namespace Core { namespace GUI
 {
 ImGuiWindowFlags constexpr GLOBAL_WINDOW_FLAGS
-( 
+(
     ImGuiWindowFlags_None
     | ImGuiWindowFlags_NoResize
     | ImGuiWindowFlags_NoScrollbar
@@ -102,4 +102,4 @@ int inline push_btn_color(ImVec4 &_color, float _adjust = 0.2f)
     return 3;
 }
 
-}}/* ::Corewar::GUI */
+}}/* ::Core::GUI */

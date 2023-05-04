@@ -1,4 +1,4 @@
-#include "OS/scheduler.tester.hpp"
+#include "OS/tester-scheduler.hpp"
 
 int main(int argc, char const *argv[])
 {

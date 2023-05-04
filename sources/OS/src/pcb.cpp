@@ -1,6 +1,6 @@
 /// Represents a single process within a process control block
 
-#include "OS/pcb.hpp"
+#include "pcb.hpp"
 
 /// Operating System handles: fetch/decode/execute cycle, memory simulator, and program processes
 namespace OS {

@@ -2,7 +2,7 @@
 #include "template/test_suite.hpp"
 /** MEMORY: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-#include "OS/memory.hpp"
+#include "memory.hpp"
 
 namespace TS { namespace _Memory_
 {

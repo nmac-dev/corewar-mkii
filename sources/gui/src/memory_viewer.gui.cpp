@@ -1,11 +1,11 @@
 /// GUI display for the operating systems memory
 #include "memory_viewer.gui.hpp"
 
-namespace Corewar { namespace GUI
+namespace Core { namespace GUI
 {
-void MemoryViewer::init(Game *_corewar)
+void MemoryViewer::init(Game *_core)
 {
-    ptr_corewar = _corewar;
+    ptr_core = _core;
 
     memory_cells.clear();
     memory_cells.resize(Game::memory_size());
@@ -20,14 +20,14 @@ void MemoryViewer::reset()
     for (int i = 0; i < memory_cells.size(); i++)
         memory_cells[i] = MemoryViewer::Cell();
 
-    if (ptr_corewar->state() == State::WAITING )
+    if (ptr_core->state() == State::WAITING )
         return;
 
     // set initial program
-    for (int plr = 1; plr <= ptr_corewar->players(); plr++)
+    for (int plr = 1; plr <= ptr_core->players(); plr++)
     {
-        int adr_ = ptr_corewar->program_address( (Player) plr );
-        int len_ = ptr_corewar->program_length(  (Player) plr );
+        int adr_ = ptr_core->program_address( (Player) plr );
+        int len_ = ptr_core->program_length(  (Player) plr );
 
         // add assembly to cells
         for (int i = 0; i < len_; i++)
@@ -50,8 +50,8 @@ void MemoryViewer::update_cells()
     // only update if the game is running, or trigger a reset
     if ( !init_flag() )
         return;
-    
-    State state_ = ptr_corewar->state();
+
+    State state_ = ptr_core->state();
 
     // trigger a single reset and dont update until the game state changes
     if (state_ == State::RESET)
@@ -67,8 +67,8 @@ void MemoryViewer::update_cells()
     else return;
 
     /* Update Cell */
-    static const OS::Report &report_ = ptr_corewar->report();
-    Player player_                   = ptr_corewar->warrior().player();
+    static const OS::Report &report_ = ptr_core->report();
+    Player player_                   = ptr_core->warrior().player();
 
     int _adr;
     Cell *cell_;
@@ -115,7 +115,7 @@ void MemoryViewer::draw()
 
     /* Cell Distro */
     // distro cells across display width
-    float disp_cell_distro = ((disp_window_size.x - PAD) 
+    float disp_cell_distro = ((disp_window_size.x - PAD)
                            / (disp_cell_size.x + edit_style.ItemSpacing.x));
 
     ImGui::SetNextWindowSize(disp_window_size);
@@ -147,9 +147,9 @@ void MemoryViewer::draw()
                 {
                     color_ = PLR_COLORS.at(cell_->owner);
                     // mark executing cell
-                    if (init_flag() 
-                        && ptr_corewar->state() == State::RUNNING 
-                        && counter_ == ptr_corewar->report().exe.address)
+                    if (init_flag()
+                        && ptr_core->state() == State::RUNNING
+                        && counter_ == ptr_core->report().exe.address)
                         adjust_color(color_);
                 }
 
@@ -179,4 +179,4 @@ void MemoryViewer::draw()
     ImGui::GetStyle() = saved_style;
 }
 
-}}/* ::Corewar::GUI */
+}}/* ::Core::GUI */

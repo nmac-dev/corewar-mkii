@@ -1,11 +1,11 @@
 /// GUI display for loading warrior files and tracking stats
 #include "control_panel.gui.hpp"
 
-namespace Corewar { namespace GUI
+namespace Core { namespace GUI
 {
-void ControlPanel::init(Game *_corewar)
+void ControlPanel::init(Game *_core)
 {
-    ptr_corewar = _corewar;
+    ptr_core = _core;
 
     ImGui::GetStyle().FrameRounding = 2.f;
 
@@ -14,32 +14,32 @@ void ControlPanel::init(Game *_corewar)
     // initilaise memory display
     if (MemoryViewer::init_flag() == false)
     {
-        MemoryViewer::init( _corewar );
+        MemoryViewer::init( _core );
     }
     m_init_flag  = true;
 }
 
-void ControlPanel::run_corewar_systems()
+void ControlPanel::run_core_systems()
 {
     if ( !init_flag())
-        return;    
+        return;
 
-    if (ptr_corewar->state() == State::NEW_ROUND)
+    if (ptr_core->state() == State::NEW_ROUND)
         new_round_flag = true;
 
-    ptr_corewar->next_turn();
+    ptr_core->next_turn();
     MemoryViewer::draw();
 }
 
 void ControlPanel::reset()
 {
-    ptr_corewar->restart_game();
+    ptr_core->restart_game();
     MemoryViewer::reset();
 }
 
 void ControlPanel::reload_files()
 {
-    static std::string path_ = ptr_corewar->warriors_directory();
+    static std::string path_ = ptr_core->warriors_directory();
 
     warrior_stats.clear();
     warrior_stats.reserve(Game::max_players());
@@ -58,7 +58,7 @@ void ControlPanel::reload_files()
     );
     clear_selected();
 
-    ptr_corewar->hault_game();
+    ptr_core->hault_game();
 
     // Memory cannot load empty game
     if (m_init_flag)
@@ -71,7 +71,7 @@ void ControlPanel::load_selected()
 {
     if ( !init_flag())
         return;
-    
+
     WarriorFiles filename_;
     filename_.reserve(Game::max_players());
 
@@ -88,13 +88,13 @@ void ControlPanel::load_selected()
     if (filename_.size() <= 0)
         return;
 
-    ptr_corewar->new_game(filename_);
+    ptr_core->new_game(filename_);
     MemoryViewer::reset();
 
     /* Load Initial Stats */
     for (int plr = 1; plr <= filename_.size(); plr++)
     {
-        Warrior const &warrior_ = ptr_corewar->warrior( (Player) plr);
+        Warrior const &warrior_ = ptr_core->warrior( (Player) plr);
 
         warrior_stats.push_back(
             {
@@ -110,4 +110,4 @@ void ControlPanel::load_selected()
     warriors_locked = true;
 }
 
-}}/* ::Corewar::GUI */
+}}/* ::Core::GUI */

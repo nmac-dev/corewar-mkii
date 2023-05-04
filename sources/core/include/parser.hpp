@@ -1,4 +1,4 @@
-/// Parses assembly instructions from a program file into a program class 
+/// Parses assembly instructions from a program file into a program class
 #pragma once
 
 // #define ASM_PARSER_DEBUG
@@ -6,7 +6,7 @@
 #define ASSEMBLY_COMMENT ';' // assembly code comment character
 
 #include <unordered_map>
-#include "OS/assembly.hpp"
+#include "assembly.hpp"
 
 namespace Parser
 {
@@ -25,18 +25,18 @@ using AddrModes    = std::unordered_map<char, Admo>;
 /// Hashes an opcode string to get the enum value
 Opcodes opcode_tbl =
 {
-    {"nop", Opcode::NOP}, {"dat", Opcode::DAT}, {"mov", Opcode::MOV}, 
+    {"nop", Opcode::NOP}, {"dat", Opcode::DAT}, {"mov", Opcode::MOV},
     {"cmp", Opcode::SEQ}, {"seq", Opcode::SEQ}, {"sne", Opcode::SNE}, {"slt", Opcode::SLT},
-    {"add", Opcode::ADD}, {"sub", Opcode::SUB}, {"mul", Opcode::MUL}, {"div", Opcode::DIV}, {"mod", Opcode::MOD}, 
+    {"add", Opcode::ADD}, {"sub", Opcode::SUB}, {"mul", Opcode::MUL}, {"div", Opcode::DIV}, {"mod", Opcode::MOD},
     {"jmp", Opcode::JMP}, {"jmz", Opcode::JMZ}, {"jmn", Opcode::JMN}, {"djn", Opcode::DJN}, {"spl", Opcode::SPL}
 };
 
 /// Hashes a modifier string to get the enum value
 Modifiers mod_tbl =
 {
-    {"a",  Modifier::A},  {"b",  Modifier::B}, 
-    {"ab", Modifier::AB}, {"ba", Modifier::BA}, 
-    {"f",  Modifier::F},  {"x",  Modifier::X}, 
+    {"a",  Modifier::A},  {"b",  Modifier::B},
+    {"ab", Modifier::AB}, {"ba", Modifier::BA},
+    {"f",  Modifier::F},  {"x",  Modifier::X},
     {"i",  Modifier::I}
 };
 
@@ -46,7 +46,7 @@ AddrModes admo_tbl =
     {'#', Admo::IMMEDIATE},  {'$', Admo::DIRECT},
     {'*', Admo::INDIRECT_A}, {'@', Admo::INDIRECT_B},
     {'{', Admo::PRE_DEC_A},  {'<', Admo::PRE_DEC_B},
-    {'}', Admo::POST_INC_A}, {'>', Admo::POST_INC_B} 
+    {'}', Admo::POST_INC_A}, {'>', Admo::POST_INC_B}
 };
 
 /* Utility Functions */
@@ -73,7 +73,7 @@ inline void invalid_assembly(int _index, std::string _line, std::string _err)
 template<typename T>
 inline bool is_between(T val, T begin, T end)
 {
-    return val >= begin 
+    return val >= begin
         && val <= end;
 }
 
@@ -85,7 +85,7 @@ inline bool is_seperator(char val)
     return val == ' ' || val == '\t' || val == '.' || val == ',';
 }
 
-/// Takes an assembly instruction string and returns the next valid argument from the position given 
+/// Takes an assembly instruction string and returns the next valid argument from the position given
 /// @param line assembly instruction string
 /// @param pos start position to look for the next assembly argument
 /// @return string of the assembly argument
@@ -117,7 +117,7 @@ LabelLinker generate_label_linker(AssemblyCode &_assembly);
 /// @param address instruction address (line number) in asm code
 Inst assembly_to_inst(std::string &_line, LabelLinker &_linker, int _index);
 
-/// Create a program object by parsing assembly code  
+/// Create a program object by parsing assembly code
 /// @param _program_name filename of the program
 /// @param _assembly collection containing the programs assembly code
 /// @param max_program_insts max instructions a program can consist of

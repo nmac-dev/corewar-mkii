@@ -2,7 +2,7 @@
 #include "template/test_suite.hpp"
 /** CPU: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
 
-#include "OS/cpu.hpp"
+#include "cpu.hpp"
 
 namespace TS { namespace _CPU_
 {

@@ -1,4 +1,4 @@
-/// Corewar GUI using 'Dear ImGui'
+/// Core GUI using 'Dear ImGui'
 
 #include "imgui_required.hpp"
 #include "control_panel.gui.hpp"
@@ -12,7 +12,7 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GLFW_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    GLFWwindow *window = glfwCreateWindow(1440.f, 556.f, "Corewar MKII", nullptr, nullptr);
+    GLFWwindow *window = glfwCreateWindow(1440.f, 556.f, "Core MKII", nullptr, nullptr);
 
     /* Errors */
     if (window == nullptr) {
@@ -34,8 +34,8 @@ int main() {
     /* Set Config */ // must be set before backend is initialised
     ImGuiIO& io = ImGui::GetIO(); (void)io;
 
-    io.IniFilename = ".gui.ini";
-    io.ConfigFlags |= Corewar::GUI::GLOBAL_CONFIG_FLAGS;
+    io.IniFilename =  "gui.ini";
+    io.ConfigFlags |= Core::GUI::GLOBAL_CONFIG_FLAGS;
 
     /* Tweaks for Viewport */
     ImGuiStyle& style = ImGui::GetStyle();
@@ -48,13 +48,13 @@ int main() {
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init(GLSL_VERSION);
 
-/** COREWAR:GUI:SETUP: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/** CORE:GUI:SETUP: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     /* Game Instance */
-    using namespace Corewar;
-    static Game COREWAR_GAME;
+    using namespace Core;
+    static Game CORE_GAME;
 
     /* Main Viewport */
-    static ImGuiWindowFlags main_window_flags ( 
+    static ImGuiWindowFlags main_window_flags (
         GUI::GLOBAL_WINDOW_FLAGS
         // extra
         | ImGuiWindowFlags_NoTitleBar
@@ -65,7 +65,7 @@ int main() {
 
 /** LOOP:START: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     while (!glfwWindowShouldClose(window))
-    { 
+    {
         glfwPollEvents();
 
         ImGui_ImplOpenGL3_NewFrame();
@@ -86,7 +86,7 @@ int main() {
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
 
      /* Main Display */
-        ImGui::Begin("Corewar", NULL, main_window_flags);       ImGui::PopStyleVar(main_push);
+        ImGui::Begin("Core", NULL, main_window_flags);       ImGui::PopStyleVar(main_push);
         {
          /* Set Docking */
             if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
@@ -95,18 +95,18 @@ int main() {
                ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), GUI::GLOBAL_DOCKSPACE_FLAGS);
                ImGuiDockNode* Node  = ImGui::DockBuilderGetNode( dockspace_id );
                Node->LocalFlags    |= GUI::GLOBAL_DOCKSPACE_FLAGS_PRIVATE;
-               
+
                io.IniFilename = NULL; // stop '.ini' overwrite once loaded
             }
 
-         /** COREWAR:GUI:DRAW:START: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+         /** CORE:GUI:DRAW:START: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
             if (GUI::ControlPanel::init_flag() == false)
             {
-                GUI::ControlPanel::init(&COREWAR_GAME);
+                GUI::ControlPanel::init(&CORE_GAME);
             }
             /* Draw GUI */
             GUI::ControlPanel::draw();
-         /** COREWAR:GUI:DRAW:END: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+         /** CORE:GUI:DRAW:END: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
         }
         ImGui::End();
 

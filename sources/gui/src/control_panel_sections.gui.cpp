@@ -1,7 +1,7 @@
 /// Defines all the sub-sections of the ControlPanel
 #include "control_panel.gui.hpp"
 
-namespace Corewar { namespace GUI
+namespace Core { namespace GUI
 {
 inline void ControlPanel::select_file(int _index)
 {
@@ -90,9 +90,9 @@ inline void ControlPanel::section_loader_menu()
     {
         color_ = PLR_COLORS.at(Player::P3);  adjust_color(color_, -0.35f);
         push_  = push_btn_color(color_);
-        
+
         if(ImGui::Button("Load Selected", item_size))
-            if (total_selected > 1 && total_selected <= ptr_corewar->max_players())
+            if (total_selected > 1 && total_selected <= ptr_core->max_players())
             {
                 load_selected();
             }
@@ -118,7 +118,7 @@ inline void ControlPanel::section_loader_menu()
         ImGui::TableSetupColumn(" 'warriors/'", ImGuiTableColumnFlags_WidthStretch, -1.f );
         ImGui::TableSetupColumn("No.",          ImGuiTableColumnFlags_WidthFixed,   item_size.x );
 
-     /* Show files */ 
+     /* Show files */
         ImGui::TableHeadersRow();
         for (int row = 0; row < dir_files.size(); row++)
         {
@@ -172,7 +172,7 @@ inline void ControlPanel::section_warriors_data()
         static ImVec4 color_;
 
         ImGui::TableHeadersRow();
-        for (int row = 0; row < ptr_corewar->players(); row++)
+        for (int row = 0; row < ptr_core->players(); row++)
         {
             Stats *stats = &warrior_stats[row];
             // select color
@@ -235,10 +235,10 @@ inline void ControlPanel::section_os_data()
     }
     ImGui::Separator();
  /** DATA:TABLE: ~~// Cycles | Prcs | Active | Memory Size //~~~~~~~~~~~~~~~~~~~*/
-    static int const &cycles_     = ptr_corewar->cycles(),
-                     &cycles_max_ = ptr_corewar->max_cycles(),
-                     &active_     = ptr_corewar->active_programs(),
-                     &memory_     = ptr_corewar->memory_size();
+    static int const &cycles_     = ptr_core->cycles(),
+                     &cycles_max_ = ptr_core->max_cycles(),
+                     &active_     = ptr_core->active_programs(),
+                     &memory_     = ptr_core->memory_size();
 
     if (ImGui::BeginTable("OS:DATA:TABLE", 6, ImGuiTableFlags_NoSavedSettings))
     {
@@ -261,14 +261,14 @@ inline void ControlPanel::section_os_data()
             ImGui::TableSetColumnIndex(1); // MAX Cycles
                 ImGui::TextColored(PLR_COLORS.at(Player::P5), std::to_string( cycles_max_ ).c_str());
 
-            int prcs_     = ptr_corewar->total_processes();
-            int prcs_max_ = ptr_corewar->max_processes();
+            int prcs_     = ptr_core->total_processes();
+            int prcs_max_ = ptr_core->max_processes();
             item_txt = " " + std::to_string( prcs_ );
             ImGui::TableSetColumnIndex(2); // Total Prcs
                 ImGui::TextColored(PLR_COLORS.at(Player::P6), item_txt.c_str());
 
-            
-            int players_ = ptr_corewar->players();
+
+            int players_ = ptr_core->players();
             ImGui::TableSetColumnIndex(3); // MAX Prcs
                 ImGui::TextColored(PLR_COLORS.at(Player::P6), std::to_string( prcs_max_ * players_ ).c_str());
 
@@ -307,23 +307,23 @@ inline void ControlPanel::section_game_state()
  /** STATE: ~~// State | Round | Alive | Winner//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
     ImGui::BeginTable("##STATE:TABLE", 2);
     {
-        static State const &state_ = ptr_corewar->state();
-        static int   const &round_ = ptr_corewar->round(),
-                           &alive_ = ptr_corewar->active_programs();
+        static State const &state_ = ptr_core->state();
+        static int   const &round_ = ptr_core->round(),
+                           &alive_ = ptr_core->active_programs();
 
         static Player winner_;
         static std::string winner_string;
         if (state_ == State::COMPLETE)
         {
-            winner_ = ptr_corewar->match_winner();
-        } 
-        else winner_ = ptr_corewar->round_winner();
+            winner_ = ptr_core->match_winner();
+        }
+        else winner_ = ptr_core->round_winner();
 
-        winner_string = ptr_corewar->warrior_string( winner_ );
+        winner_string = ptr_core->warrior_string( winner_ );
 
         static std::string item_txt;
         static ImVec4      item_color;
-        switch (ptr_corewar->state())
+        switch (ptr_core->state())
         {
             default:
             {
@@ -345,7 +345,7 @@ inline void ControlPanel::section_game_state()
                     item_txt = "NEW_ROUND";
                 }
                 else item_txt = "READY";
-                
+
                 item_color = PLR_COLORS.at(Player::P9);
                 break;
             }
@@ -376,7 +376,7 @@ inline void ControlPanel::section_game_state()
         ImGui::Separator();
         ImGui::TableNextRow();        // State
 
-        item_txt = std::to_string(round_) + " / " + std::to_string(ptr_corewar->max_rounds());
+        item_txt = std::to_string(round_) + " / " + std::to_string(ptr_core->max_rounds());
         ImGui::TableSetColumnIndex(0);
             ImGui::Text("Round: ");
         ImGui::TableSetColumnIndex(1);
@@ -385,7 +385,7 @@ inline void ControlPanel::section_game_state()
         ImGui::Separator();
         ImGui::TableNextRow();        // Alive
 
-        item_txt = std::to_string(alive_) + " / " + std::to_string(ptr_corewar->players());
+        item_txt = std::to_string(alive_) + " / " + std::to_string(ptr_core->players());
         ImGui::TableSetColumnIndex(0);
             ImGui::Text("Alive: ");
         ImGui::TableSetColumnIndex(1);
@@ -393,11 +393,11 @@ inline void ControlPanel::section_game_state()
 
         ImGui::Separator();
         ImGui::TableNextRow();        // Winner
-        
+
         ImVec4 color_ = PLR_COLORS.at(winner_);
         if (winner_ == Player::NONE)
             adjust_color(color_, 0.f, 0.45f);
-        
+
         ImGui::TableSetColumnIndex(0);
             ImGui::Text("Winner: ");
         ImGui::TableSetColumnIndex(1);
@@ -436,7 +436,7 @@ inline void ControlPanel::section_game_controls()
                               txt_pause[]    = "Pause",
                               txt_complete[] = "Complete";
         ImVec4 color_;
-        State state_ = ptr_corewar->state();
+        State state_ = ptr_core->state();
 
         int push_;
         /* Play */
@@ -447,14 +447,14 @@ inline void ControlPanel::section_game_controls()
                 color_ = PLR_COLORS.at(Player::P9);  adjust_color(color_, 0.0f);
             }
             else color_ = PLR_COLORS.at(Player::P3);  adjust_color(color_, -0.35f);
-            
+
             push_ = push_btn_color(color_);
 
             if (state_ == State::COMPLETE)
             {
                 ImGui::PopStyleColor(push_);
                 color_ = PLR_COLORS.at(Player::P4);  adjust_color(color_, -0.15f);
-                
+
                 push_ = push_btn_color(color_);
 
                 ImGui::Button(txt_complete, item_size);
@@ -470,7 +470,7 @@ inline void ControlPanel::section_game_controls()
                         MemoryViewer::reset();
                         new_round_flag = false;
                     }
-                    ptr_corewar->play_game();
+                    ptr_core->play_game();
                 }
             }
         }
@@ -480,7 +480,7 @@ inline void ControlPanel::section_game_controls()
             push_ = push_btn_color(color_);
 
             if(ImGui::Button(txt_pause, item_size) && m_init_flag)
-                ptr_corewar->pause_game();
+                ptr_core->pause_game();
         }
         ImGui::PopStyleColor(push_);
     }
@@ -489,7 +489,7 @@ inline void ControlPanel::section_game_controls()
 
 void ControlPanel::draw()
 {
-    run_corewar_systems();
+    run_core_systems();
 
     /* Display */
     static ImGuiWindowFlags disp_flags ( GLOBAL_WINDOW_FLAGS );
@@ -497,11 +497,11 @@ void ControlPanel::draw()
                 saved_style   = edit_style;
     edit_style.ItemSpacing.y *= 1.5f;
 
-    if (ImGui::Begin("Corewar Control Panel", NULL, GLOBAL_WINDOW_FLAGS & ~(ImGuiWindowFlags_NoResize)))
+    if (ImGui::Begin("Core Control Panel", NULL, GLOBAL_WINDOW_FLAGS & ~(ImGuiWindowFlags_NoResize)))
     {
         ImVec2 disp_window_size = ImGui::GetWindowSize();
         if ((disp_window_size.x + disp_window_size.y) < (m_min_window_size.x + m_min_window_size.y))
-        {   
+        {
             disp_window_size = m_min_window_size;
             ImGui::SetWindowSize(m_min_window_size);
         }
@@ -509,14 +509,14 @@ void ControlPanel::draw()
         section_master_controls();        ImGui::Separator();
 
      /** WARRIORS:SECTIONS: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
-        static ImGuiWindowFlags disp_flags ( 
+        static ImGuiWindowFlags disp_flags (
             GLOBAL_WINDOW_FLAGS
             & ~(ImGuiWindowFlags_AlwaysAutoResize)
             & ~(ImGuiWindowFlags_NoScrollbar)          // allow scroll
             & ~(ImGuiWindowFlags_NoScrollWithMouse)
         );
         ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, 5.0f);
-    
+
         ImGui::BeginChild("MENU:SECTIONS", ImVec2(0.f, 0.f), true, disp_flags);    ImGui::PopStyleVar();
         {
         /** WARRIOR:LOADER:OR:DATA: ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
@@ -542,4 +542,4 @@ void ControlPanel::draw()
     edit_style = saved_style;
 }
 
-}}/* ::Corewar::GUI */
+}}/* ::Core::GUI */

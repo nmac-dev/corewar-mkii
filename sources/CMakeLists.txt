@@ -2,15 +2,15 @@
 #   CMAKE ---> ./SOURCES
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-#~~COREWAR~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-add_subdirectory ( ${__COREWAR}  )  #~~SOURCE
-add_subdirectory ( ${__GUI}      )  #~~GUI
+#~~CORE~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+add_subdirectory(OS)
+add_subdirectory(core)
+add_subdirectory(gui)
 
 #~~TEST-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 if (BUILD_TESTING)
-    set ( __TEST_HEADERS    ${__TEST}/test_suite  )
-    add_subdirectory ( ${__TEST}  )
+    add_subdirectory(test)
 endif ()
 
 #~~VENDOR~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-add_subdirectory( ${__VENDOR}  )
+add_subdirectory(vendor)

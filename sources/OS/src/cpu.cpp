@@ -1,6 +1,6 @@
 /// Pushes fetch/decode/execute cycles to Memory and selects program processes from the scheduler
 
-#include "OS/cpu.hpp"
+#include "cpu.hpp"
 
 /// Operating System handles: fetch/decode/execute cycle, memory, and processes
 namespace OS
@@ -24,7 +24,7 @@ Report const CPU::run_fde_cycle()
 
     #ifdef CPU_DEBUG
     printf("\nCore::run_fde_cycle:\t Cycle:[%d]\t Program:[%d] Index:[%d] Inst:'%s' \n",
-        os_sched->cycles(), exe_process.parent_id(), 
+        os_sched->cycles(), exe_process.parent_id(),
         ctrl.EXE.address, (*os_memory)[ctrl.EXE.address].to_assembly().c_str());
     #endif
 
@@ -67,7 +67,7 @@ Report const CPU::run_fde_cycle()
         if (ctrl.EXE.event == Event::ILLEGAL)
             os_sched->kill_process(&exe_process);
     }
-    os_sched->return_process(&exe_process);   
+    os_sched->return_process(&exe_process);
 
     // SPL request new process
     if(exe_process.status() == Status::NEW)
@@ -110,7 +110,7 @@ void CPU::execute_system()
             {
                 case ModifierType::DOUBLE:
                 {
-                    DEST_.B->val = SRC_.B->val; 
+                    DEST_.B->val = SRC_.B->val;
                     /* ->::SINGLE */
                 }
                 case ModifierType::SINGLE:
@@ -160,7 +160,7 @@ void CPU::execute_compare()
 
     // SEQ, SNE
     if (code_ != Opcode::SLT)
-    {    
+    {
         if (mod_t == ModifierType::FULL)
         {
             // entire instruction comparison
@@ -177,7 +177,7 @@ void CPU::execute_compare()
             {
                 compare_flag  = SRC_.B->val - DEST_.B->val == 0;
             }
-            compare_flag &= SRC_.A->val - DEST_.A->val == 0; 
+            compare_flag &= SRC_.A->val - DEST_.A->val == 0;
         }
     }
 
@@ -207,7 +207,7 @@ void CPU::execute_compare()
         default:
         {
             #ifdef CPU_DEBUG_CODES
-            printf("ERROR! CPU:: 'execute COMPARISION' opcode not found"); 
+            printf("ERROR! CPU:: 'execute COMPARISION' opcode not found");
             #endif
             break;
         }
@@ -241,7 +241,7 @@ void CPU::execute_arithmetic()
         default:
         {
             #ifdef CPU_DEBUG_CODES
-            printf("ERROR! CPU:: 'execute ARITHMETIC' opcode not found"); 
+            printf("ERROR! CPU:: 'execute ARITHMETIC' opcode not found");
             #endif
             return;
         }
@@ -251,7 +251,7 @@ void CPU::execute_arithmetic()
     if (code_ == Opcode::DIV || code_ == Opcode::MOD)
     {
         bool zero_div = false; // true if division by zero
-        
+
         if(mod_t == ModifierType::DOUBLE)
         {
             zero_div = !(SRC_.B->val && DEST_.B->val);
@@ -310,7 +310,7 @@ void CPU::execute_jump()
             break;
         }
         case Opcode::JMN:
-        { 
+        {
             set_jump = !compare_zero;
             break;
         }
@@ -331,16 +331,16 @@ void CPU::execute_jump()
         default:
         {
             #ifdef CPU_DEBUG_CODES
-            printf("ERROR! CPU:: 'execute JUMP' opcode not found"); 
+            printf("ERROR! CPU:: 'execute JUMP' opcode not found");
             #endif
             break;
         }
     }
-    
+
     if (set_jump)
     {
         exe_process << SRC_.address;
-    }    
+    }
 } /* execute_jump() */
 
 } /* ::OS */
